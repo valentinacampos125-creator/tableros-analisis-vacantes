@@ -1,0 +1,1372 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Seguimiento de Vacantes - Claro</title>
+<!-- Cada librería intenta 3 orígenes distintos por si tu red bloquea alguno (común en redes corporativas). -->
+<script>
+function loadScriptWithFallbacks(urls, globalName, onFinalFailure){
+  let i = 0;
+  function tryNext(){
+    if (typeof window[globalName] !== 'undefined') return; // ya cargó por otra vía
+    if (i >= urls.length){ onFinalFailure(); return; }
+    const url = urls[i++];
+    const s = document.createElement('script');
+    s.src = url;
+    s.onerror = tryNext;
+    s.onload = function(){ if (typeof window[globalName] === 'undefined') tryNext(); };
+    document.head.appendChild(s);
+  }
+  tryNext();
+}
+window.__libLoadErrors = { xlsx:false, chart:false };
+loadScriptWithFallbacks([
+  'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js',
+  'https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js',
+  'https://unpkg.com/xlsx@0.18.5/dist/xlsx.full.min.js'
+], 'XLSX', ()=>{ window.__libLoadErrors.xlsx = true; console.error('No se pudo cargar la librería XLSX desde ningún origen.'); });
+loadScriptWithFallbacks([
+  'https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js',
+  'https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js',
+  'https://unpkg.com/chart.js@4.4.4/dist/chart.umd.min.js'
+], 'Chart', ()=>{ window.__libLoadErrors.chart = true; console.error('No se pudo cargar la librería Chart.js desde ningún origen.'); });
+</script>
+<style>
+  :root{
+    --red:#e5493d; --orange:#f2994a; --yellow:#f2c94c; --green:#27ae60;
+    --blue:#2f6fed; --blue-dark:#1f4fb8; --ink:#1c2430; --muted:#6b7280;
+    --bg:#f3f5f9; --card:#ffffff; --card2:#f7f9fc; --border:#e4e8f0;
+    --shadow:0 1px 3px rgba(20,30,60,.08), 0 1px 2px rgba(20,30,60,.04);
+    --th-bg:#f5f7fb; --row-hover:#fafbff; --row-critical-bg:#fff2f1;
+    --popup-bg:#ffffff; --popup-shadow:0 8px 24px rgba(20,30,60,.18);
+    --input-border:#c7d0e0;
+    --dropzone-bg:#fafbfe; --dropzone-border:#c7d0e0; --drag-bg:#eef4ff;
+    --btn-outline-bg:#ffffff; --btn-outline-hover:#f0f3f9;
+    --status-bg:#f0f3f9; --status-ok-bg:#e7f7ee; --status-ok-fg:#1c7d43;
+    --status-err-bg:#fdeceb; --status-err-fg:#a12a20;
+    --comment-bg:#eef4ff; --comment-border:#c7d8fb; --comment-hover:#dfeaff;
+    --badge-open-bg:#e7f0ff; --badge-closed-bg:#e7f7ee; --badge-closed-fg:#1c7d43;
+    --badge-excluded-bg:#f1f2f5; --badge-excluded-fg:#6b7280;
+    --th-filter-hover:#e7ebf3; --dot-grey:#c6cbd6; --table-line:#dfe4ee;
+  }
+  :root[data-theme="dark"]{
+    --blue-dark:#7fb0ff; --ink:#e7eaf0; --muted:#9aa4b6;
+    --bg:#10141c; --card:#1a1f2b; --card2:#212734; --border:#2c3444;
+    --shadow:0 1px 3px rgba(0,0,0,.4), 0 1px 2px rgba(0,0,0,.3);
+    --th-bg:#1f2531; --row-hover:#212838; --row-critical-bg:#3a1f1f;
+    --popup-bg:#1e2430; --popup-shadow:0 8px 24px rgba(0,0,0,.55);
+    --input-border:#333c4d;
+    --dropzone-bg:#171c26; --dropzone-border:#333c4d; --drag-bg:#1c2740;
+    --btn-outline-bg:#1a1f2b; --btn-outline-hover:#242c3b;
+    --status-bg:#1f2531; --status-ok-bg:#173a29; --status-ok-fg:#5fd693;
+    --status-err-bg:#3a1f1c; --status-err-fg:#f28b7d;
+    --comment-bg:#1c2740; --comment-border:#2d4677; --comment-hover:#22315a;
+    --badge-open-bg:#1c2740; --badge-closed-bg:#173a29; --badge-closed-fg:#5fd693;
+    --badge-excluded-bg:#2a2f3a; --badge-excluded-fg:#9aa3b2;
+    --th-filter-hover:#2a3244; --dot-grey:#4b5568; --table-line:#2c3444;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:"Segoe UI",Arial,Helvetica,sans-serif;background:var(--bg);color:var(--ink);padding-bottom:40px;transition:background-color .2s,color .2s;}
+  a{color:inherit;}
+  .app-header{position:sticky;top:0;z-index:50;background:linear-gradient(135deg,#c0392b,#e5493d 55%,#b71c1c);color:#fff;padding:12px 20px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;box-shadow:var(--shadow);}
+  .btn-indicadores{background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.5);color:#fff;padding:9px 16px;border-radius:8px;font-weight:600;font-size:13px;cursor:pointer;display:flex;align-items:center;gap:8px;white-space:nowrap;transition:background .15s;}
+  .btn-indicadores:hover{background:rgba(255,255,255,.3);}
+  .app-title{font-size:19px;font-weight:700;letter-spacing:.3px;flex:1;text-align:center;min-width:200px;}
+  .header-right{display:flex;align-items:center;gap:10px;font-size:12px;}
+  .pill{background:rgba(255,255,255,.16);border-radius:20px;padding:6px 12px;font-weight:600;display:flex;align-items:center;gap:6px;}
+  .pill.alert{background:#fff3cd;color:#7a4d00;}
+  .theme-toggle{background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.5);color:#fff;border-radius:20px;padding:6px 12px;font:inherit;font-weight:600;font-size:13px;cursor:pointer;display:flex;align-items:center;gap:6px;transition:background .15s;}
+  .theme-toggle:hover{background:rgba(255,255,255,.3);}
+
+  .toolbar{max-width:1500px;margin:14px auto 0;padding:0 16px;}
+  .source-panel{background:var(--card);border:1px solid var(--border);border-radius:12px;box-shadow:var(--shadow);padding:14px 16px;margin-bottom:14px;transition:background-color .2s,border-color .2s;}
+  .source-panel summary{cursor:pointer;font-weight:700;font-size:13.5px;color:var(--blue-dark);list-style:none;display:flex;align-items:center;gap:8px;}
+  .source-panel summary::-webkit-details-marker{display:none;}
+  .source-panel summary:before{content:"⛁";font-size:15px;}
+  .source-body{margin-top:12px;display:flex;flex-wrap:wrap;gap:20px;}
+  .drop-zone{flex:1;min-width:260px;border:2px dashed var(--dropzone-border);border-radius:10px;padding:18px;text-align:center;font-size:13px;color:var(--muted);cursor:pointer;transition:.15s;background:var(--dropzone-bg);}
+  .drop-zone.drag{border-color:var(--blue);background:var(--drag-bg);color:var(--blue-dark);}
+  .drop-zone input{display:none;}
+  .source-actions{flex:1;min-width:260px;display:flex;flex-direction:column;gap:8px;font-size:13px;}
+  .source-actions .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
+  .btn{border:none;border-radius:7px;padding:8px 13px;font-size:12.5px;font-weight:600;cursor:pointer;transition:.15s;}
+  .btn-primary{background:var(--blue);color:#fff;}
+  .btn-primary:hover{background:var(--blue-dark);}
+  .btn-outline{background:var(--btn-outline-bg);border:1px solid var(--input-border);color:var(--ink);}
+  .btn-outline:hover{background:var(--btn-outline-hover);}
+  .status-msg{font-size:12px;padding:6px 9px;border-radius:6px;background:var(--status-bg);color:var(--muted);}
+  .status-msg.ok{background:var(--status-ok-bg);color:var(--status-ok-fg);}
+  .status-msg.err{background:var(--status-err-bg);color:var(--status-err-fg);}
+  .field-hint{font-size:11.5px;color:var(--muted);line-height:1.5;}
+  .cfg-url{width:100%;font-size:12px;padding:6px 8px;border:1px solid var(--input-border);border-radius:6px;background:var(--card);color:var(--ink);}
+
+  .filters{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:14px;}
+  .filters select{padding:9px 12px;border-radius:8px;border:1px solid var(--border);background:var(--card);font-size:13px;min-width:170px;box-shadow:var(--shadow);color:var(--ink);}
+  .filters .clear-filters{padding:9px 14px;border-radius:8px;border:1px solid var(--border);background:var(--card);font-size:12.5px;font-weight:600;color:var(--muted);cursor:pointer;}
+
+  .kpis{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;margin-bottom:14px;}
+  .kpi{background:var(--card);border:1px solid var(--border);border-radius:12px;box-shadow:var(--shadow);padding:14px 12px;text-align:center;position:relative;transition:background-color .2s,border-color .2s;}
+  .kpi.clickable{cursor:pointer;transition:.15s;}
+  .kpi.clickable:hover{transform:translateY(-2px);box-shadow:0 4px 14px rgba(20,30,60,.14);}
+  .kpi.active{border-color:var(--blue);box-shadow:0 0 0 2px var(--blue) inset,var(--shadow);}
+  .kpi-label{font-size:11.5px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.3px;min-height:28px;display:flex;align-items:center;justify-content:center;gap:6px;}
+  .kpi-value{font-size:30px;font-weight:800;margin-top:4px;}
+  .kpi-sub{font-size:10.5px;color:var(--muted);margin-top:2px;}
+  .kpi.v-abiertas .kpi-value{color:var(--blue-dark);}
+  .kpi.v-criticas .kpi-value{color:var(--red);}
+  .kpi.v-cerradas .kpi-value{color:var(--green);}
+  .kpi.v-promedio .kpi-value{color:#9b7bf7;}
+  .kpi.v-diascierre .kpi-value{color:#e58a35;}
+  .kpi.v-promperiodo .kpi-value{color:#16b5a1;}
+  .kpi-check{position:absolute;top:8px;right:10px;font-size:13px;color:var(--blue);}
+
+  .ic-title{width:15px;height:15px;flex:none;vertical-align:-3px;}
+  .kpi-label .ic-title{vertical-align:-2px;opacity:.85;}
+  .chart-card h3, .table-card h3{display:flex;align-items:center;gap:7px;}
+  .chart-card h3 .ic-title, .table-card h3 .ic-title{opacity:.8;}
+
+  .charts{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:14px;}
+  .chart-card{background:var(--card);border:1px solid var(--border);border-radius:12px;box-shadow:var(--shadow);padding:12px;transition:background-color .2s,border-color .2s;}
+  .chart-card h3{margin:0 0 8px;font-size:13px;font-weight:700;color:var(--ink);}
+  .chart-card .canvas-wrap{position:relative;height:230px;}
+
+  .table-card{background:var(--card);border:1px solid var(--border);border-radius:12px;box-shadow:var(--shadow);padding:14px;overflow:auto;transition:background-color .2s,border-color .2s;}
+  .table-card h3{margin:0 0 10px;font-size:13px;font-weight:700;}
+  table{width:100%;border-collapse:collapse;font-size:12.5px;border:1px solid var(--table-line);}
+  th,td{padding:8px 10px;border:1px solid var(--table-line);text-align:left;white-space:nowrap;}
+  th{background:var(--th-bg);font-weight:700;color:var(--muted);text-transform:uppercase;font-size:10.5px;letter-spacing:.3px;cursor:pointer;position:sticky;top:0;border-top:none;}
+  th:first-child, td:first-child{border-left:none;}
+  th:last-child, td:last-child{border-right:none;}
+  tbody tr:last-child td{border-bottom:none;}
+  th.filterable{position:relative;padding-right:22px;}
+  .th-filter-btn{position:absolute;right:2px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--muted);cursor:pointer;font-size:11px;padding:2px 5px;border-radius:4px;}
+  .th-filter-btn:hover{background:var(--th-filter-hover);color:var(--ink);}
+  .th-filter-btn.active{color:var(--blue);}
+  .th-filter-popup{position:absolute;top:100%;left:0;margin-top:2px;background:var(--popup-bg);border:1px solid var(--border);border-radius:8px;box-shadow:var(--popup-shadow);padding:8px;z-index:200;min-width:180px;max-width:260px;text-transform:none;font-weight:400;font-size:12px;color:var(--ink);cursor:default;}
+  .th-filter-popup[hidden]{display:none;}
+  .th-filter-list{max-height:200px;overflow:auto;}
+  .th-filter-popup label{display:flex;align-items:center;gap:7px;padding:4px 2px;cursor:pointer;white-space:nowrap;}
+  .th-filter-popup label:hover{background:var(--th-bg);border-radius:4px;}
+  .th-filter-actions{display:flex;justify-content:space-between;gap:6px;margin-top:6px;padding-top:6px;border-top:1px solid var(--border);}
+  .th-filter-actions button{font-size:11px;padding:5px 10px;border-radius:6px;border:1px solid var(--border);background:var(--th-bg);color:var(--ink);cursor:pointer;font-weight:600;}
+  .th-filter-actions button.primary{background:var(--blue);color:#fff;border-color:var(--blue);}
+  tr:hover td{background:var(--row-hover);}
+  td.comentarios{white-space:normal;min-width:160px;color:var(--ink);}
+  .btn-ver-comentario{background:var(--comment-bg);border:1px solid var(--comment-border);color:var(--blue-dark);border-radius:6px;padding:4px 9px;font-size:11px;font-weight:600;cursor:pointer;white-space:nowrap;}
+  .btn-ver-comentario:hover{background:var(--comment-hover);}
+  .comentario-full{margin-top:8px;white-space:normal;max-width:360px;font-size:12px;line-height:1.5;}
+  .comentario-full[hidden]{display:none;}
+  .dot{display:inline-block;width:11px;height:11px;border-radius:50%;margin-right:5px;vertical-align:middle;}
+  .dot.red{background:var(--red);} .dot.yellow{background:var(--yellow);} .dot.green{background:var(--green);} .dot.grey{background:var(--dot-grey);}
+  .badge{padding:2px 8px;border-radius:20px;font-size:10.5px;font-weight:700;}
+  .badge.open{background:var(--badge-open-bg);color:var(--blue-dark);}
+  .badge.closed{background:var(--badge-closed-bg);color:var(--badge-closed-fg);}
+  .badge.excluded{background:var(--badge-excluded-bg);color:var(--badge-excluded-fg);}
+  .row-critical td{background:var(--row-critical-bg);}
+  .warn-icon{color:var(--red);font-weight:800;margin-left:4px;}
+  .empty-state{padding:40px 20px;text-align:center;color:var(--muted);font-size:14px;}
+  .empty-state .big{font-size:38px;display:block;margin-bottom:10px;}
+
+  .page-indicadores{display:none;}
+  .ind-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:14px;}
+  .ind-tables{display:grid;grid-template-columns:1.1fr 1fr;gap:12px;}
+  .placeholder-note{font-size:12px;color:var(--muted);padding:14px;text-align:center;border:1px dashed var(--border);border-radius:8px;}
+
+  @media (max-width:1100px){ .kpis{grid-template-columns:repeat(3,1fr);} .charts{grid-template-columns:1fr 1fr;} .ind-grid{grid-template-columns:repeat(2,1fr);} .ind-tables{grid-template-columns:1fr;} }
+  @media (max-width:640px){ .kpis{grid-template-columns:repeat(2,1fr);} .charts{grid-template-columns:1fr;} .app-title{order:3;width:100%;text-align:left;} }
+</style>
+</head>
+<body>
+
+<div class="app-header">
+  <button class="btn-indicadores" id="btnToggleView">📊 <span id="toggleLabel">Análisis de Indicadores</span></button>
+  <div class="app-title">SEGUIMIENTO DE VACANTES</div>
+  <div class="header-right">
+    <button class="theme-toggle" id="btnThemeToggle" title="Cambiar entre modo claro y oscuro" aria-label="Cambiar entre modo claro y oscuro">🌙</button>
+    <span class="pill" id="pillUpdated">Sin datos cargados</span>
+    <span class="pill" id="pillExcluidas" style="display:none;" title="Estados como Cancelada/Anulada/Desierta: no se cuentan como abiertas, críticas ni cerradas">⛔ <span id="excluidasCount">0</span> excluidas</span>
+    <span class="pill alert" id="pillAlert" style="display:none;">⚠️ <span id="alertCount">0</span> &gt; 30 días</span>
+  
+  </div>
+</div>
+
+<div class="toolbar">
+
+  <details class="source-panel" id="sourcePanel" open>
+    <summary>Origen de datos (Excel de OneDrive)</summary>
+    <div class="source-body">
+
+      <div class="source-actions" id="localFilePanel" style="flex-basis:100%;border:1px solid #cfe0ff;background:#f5f9ff;border-radius:10px;padding:12px;">
+        <div style="font-weight:700;font-size:13px;color:var(--blue-dark);">⭐ Recomendado: vincular tu Excel sincronizado de OneDrive (se actualiza solo)</div>
+        <div class="field-hint">
+          Si tienes la app de OneDrive instalada en tu computador (lo normal en un equipo de Claro con Windows), el Excel ya se guarda automáticamente en una carpeta de tu disco y se mantiene al día en segundo plano. Indícale a este tablero, <strong>una sola vez</strong>, dónde está ese archivo — desde ahí lo vuelve a leer directamente de tu disco cada vez que le des "Actualizar" (o solo, si activas la casilla de abajo), sin pasar por internet ni por SharePoint.
+        </div>
+        <div class="row">
+          <button class="btn btn-primary" id="btnPickLocalFile">🔗 Vincular mi Excel (una sola vez)</button>
+          <button class="btn btn-outline" id="btnRefreshLocalFile" style="display:none;">🔄 Actualizar ahora</button>
+        </div>
+        <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);">
+          <input type="checkbox" id="chkAutoRefresh"> Actualizar automáticamente cada 2 minutos mientras el tablero esté abierto
+        </label>
+        <div class="status-msg" id="localFileStatus">Aún no has vinculado ningún archivo.</div>
+        <div class="field-hint">Funciona en Chrome y Edge (no en Firefox/Safari). Si mueves o renombras el archivo tendrás que vincularlo de nuevo.</div>
+      </div>
+
+      <div class="drop-zone" id="dropZone">
+        <input type="file" id="fileInput" accept=".xlsx,.xls,.csv">
+        <div><strong>Arrastra aquí tu archivo Excel</strong><br>o haz clic para seleccionarlo</div>
+        <div class="field-hint" style="margin-top:6px;">Alternativa manual: descarga/abre el Excel desde OneDrive y suéltalo aquí cada vez que quieras actualizar el tablero.</div>
+      </div>
+      <div class="source-actions">
+        <div class="row">
+          <a class="btn btn-outline" id="lnkOpenOneDrive" href="#" target="_blank" rel="noopener">🔗 Abrir Excel en OneDrive</a>
+          <button class="btn btn-outline" id="btnAutoFetch">⇩ Probar enlace público (opcional)</button>
+        </div>
+        <div class="status-msg" id="fetchStatus">Alternativa avanzada: solo funciona si el archivo es público y el navegador no bloquea CORS.</div>
+        <label style="font-size:11.5px;color:var(--muted);font-weight:700;margin-top:4px;">URL directa usada para el enlace público (opcional)</label>
+        <input class="cfg-url" id="cfgUrl" value="">
+        <div style="font-size:11px;color:var(--muted);">Última actualización de datos: <strong id="lastUpdatedText">—</strong></div>
+      </div>
+    </div>
+  </details>
+
+  <!-- ===================== PÁGINA 1: SEGUIMIENTO ===================== -->
+  <div id="pageSeguimiento">
+
+    <div class="filters">
+      <select id="fProfesional"><option value="">Profesional (Todas)</option></select>
+      <select id="fEstado"><option value="">Estado (Todas)</option></select>
+      <select id="fDireccion"><option value="">Dirección Comité (Todas)</option></select>
+      <select id="fMes"><option value="">Mes (Todas)</option></select>
+      <select id="fGranularidad" title="Cambia el período del KPI 'Prom. Vacantes Cerradas' de abajo">
+        <option value="mes">Promedio por: Mes</option>
+        <option value="semana">Promedio por: Semana</option>
+      </select>
+      <button class="clear-filters" id="btnClearFilters">Limpiar filtros</button>
+    </div>
+
+    <div class="kpis">
+      <div class="kpi v-abiertas clickable" id="kpiAbiertas" title="Clic para filtrar la tabla por vacantes abiertas">
+        <div class="kpi-label"><svg class="ic-title" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 9.9-1"></path></svg>Vacantes Abiertas</div>
+        <div class="kpi-value">0</div>
+        <div class="kpi-sub">clic para filtrar</div>
+        <div class="kpi-check">✓</div>
+      </div>
+      <div class="kpi v-promedio">
+        <div class="kpi-label"><svg class="ic-title" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>Días Promedio con<br>Vacantes Abiertas</div>
+        <div class="kpi-value">0</div>
+        <div class="kpi-sub">solo estado abierto</div>
+      </div>
+      <div class="kpi v-criticas clickable" id="kpiCriticas" title="Clic para filtrar la tabla por vacantes críticas (>30 días)">
+        <div class="kpi-label"><svg class="ic-title" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>Vacantes Críticas</div>
+        <div class="kpi-value">0</div>
+        <div class="kpi-sub">abiertas &gt; 30 días</div>
+        <div class="kpi-check">✓</div>
+      </div>
+      <div class="kpi v-cerradas clickable" id="kpiCerradas" title="Clic para filtrar la tabla por vacantes cerradas">
+        <div class="kpi-label"><svg class="ic-title" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>Cerradas</div>
+        <div class="kpi-value">0</div>
+        <div class="kpi-sub">clic para filtrar</div>
+        <div class="kpi-check">✓</div>
+      </div>
+      <div class="kpi v-diascierre">
+        <div class="kpi-label"><svg class="ic-title" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>Promedio Días Cierre</div>
+        <div class="kpi-value">0</div>
+        <div class="kpi-sub">apertura → cierre</div>
+      </div>
+      <div class="kpi v-promperiodo" title="Total de vacantes cerradas (con los filtros actuales) dividido entre el número de periodos entre la primera y la última fecha de cierre -- incluyendo periodos sin cierres.">
+        <div class="kpi-label"><svg class="ic-title" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg>Prom. Vacantes Cerradas <span id="lblGranularidad">/ Mes</span></div>
+        <div class="kpi-value" id="kpiPromCierrePeriodo">—</div>
+        <div class="kpi-sub" id="kpiPromCierrePeriodoSub">según filtro de arriba</div>
+      </div>
+    </div>
+
+    <div class="charts">
+      <div class="chart-card"><h3><svg class="ic-title" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h12"></path><path d="M6 22h12"></path><path d="M6 2c0 6 6 6 6 10s-6 4-6 10"></path><path d="M18 2c0 6-6 6-6 10s6 4 6 10"></path></svg>Vacantes por Antigüedad</h3><div class="canvas-wrap" id="wrapAntiguedad"><canvas id="chartAntiguedad"></canvas></div></div>
+      <div class="chart-card"><h3><svg class="ic-title" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>Vacantes por Profesional</h3><div class="canvas-wrap" id="wrapProfesional"><canvas id="chartProfesional"></canvas></div></div>
+      <div class="chart-card"><h3><svg class="ic-title" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>Vacantes Críticas por Profesional</h3><div class="canvas-wrap" id="wrapCriticasProf"><canvas id="chartCriticasProf"></canvas></div></div>
+    </div>
+
+    <div class="table-card">
+      <h3><svg class="ic-title" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>Detalle de vacantes <span id="tableFilterNote" style="font-weight:400;color:var(--muted);"></span></h3>
+      <div id="tableWrap"></div>
+    </div>
+
+  </div>
+
+  <!-- ===================== PÁGINA 2: INDICADORES ===================== -->
+  <div id="pageIndicadores" class="page-indicadores">
+    <div class="filters">
+      <select id="iProfesional"><option value="">Profesional (Todas)</option></select>
+      <select id="iDireccion"><option value="">Dirección Comité (Todas)</option></select>
+      <select id="iTipoVacante"><option value="">Tipo Vacante (Todas)</option></select>
+    </div>
+
+    <div class="ind-grid">
+      <div class="kpi"><div class="kpi-label"><svg class="ic-title" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="9" r="6"></circle><line x1="12" y1="15" x2="12" y2="22"></line><line x1="9" y1="19" x2="15" y2="19"></line></svg>% Mujeres Contratadas</div><div class="kpi-value" id="ind_pctMujeres" style="color:#d6336c;">—</div></div>
+      <div class="kpi"><div class="kpi-label"><svg class="ic-title" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="14" r="6"></circle><line x1="14.5" y1="9.5" x2="21" y2="3"></line><polyline points="15 3 21 3 21 9"></polyline></svg>% Hombres Contratados</div><div class="kpi-value" id="ind_pctHombres" style="color:#2f6fed;">—</div></div>
+      <div class="kpi"><div class="kpi-label"><svg class="ic-title" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>% Talento Joven (&lt;29)</div><div class="kpi-value" id="ind_pctJoven" style="color:#27ae60;">—</div></div>
+    </div>
+
+    <div class="charts" style="grid-template-columns:1fr;">
+      <div class="chart-card"><h3><svg class="ic-title" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>Vacantes cerradas por Función-Nivel de Cargo (por Género)</h3><div class="canvas-wrap" id="ind_wrapFuncion"><canvas id="chartFuncionGenero"></canvas></div></div>
+    </div>
+
+    <div class="ind-tables" style="grid-template-columns:1fr;">
+      <div class="table-card">
+        <h3><svg class="ic-title" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="1"></rect><line x1="9" y1="7" x2="9" y2="7.01"></line><line x1="15" y1="7" x2="15" y2="7.01"></line><line x1="9" y1="12" x2="9" y2="12.01"></line><line x1="15" y1="12" x2="15" y2="12.01"></line><line x1="9" y1="17" x2="15" y2="17"></line></svg>Resumen por Dirección Corporativa</h3>
+        <div id="ind_tableDireccion"></div>
+      </div>
+    </div>
+
+    <div class="charts" style="grid-template-columns:1fr 1fr;margin-top:12px;">
+      <div class="chart-card"><h3><svg class="ic-title" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg>Tiempo Promedio por Etapa del Proceso</h3><div class="canvas-wrap" id="ind_wrapEtapasProm"><canvas id="chartEtapasProm"></canvas></div></div>
+      <div class="chart-card"><h3><svg class="ic-title" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon></svg>Cuello de Botella del Proceso (Promedio vs. Máximo)</h3><div class="canvas-wrap" id="ind_wrapCuelloBotella"><canvas id="chartCuelloBotella"></canvas></div></div>
+    </div>
+    <div class="charts" style="grid-template-columns:1fr;margin-top:12px;">
+      <div class="chart-card"><h3><svg class="ic-title" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>Tiempo por Etapa y por Profesional — Eva Ramírez</h3><div class="canvas-wrap" id="ind_wrapEtapasEva"><canvas id="chartEtapasEva"></canvas></div></div>
+    </div>
+
+    <div class="table-card" style="margin-top:12px;">
+      <h3><svg class="ic-title" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg>Tiempo Promedio por Etapa del Proceso de Selección <span style="font-weight:400;color:var(--muted);font-size:11px;">(según fechas registradas en Comentarios: Reclutamiento, Relaciones Laborales, Prueba Técnica, Entregado Compensación, Estudio de Seguridad, Examen Médico)</span></h3>
+      <div id="ind_tableEtapas"></div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+/* ============================================================
+   1. ESTADO GLOBAL
+   ============================================================ */
+const state = {
+  rows: [],                 // filas normalizadas del excel
+  cols: {},                 // mapeo de columnas detectadas
+  missingCols: [],          // columnas canonicas no encontradas
+  quickFilter: null,        // 'abiertas' | 'criticas' | 'cerradas' | null
+  filters: { profesional:'', estado:'', direccion:'', mes:'' },
+  granularidad: 'mes',      // 'mes' | 'semana' -- para el KPI "Prom. Vacantes Cerradas"
+  // Filtros tipo Excel en los encabezados de la tabla: un Set vacío = "todas" (sin filtrar).
+  headerFilters: { tipoVacante: new Set(), profesional: new Set(), estado: new Set() },
+  indFilters: { profesional:'', direccion:'', tipoVacante:'' },
+  sort: { key:null, dir:1 },
+  charts: {},
+  lastUpdated: null,
+  shareUrl: "https://claromovilco-my.sharepoint.com/:x:/r/personal/46399725_claro_com_co/_layouts/15/Doc.aspx?sourcedoc=%7B4FE93107-B4CA-4DDA-BDA9-4DD33A71DF21%7D&file=Seguimiento%20Vacantes1.xlsx&action=default&mobileredirect=true"
+};
+const CLOSED_KEYWORD = 'CERRAD';
+const CRITICAL_DAYS = 30;
+const MESES_ES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+
+/* ============================================================
+   2. UTILIDADES
+   ============================================================ */
+function normalize(s){
+  return (s===null||s===undefined? '': String(s))
+    .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+    .toUpperCase().trim().replace(/\s+/g,' ');
+}
+function toDate(v){
+  if (v instanceof Date && !isNaN(v)) return v;
+  if (typeof v === 'number') { // serial excel
+    const d = XLSX.SSF.parse_date_code(v);
+    if (d) return new Date(d.y, d.m-1, d.d);
+  }
+  if (typeof v === 'string' && v.trim()){
+    const parts = v.trim().split(/[\/\-]/);
+    if (parts.length===3){
+      let [a,b,c] = parts.map(x=>parseInt(x,10));
+      if (String(c).length===4){ // dd/mm/yyyy
+        return new Date(c, b-1, a);
+      } else if (String(a).length===4){ // yyyy-mm-dd
+        return new Date(a, b-1, c);
+      }
+    }
+    const d2 = new Date(v);
+    if (!isNaN(d2)) return d2;
+  }
+  return null;
+}
+function businessDaysBetween(start, end){
+  if (!(start instanceof Date) || !(end instanceof Date) || isNaN(start) || isNaN(end)) return null;
+  let d1 = new Date(start.getFullYear(), start.getMonth(), start.getDate());
+  let d2 = new Date(end.getFullYear(), end.getMonth(), end.getDate());
+  if (d2 < d1) return null;
+  let count = 0, cur = new Date(d1);
+  while (cur <= d2){
+    const day = cur.getDay();
+    if (day!==0 && day!==6) count++;
+    cur.setDate(cur.getDate()+1);
+  }
+  return count;
+}
+// Extrae, de la columna Comentarios, la fecha de cada etapa del proceso de selección.
+// Los comentarios traen etiquetas como "RECLUTAMIENTO 05/09/2025:", "PRUEBA_TECNICA 12/10/2025:",
+// etc. Cuando una misma etapa aparece más de una vez (la vacante se reprocesó), se conserva la
+// fecha más reciente -- igual que en la tabla preliminar de Eva Ramírez.
+const STAGE_SEQUENCE = [
+  ['RECLUTAMIENTO', 'Reclutamiento'],
+  ['RELACIONES_LABORALES', 'Relaciones Laborales'],
+  ['PRUEBA_TECNICA', 'Prueba Técnica'],
+  ['ENTREGADO_COMPENSACION', 'Entregado Compensación'],
+  ['ESTUDIO_SEGURIDAD', 'Estudio de Seguridad'],
+  ['EXAMEN_MEDICO', 'Examen Médico'],
+];
+const STAGE_LABEL_PATTERN = /([A-Za-zÁÉÍÓÚÑáéíóúñ_ ]{3,60}?)\s+(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4})\s*:/g;
+function extractStageDates(comentarios){
+  const result = {};
+  if (typeof comentarios !== 'string' || !comentarios) return result;
+  STAGE_LABEL_PATTERN.lastIndex = 0;
+  let m;
+  while ((m = STAGE_LABEL_PATTERN.exec(comentarios)) !== null){
+    const label = normalize(m[1]);
+    const d = toDate(m[2]);
+    if (!d) continue;
+    if (!result[label] || d > result[label]) result[label] = d;
+  }
+  return result;
+}
+// Lunes de la semana de una fecha (para agrupar cierres por semana de forma consistente).
+function mondayOf(date){
+  const d = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  const day = d.getDay(); // 0=domingo..6=sabado
+  const diff = (day===0? -6 : 1-day);
+  d.setDate(d.getDate()+diff);
+  return d;
+}
+// Promedio de vacantes cerradas por semana o por mes: total de cierres (con fecha de cierre
+// válida, según los filtros actuales) dividido entre el número de periodos (semanas o meses)
+// entre la primera y la última fecha de cierre -- incluyendo periodos sin cierres, para que el
+// promedio refleje también los "huecos" y no solo los periodos con actividad.
+function computePromCierrePorPeriodo(cerradas, granularidad){
+  const conFecha = cerradas.filter(r=>r.fechaCierre instanceof Date && !isNaN(r.fechaCierre));
+  if (!conFecha.length) return null;
+  const fechas = conFecha.map(r=>r.fechaCierre);
+  const minF = new Date(Math.min(...fechas)), maxF = new Date(Math.max(...fechas));
+  let numPeriodos;
+  if (granularidad === 'semana'){
+    const msPorSemana = 7*24*3600*1000;
+    numPeriodos = Math.round((mondayOf(maxF) - mondayOf(minF)) / msPorSemana) + 1;
+  } else {
+    numPeriodos = (maxF.getFullYear()-minF.getFullYear())*12 + (maxF.getMonth()-minF.getMonth()) + 1;
+  }
+  numPeriodos = Math.max(1, numPeriodos);
+  return { promedio: round0(conFecha.length/numPeriodos), numPeriodos };
+}
+function fmtDate(d){
+  if (!(d instanceof Date) || isNaN(d)) return '';
+  return String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0')+'/'+d.getFullYear();
+}
+function avg(arr){ const a = arr.filter(v=>typeof v==='number' && !isNaN(v)); return a.length? a.reduce((s,v)=>s+v,0)/a.length : null; }
+function round1(n){ return n===null||n===undefined ? null : Math.round(n*10)/10; }
+function round0(n){ return n===null||n===undefined ? null : Math.round(n); }
+function isClosedStatus(estado){ return normalize(estado).includes(CLOSED_KEYWORD); }
+// Estados que NO cuentan como "abierta" ni como "cerrada" (se muestran en la tabla
+// y en el filtro, pero se excluyen de Vacantes Abiertas / Críticas / Cerradas y de
+// los promedios) — por defecto: canceladas y anuladas. Ajustable si tu proceso usa
+// otras palabras.
+const EXCLUDED_KEYWORDS = ['CANCELAD', 'ANULAD', 'DESIERT'];
+function isExcludedStatus(estado){ const n = normalize(estado); return EXCLUDED_KEYWORDS.some(k => n.includes(k)); }
+function cleanText(v){ return (typeof v === 'string') ? v.trim().replace(/\s+/g,' ') : v; }
+function titleCase(v){
+  const t = cleanText(v);
+  if (typeof t !== 'string' || !t) return t;
+  return t.toLowerCase().replace(/(^|\s)(\p{L})/gu, (m,p1,p2)=>p1+p2.toUpperCase());
+}
+// Algunas filas del Excel repiten la misma Función-Nivel de Cargo con y sin el sufijo
+// "(A)" (p. ej. "Ingeniero" vs "Ingeniero (A)", "Consultor" vs "Consultor (A)") por
+// inconsistencias al capturar el dato -- se quita ese sufijo para que cuenten como una
+// sola categoría en el gráfico "Vacantes cerradas por Función-Nivel de Cargo".
+function stripNivelSuffix(v){
+  const t = cleanText(v);
+  if (typeof t !== 'string' || !t) return t;
+  return t.replace(/\s*\(\s*a\s*\)\s*$/i, '').trim();
+}
+function esc(s){ return (s===null||s===undefined?'':String(s)).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+
+/* ============================================================
+   3. DETECCIÓN DE COLUMNAS (tolerante a variaciones de nombre)
+   ============================================================ */
+const COLUMN_RULES = [
+  ['semaforo',        h => h.includes('SEMAFORO')],
+  ['cargo',           h => h === 'CARGO'],
+  ['tipoVacante',     h => h.includes('TIPO VACANTE') || h.includes('TIPO DE VACANTE')],
+  ['profesional',     h => h.includes('PROFESIONAL')],
+  ['direccion',       h => h.includes('DIRECCION')],
+  ['fechaLiberacion', h => (h.includes('LIBERACION')) || (h.includes('FECHA') && (h.includes('APERTURA')||h.includes('INICIO')))],
+  ['diasHabiles',     h => h.includes('DIAS HABIL') || h.includes('DIAS ABIERTA') || h.includes('DIAS HABILES ABIERTA')],
+  ['estado',          h => h === 'ESTADO'],
+  ['comentarios',     h => h.includes('COMENTARIO')],
+  ['genero',          h => h.includes('GENERO')],
+  ['edad',            h => h === 'EDAD' || h.includes('EDAD CANDIDATO')],
+  ['fechaNacimiento', h => h.includes('NACIMIENTO')],
+  ['fechaIngreso',    h => h.includes('FECHA') && h.includes('INGRESO')],
+  ['nivelContribucion', h => h.includes('NIVEL DE CONTRIBUCION')],
+  ['funcionNivelCargo', h => h.includes('FUNCION') && h.includes('NIVEL')],
+];
+function detectColumns(headers){
+  const map = {}; const used = new Set();
+  headers.forEach((raw, idx)=>{
+    const h = normalize(raw);
+    for (const [key, test] of COLUMN_RULES){
+      if (map[key]===undefined && !used.has(key) && test(h)){
+        map[key] = idx; used.add(key); break;
+      }
+    }
+  });
+  return map;
+}
+const REQUIRED_BASE = ['cargo','profesional','estado','fechaLiberacion'];
+
+/* ============================================================
+   4. CARGA / PARSEO DEL EXCEL
+   ============================================================ */
+function loadWorkbook(data, sourceLabel){
+  try{
+    if (typeof XLSX === 'undefined'){
+      throw new Error('La librería para leer Excel no se pudo cargar (revisa tu conexión, o si tu red/antivirus corporativo bloquea cdnjs.cloudflare.com y cdn.jsdelivr.net). Recarga la página con conexión a internet e inténtalo de nuevo.');
+    }
+    const wb = XLSX.read(data, {type: (data instanceof ArrayBuffer || data instanceof Uint8Array) ? 'array':'binary', cellDates:true});
+    let sheetName = wb.SheetNames.find(n => normalize(n).includes('CONSOLIDADO')) || wb.SheetNames[0];
+    const ws = wb.Sheets[sheetName];
+    const raw = XLSX.utils.sheet_to_json(ws, {header:1, defval:null, raw:true});
+    if (!raw.length) throw new Error('El archivo no tiene filas de datos.');
+    const headers = raw[0].map(h => h===null?'':String(h));
+    const cols = detectColumns(headers);
+    const missing = REQUIRED_BASE.filter(k => cols[k]===undefined);
+    const rows = [];
+    for (let i=1;i<raw.length;i++){
+      const r = raw[i];
+      if (!r || r.every(c=>c===null||c==='')) continue;
+      const get = key => cols[key]!==undefined ? r[cols[key]] : null;
+      const fechaLib = toDate(get('fechaLiberacion'));
+      const estado = titleCase(get('estado'));
+      const fechaIngreso = toDate(get('fechaIngreso'));
+      // "Cerrada" se identifica únicamente cruzando Estado (columna E) con Fecha Ingreso (columna
+      // W) -- no se lee ninguna otra columna para esto: si ya hay una fecha de ingreso real, la
+      // vacante quedó cerrada aunque el Estado no lo diga literalmente (o esté desactualizado); y
+      // una fecha de ingreso real nunca puede convivir con un estado "excluida" (Cancelada/
+      // Anulada/Desierta), porque contradice el ingreso.
+      const cerrada = isClosedStatus(estado) || !!fechaIngreso;
+      const excluida = isExcludedStatus(estado) && !cerrada;
+      const abierta = !cerrada && !excluida;
+      // La fecha de cierre de una vacante cerrada es, exclusivamente, su Fecha Ingreso (columna
+      // W) -- no se usa ninguna otra columna del excel (ni Fecha Liberación ni una columna de
+      // "Fecha Cierre") para esto. Con ella se agrupa/filtra por "Mes" cuántas cerraron y se
+      // calcula el promedio de vacantes cerradas por periodo.
+      const fechaCierre = cerrada ? fechaIngreso : null;
+      let diasHabiles = null;
+      if (abierta && fechaLib) diasHabiles = businessDaysBetween(fechaLib, new Date());
+      else if (cerrada && fechaLib && fechaCierre) diasHabiles = businessDaysBetween(fechaLib, fechaCierre);
+      else { const dh = get('diasHabiles'); diasHabiles = (typeof dh==='number') ? dh : null; }
+      rows.push({
+        cargo: cleanText(get('cargo')), tipoVacante: titleCase(get('tipoVacante')), profesional: cleanText(get('profesional')),
+        direccion: cleanText(get('direccion')), fechaLiberacion: fechaLib, fechaCierre: fechaCierre,
+        estado: estado, abierta, cerrada, excluida, diasHabiles, fechaIngreso,
+        critica: abierta && typeof diasHabiles==='number' && diasHabiles > CRITICAL_DAYS,
+        comentarios: cleanText(get('comentarios')), genero: titleCase(get('genero')), edad: get('edad'),
+        fechaNacimiento: toDate(get('fechaNacimiento')), nivelContribucion: cleanText(get('nivelContribucion')),
+        funcionNivelCargo: stripNivelSuffix(get('funcionNivelCargo')),
+        stageDates: extractStageDates(get('comentarios')),
+      });
+    }
+    state.rows = rows;
+    state.cols = cols;
+    state.missingCols = missing;
+    state.lastUpdated = new Date();
+    populateFilterOptions();
+    render();
+    setStatus('fetchStatus', `Cargado correctamente desde ${sourceLabel}: ${rows.length} filas (${sheetName}).`, 'ok');
+    document.getElementById('sourcePanel').open = false;
+    try{ localStorage.setItem('vacantes_last_source', sourceLabel); }catch(e){}
+  }catch(err){
+    console.error(err);
+    setStatus('fetchStatus', 'No se pudo procesar el archivo: '+err.message, 'err');
+  }
+}
+function setStatus(id,msg,cls){
+  const el = document.getElementById(id);
+  el.textContent = msg; el.className = 'status-msg'+(cls? ' '+cls:'');
+}
+
+/* --- Carga manual: input / drag&drop --- */
+const dropZone = document.getElementById('dropZone');
+const fileInput = document.getElementById('fileInput');
+dropZone.addEventListener('click', ()=>fileInput.click());
+fileInput.addEventListener('change', e=>{ if (e.target.files[0]) readFile(e.target.files[0]); });
+['dragenter','dragover'].forEach(ev=>dropZone.addEventListener(ev, e=>{e.preventDefault(); dropZone.classList.add('drag');}));
+['dragleave','drop'].forEach(ev=>dropZone.addEventListener(ev, e=>{e.preventDefault(); dropZone.classList.remove('drag');}));
+dropZone.addEventListener('drop', e=>{ const f=e.dataTransfer.files[0]; if (f) readFile(f); });
+function readFile(file){
+  const reader = new FileReader();
+  reader.onload = ev => loadWorkbook(new Uint8Array(ev.target.result), 'archivo local ('+file.name+')');
+  reader.onerror = () => setStatus('fetchStatus','No se pudo leer el archivo local.','err');
+  reader.readAsArrayBuffer(file);
+}
+
+/* --- Carga automática desde OneDrive (enlace público) --- */
+function toDownloadUrl(url){
+  if (!url) return url;
+  if (/action=default/i.test(url)) return url.replace(/action=default/i,'action=download');
+  if (/action=download/i.test(url)) return url;
+  return url + (url.includes('?')?'&':'?') + 'action=download';
+}
+document.getElementById('btnAutoFetch').addEventListener('click', async ()=>{
+  const shareUrl = document.getElementById('cfgUrl').value.trim();
+  if (!shareUrl){ setStatus('fetchStatus','Ingresa primero la URL del Excel.', 'err'); return; }
+  const downloadUrl = toDownloadUrl(shareUrl);
+  setStatus('fetchStatus','Conectando con OneDrive...', null);
+  try{
+    const resp = await fetch(downloadUrl, {mode:'cors', cache:'no-store'});
+    if (!resp.ok) throw new Error('Respuesta HTTP '+resp.status);
+    const ctype = resp.headers.get('content-type')||'';
+    if (ctype.includes('text/html')) throw new Error('El servidor devolvió una página de inicio de sesión, no el archivo (el enlace requiere autenticación).');
+    const buf = await resp.arrayBuffer();
+    loadWorkbook(new Uint8Array(buf), 'OneDrive (automático)');
+  }catch(err){
+    console.error(err);
+    setStatus('fetchStatus', '⚠️ No se pudo conectar automáticamente ('+err.message+'). Es muy probable que el archivo exija inicio de sesión corporativo o que el navegador bloquee la solicitud entre orígenes (CORS). Usa la carga manual (arrastra el archivo) como alternativa confiable.', 'err');
+  }
+});
+document.getElementById('cfgUrl').value = state.shareUrl;
+document.getElementById('lnkOpenOneDrive').href = state.shareUrl;
+
+/* --- Vincular archivo local sincronizado con OneDrive (File System Access API) ---
+   Si el navegador lo soporta (Chrome/Edge), esto le da al tablero un "handle" al
+   archivo real en disco: cada vez que se pide, se relee directamente de ahí, sin
+   volver a pedir el archivo ni pasar por internet. El acceso se recuerda entre
+   sesiones guardando el handle en IndexedDB. */
+const FS_SUPPORTED = typeof window.showOpenFilePicker === 'function';
+let localFileHandle = null;
+let autoRefreshTimer = null;
+
+function setLocalFileStatus(msg, cls){
+  const el = document.getElementById('localFileStatus');
+  el.textContent = msg; el.className = 'status-msg'+(cls? ' '+cls:'');
+}
+function idbOpen(){
+  return new Promise((resolve, reject)=>{
+    const req = indexedDB.open('tablero-vacantes-db', 1);
+    req.onupgradeneeded = ()=>{ req.result.createObjectStore('handles'); };
+    req.onsuccess = ()=> resolve(req.result);
+    req.onerror = ()=> reject(req.error);
+  });
+}
+async function idbSetHandle(handle){
+  try{
+    const db = await idbOpen();
+    await new Promise((res, rej)=>{
+      const tx = db.transaction('handles','readwrite');
+      tx.objectStore('handles').put(handle, 'excelFile');
+      tx.oncomplete = res; tx.onerror = ()=>rej(tx.error);
+    });
+  }catch(e){ console.warn('No se pudo recordar el archivo vinculado', e); }
+}
+async function idbGetHandle(){
+  try{
+    const db = await idbOpen();
+    return await new Promise((res, rej)=>{
+      const tx = db.transaction('handles','readonly');
+      const req = tx.objectStore('handles').get('excelFile');
+      req.onsuccess = ()=> res(req.result || null);
+      req.onerror = ()=> rej(req.error);
+    });
+  }catch(e){ return null; }
+}
+async function pickLocalFile(){
+  if (!FS_SUPPORTED){ setLocalFileStatus('Tu navegador no soporta esta función. Ábrelo en Chrome o Edge.', 'err'); return; }
+  try{
+    const [handle] = await window.showOpenFilePicker({
+      types: [{ description:'Excel', accept: {'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['.xlsx']} }],
+    });
+    localFileHandle = handle;
+    await idbSetHandle(handle);
+    document.getElementById('btnRefreshLocalFile').style.display = '';
+    await refreshFromLocalFile();
+  }catch(err){
+    if (err && err.name !== 'AbortError') setLocalFileStatus('No se pudo vincular el archivo: '+err.message, 'err');
+  }
+}
+async function refreshFromLocalFile(){
+  if (!localFileHandle) return;
+  try{
+    let perm = await localFileHandle.queryPermission({mode:'read'});
+    if (perm !== 'granted') perm = await localFileHandle.requestPermission({mode:'read'});
+    if (perm !== 'granted'){
+      setLocalFileStatus('Falta autorizar el acceso al archivo. Haz clic en "Actualizar ahora" y acepta el permiso.', 'err');
+      return;
+    }
+    const file = await localFileHandle.getFile();
+    const buf = await file.arrayBuffer();
+    loadWorkbook(new Uint8Array(buf), 'archivo local sincronizado ('+file.name+')');
+    setLocalFileStatus('Vinculado a "'+file.name+'" — última modificación: '+new Date(file.lastModified).toLocaleString('es-CO'), 'ok');
+  }catch(err){
+    setLocalFileStatus('No se pudo leer el archivo (¿se movió, se renombró o se eliminó?): '+err.message+'. Vincúlalo de nuevo.', 'err');
+  }
+}
+document.getElementById('btnPickLocalFile').addEventListener('click', pickLocalFile);
+document.getElementById('btnRefreshLocalFile').addEventListener('click', refreshFromLocalFile);
+document.getElementById('chkAutoRefresh').addEventListener('change', e=>{
+  if (autoRefreshTimer){ clearInterval(autoRefreshTimer); autoRefreshTimer = null; }
+  if (e.target.checked) autoRefreshTimer = setInterval(refreshFromLocalFile, 120000);
+});
+(async function tryRestoreLocalFile(){
+  if (!FS_SUPPORTED){
+    document.getElementById('localFilePanel').innerHTML = '<div class="field-hint">La vinculación automática con tu OneDrive local necesita Chrome o Edge — este navegador no la soporta. Usa la carga manual de abajo.</div>';
+    return;
+  }
+  const handle = await idbGetHandle();
+  if (!handle) return;
+  localFileHandle = handle;
+  document.getElementById('btnRefreshLocalFile').style.display = '';
+  const perm = await handle.queryPermission({mode:'read'});
+  if (perm === 'granted') await refreshFromLocalFile();
+  else setLocalFileStatus('Ya vinculaste un archivo en una visita anterior. Haz clic en "Actualizar ahora" para reactivar el acceso (el navegador pide confirmarlo cada cierto tiempo por seguridad).', null);
+})();
+
+/* ============================================================
+   5. FILTROS
+   ============================================================ */
+function uniqueSorted(rows, key){
+  return [...new Set(rows.map(r=>r[key]).filter(v=>v!==null && v!==undefined && v!==''))].sort((a,b)=>String(a).localeCompare(String(b),'es'));
+}
+function mesKeyLabel(d){
+  if (!(d instanceof Date)) return null;
+  return { key: d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0'), label: MESES_ES[d.getMonth()]+' '+d.getFullYear() };
+}
+// Fecha que se usa para agrupar/filtrar una vacante por "Mes": si ya está cerrada, el mes en que
+// se cerró (Fecha Cierre / Fecha Ingreso) -- y si está cerrada pero no tiene una fecha de cierre
+// válida (Fecha Ingreso vacía, "NO INGRESO", "PENDIENTE MOVIMIENTO", etc.), NO cae de vuelta a la
+// Fecha Liberación: no se puede ubicar en ningún mes de cierre, así que no cuenta como "cerrada"
+// en ningún mes específico (sí sigue contando en el total general cuando no hay filtro de Mes).
+// Si la vacante sigue abierta, se usa el mes en que se liberó.
+function mesFiltroDate(r){ return r.cerrada ? r.fechaCierre : r.fechaLiberacion; }
+function populateFilterOptions(){
+  fillSelect('fProfesional', uniqueSorted(state.rows,'profesional'), 'Profesional (Todas)');
+  fillSelect('fEstado', uniqueSorted(state.rows,'estado'), 'Estado (Todas)');
+  fillSelect('fDireccion', uniqueSorted(state.rows,'direccion'), 'Dirección Comité (Todas)');
+  const meses = {}; state.rows.forEach(r=>{ const m = mesKeyLabel(mesFiltroDate(r)); if (m) meses[m.key]=m.label; });
+  fillSelect('fMes', Object.keys(meses).sort().map(k=>({value:k,label:meses[k]})), 'Mes (Todas)', true);
+
+  fillSelect('iProfesional', uniqueSorted(state.rows,'profesional'), 'Profesional (Todas)');
+  fillSelect('iDireccion', uniqueSorted(state.rows,'direccion'), 'Dirección Comité (Todas)');
+  fillSelect('iTipoVacante', uniqueSorted(state.rows,'tipoVacante'), 'Tipo Vacante (Todas)');
+}
+function fillSelect(id, items, placeholder, isObj){
+  const sel = document.getElementById(id);
+  const cur = sel.value;
+  sel.innerHTML = '';
+  const opt0 = document.createElement('option'); opt0.value=''; opt0.textContent = placeholder; sel.appendChild(opt0);
+  items.forEach(it=>{
+    const opt = document.createElement('option');
+    if (isObj){ opt.value = it.value; opt.textContent = it.label; } else { opt.value = it; opt.textContent = it; }
+    sel.appendChild(opt);
+  });
+  if ([...sel.options].some(o=>o.value===cur)) sel.value = cur;
+}
+function applyGlobalFilters(rows){
+  const f = state.filters;
+  const hf = state.headerFilters;
+  return rows.filter(r =>
+    (!f.profesional || r.profesional===f.profesional) &&
+    (!f.estado || r.estado===f.estado) &&
+    (!f.direccion || r.direccion===f.direccion) &&
+    (!f.mes || (mesFiltroDate(r) && mesKeyLabel(mesFiltroDate(r)) && mesKeyLabel(mesFiltroDate(r)).key===f.mes)) &&
+    (hf.tipoVacante.size===0 || hf.tipoVacante.has(r.tipoVacante)) &&
+    (hf.profesional.size===0 || hf.profesional.has(r.profesional)) &&
+    (hf.estado.size===0 || hf.estado.has(r.estado))
+  );
+}
+['fProfesional','fEstado','fDireccion','fMes'].forEach(id=>{
+  document.getElementById(id).addEventListener('change', e=>{
+    const map = {fProfesional:'profesional',fEstado:'estado',fDireccion:'direccion',fMes:'mes'};
+    state.filters[map[id]] = e.target.value; render();
+  });
+});
+document.getElementById('fGranularidad').addEventListener('change', e=>{
+  state.granularidad = e.target.value; render();
+});
+document.getElementById('btnClearFilters').addEventListener('click', ()=>{
+  state.filters = {profesional:'',estado:'',direccion:'',mes:''};
+  state.headerFilters = { tipoVacante: new Set(), profesional: new Set(), estado: new Set() };
+  state.quickFilter = null;
+  ['fProfesional','fEstado','fDireccion','fMes'].forEach(id=>document.getElementById(id).value='');
+  render();
+});
+['iProfesional','iDireccion','iTipoVacante'].forEach(id=>{
+  document.getElementById(id).addEventListener('change', e=>{
+    const map = {iProfesional:'profesional',iDireccion:'direccion',iTipoVacante:'tipoVacante'};
+    state.indFilters[map[id]] = e.target.value; renderIndicadores();
+  });
+});
+
+/* KPI click = quick filter (tabla) */
+function bindKpiToggle(id, key){
+  document.getElementById(id).addEventListener('click', ()=>{
+    state.quickFilter = (state.quickFilter===key) ? null : key;
+    render();
+  });
+}
+bindKpiToggle('kpiAbiertas','abiertas');
+bindKpiToggle('kpiCriticas','criticas');
+bindKpiToggle('kpiCerradas','cerradas');
+
+/* ============================================================
+   6. RENDER: KPIs, GRÁFICAS, TABLA
+   ============================================================ */
+function render(){
+  // Antes de dibujar cualquier gráfica, se ajustan sus colores de texto/líneas al tema activo
+  // (claro/oscuro) -- así, sin importar cuándo terminó de cargar Chart.js ni qué disparó este
+  // render (carga de datos, cambio de filtro o el botón de tema), las gráficas siempre salen
+  // legibles en el modo actual.
+  if (typeof Chart !== 'undefined' && Chart.defaults){
+    const dark = document.documentElement.getAttribute('data-theme')==='dark';
+    Chart.defaults.color = dark ? '#c3cad8' : '#4b5565';
+    Chart.defaults.borderColor = dark ? '#333c4d' : '#e4e8f0';
+  }
+  if (!state.rows.length){ renderEmpty(); return; }
+  const scoped = applyGlobalFilters(state.rows);
+  const abiertas = scoped.filter(r=>r.abierta);
+  const cerradas = scoped.filter(r=>r.cerrada);
+  const excluidas = scoped.filter(r=>r.excluida);
+  const criticas = abiertas.filter(r=>r.critica);
+
+  // KPIs
+  setKpi('kpiAbiertas', abiertas.length);
+  setKpi('kpiCriticas', criticas.length);
+  setKpi('kpiCerradas', cerradas.length);
+  const promAbiertas = round0(avg(abiertas.map(r=>r.diasHabiles)));
+  document.querySelector('.kpi.v-promedio .kpi-value').textContent = promAbiertas!==null? promAbiertas : '—';
+  const cerradasConDatos = cerradas.filter(r=>typeof r.diasHabiles==='number');
+  const promCierre = round0(avg(cerradasConDatos.map(r=>r.diasHabiles)));
+  document.querySelector('.kpi.v-diascierre .kpi-value').textContent = promCierre!==null? promCierre : '—';
+
+  const promPeriodo = computePromCierrePorPeriodo(cerradas, state.granularidad);
+  document.getElementById('lblGranularidad').textContent = state.granularidad==='semana' ? '/ Semana' : '/ Mes';
+  document.getElementById('kpiPromCierrePeriodo').textContent = promPeriodo? promPeriodo.promedio : '—';
+  document.getElementById('kpiPromCierrePeriodoSub').textContent = promPeriodo
+    ? `${cerradas.filter(r=>r.fechaCierre instanceof Date).length} cierres en ${promPeriodo.numPeriodos} ${state.granularidad==='semana'?'semanas':'meses'}`
+    : 'sin fechas de cierre suficientes';
+
+  ['kpiAbiertas','kpiCriticas','kpiCerradas'].forEach(id=>{
+    const key = {kpiAbiertas:'abiertas',kpiCriticas:'criticas',kpiCerradas:'cerradas'}[id];
+    document.getElementById(id).classList.toggle('active', state.quickFilter===key);
+  });
+
+  document.getElementById('pillExcluidas').style.display = excluidas.length? 'flex':'none';
+  document.getElementById('excluidasCount').textContent = excluidas.length;
+  document.getElementById('pillAlert').style.display = criticas.length? 'flex':'none';
+  document.getElementById('alertCount').textContent = criticas.length;
+  document.getElementById('pillUpdated').textContent = 'Actualizado: '+ (state.lastUpdated? state.lastUpdated.toLocaleString('es-CO') : '—');
+  document.getElementById('lastUpdatedText').textContent = state.lastUpdated? state.lastUpdated.toLocaleString('es-CO') : '—';
+
+  safeRenderChart('chartAntiguedad', ()=>{ ensureCanvas('wrapAntiguedad','chartAntiguedad'); renderChartAntiguedad(abiertas); });
+  safeRenderChart('chartProfesional', ()=>renderOrPlaceholderProfesional(scoped));
+  safeRenderChart('chartCriticasProf', ()=>{ ensureCanvas('wrapCriticasProf','chartCriticasProf'); renderChartCriticasProf(criticas); });
+
+  try{ renderTable(scoped); }
+  catch(err){ console.error('Error en renderTable', err); document.getElementById('tableWrap').innerHTML = '<div class="empty-state">Ocurrió un error mostrando la tabla: '+esc(err.message)+'</div>'; }
+
+  try{ renderIndicadores(); }
+  catch(err){ console.error('Error en renderIndicadores', err); }
+}
+function setKpi(id, val){ document.querySelector('#'+id+' .kpi-value').textContent = val; }
+
+/* Aísla cada gráfica: si Chart.js no cargó (red corporativa la bloquea) o la
+   gráfica falla por cualquier motivo, se muestra un aviso ahí mismo en vez de
+   detener el resto del tablero (tabla, KPIs, otras gráficas). */
+function safeRenderChart(canvasId, fn){
+  try{
+    if (typeof Chart === 'undefined'){
+      throw new Error('La librería de gráficas no se pudo cargar (revisa tu conexión o si tu red/antivirus bloquea cdnjs.cloudflare.com y cdn.jsdelivr.net).');
+    }
+    fn();
+  }catch(err){
+    console.error('No se pudo dibujar '+canvasId, err);
+    const canvas = document.getElementById(canvasId);
+    if (canvas && canvas.parentElement){
+      canvas.parentElement.innerHTML = '<div class="placeholder-note">No se pudo dibujar esta gráfica.<br>'+esc(err.message)+'</div>';
+    }
+  }
+}
+
+function renderEmpty(){
+  document.getElementById('tableWrap').innerHTML = '<div class="empty-state"><span class="big">📂</span>Carga el Excel de vacantes (arrastralo arriba) para ver el tablero.</div>';
+  ['kpiAbiertas','kpiCriticas','kpiCerradas'].forEach(id=>setKpi(id,0));
+  document.querySelector('.kpi.v-promedio .kpi-value').textContent = '—';
+  document.querySelector('.kpi.v-diascierre .kpi-value').textContent = '—';
+  document.getElementById('kpiPromCierrePeriodo').textContent = '—';
+  document.getElementById('kpiPromCierrePeriodoSub').textContent = 'según filtro de arriba';
+}
+
+function destroyChart(key){ if (state.charts[key]) { state.charts[key].destroy(); delete state.charts[key]; } }
+function ensureCanvas(wrapId, canvasId){
+  const wrap = document.getElementById(wrapId);
+  if (wrap && !document.getElementById(canvasId)) wrap.innerHTML = `<canvas id="${canvasId}"></canvas>`;
+}
+function bucketAntiguedad(dias){
+  if (dias===null||dias===undefined) return null;
+  if (dias<=15) return '0-15 días';
+  if (dias<=30) return '16-30 días';
+  if (dias<=45) return '31-45 días';
+  return '46+ días';
+}
+function renderChartAntiguedad(abiertas){
+  const buckets = ['0-15 días','16-30 días','31-45 días','46+ días'];
+  const colors = ['#27ae60','#f2c94c','#f2994a','#e5493d'];
+  const counts = buckets.map(b => abiertas.filter(r=>bucketAntiguedad(r.diasHabiles)===b).length);
+  destroyChart('antiguedad');
+  const ctx = document.getElementById('chartAntiguedad');
+  state.charts.antiguedad = new Chart(ctx, {
+    type:'bar',
+    data:{ labels: buckets, datasets:[{ label:'Vacantes Abiertas', data:counts, backgroundColor:colors, borderRadius:4 }]},
+    options:{ indexAxis:'y', responsive:true, maintainAspectRatio:false,
+      plugins:{legend:{display:false}, title:{display:false}},
+      scales:{ x:{ beginAtZero:true, ticks:{precision:0}}, y:{grid:{display:false}} } }
+  });
+}
+// "Vacantes por Profesional" solo tiene sentido con vacantes CERRADAS (compara cuántas
+// cerró cada profesional y en cuánto tiempo). Si con los filtros actuales todavía no hay
+// ninguna cerrada, se muestra un aviso claro en vez de un gráfico vacío que parece roto.
+function renderOrPlaceholderProfesional(scoped){
+  const wrap = document.getElementById('wrapProfesional');
+  const hayCerradas = scoped.some(r=>r.cerrada);
+  if (!hayCerradas){
+    destroyChart('profesional');
+    wrap.innerHTML = '<div class="placeholder-note">Aún no hay vacantes cerradas con los filtros actuales.<br>Este gráfico se llena cuando al menos una vacante quede en Estado = "Cerrada".</div>';
+    return;
+  }
+  if (!document.getElementById('chartProfesional')) wrap.innerHTML = '<canvas id="chartProfesional"></canvas>';
+  renderChartProfesional(scoped);
+}
+function renderChartProfesional(scoped){
+  const profs = uniqueSorted(scoped,'profesional');
+  const cerradasCount = profs.map(p => scoped.filter(r=>r.profesional===p && r.cerrada).length);
+  const promDias = profs.map(p => round0(avg(scoped.filter(r=>r.profesional===p && r.cerrada && typeof r.diasHabiles==='number').map(r=>r.diasHabiles))));
+  destroyChart('profesional');
+  const ctx = document.getElementById('chartProfesional');
+  state.charts.profesional = new Chart(ctx, {
+    type:'bar',
+    data:{ labels: profs, datasets:[
+      { type:'bar', label:'Vacantes Cerradas', data: cerradasCount, backgroundColor:'#2f6fed', order:2, yAxisID:'y' },
+      { type:'line', label:'Prom. Días Cierre', data: promDias, borderColor:'#f2994a', backgroundColor:'#f2994a', borderDash:[5,3], tension:.3, yAxisID:'y1', order:1 }
+    ]},
+    options:{ responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{position:'bottom', labels:{boxWidth:10,font:{size:10}}}},
+      scales:{ y:{ beginAtZero:true, position:'left', ticks:{precision:0}}, y1:{ beginAtZero:true, position:'right', grid:{drawOnChartArea:false}}} }
+  });
+}
+function renderChartCriticasProf(criticas){
+  const profs = uniqueSorted(criticas,'profesional');
+  const tipos = uniqueSorted(criticas,'tipoVacante');
+  const palette = ['#2f6fed','#8b5cf6','#c084fc','#e5493d'];
+  const datasets = tipos.map((t,i)=>({
+    label: t || 'Sin dato', backgroundColor: palette[i%palette.length], stack:'s',
+    data: profs.map(p => criticas.filter(r=>r.profesional===p && r.tipoVacante===t).length)
+  }));
+  destroyChart('criticasProf');
+  const ctx = document.getElementById('chartCriticasProf');
+  state.charts.criticasProf = new Chart(ctx, {
+    type:'bar',
+    data:{ labels: profs, datasets: datasets.length? datasets : [{label:'Críticas',data:profs.map(p=>criticas.filter(r=>r.profesional===p).length),backgroundColor:'#e5493d'}] },
+    options:{ responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{position:'bottom', labels:{boxWidth:10,font:{size:10}}}},
+      scales:{ x:{stacked:true, grid:{display:false}}, y:{stacked:true, beginAtZero:true, ticks:{precision:0}} } }
+  });
+}
+
+/* --- Tabla --- */
+const TABLE_COLS = [
+  {key:'semaforo', label:''}, {key:'cargo', label:'Cargo'}, {key:'tipoVacante', label:'Tipo Vacante', filterField:'tipoVacante'},
+  {key:'profesional', label:'Profesional', filterField:'profesional'}, {key:'direccion', label:'Dirección'},
+  {key:'fechaLiberacion', label:'Fecha Liberación'}, {key:'diasHabiles', label:'Días Hábiles'},
+  {key:'estado', label:'Estado', filterField:'estado'}, {key:'comentarios', label:'Comentarios'}
+];
+// Encabezados con menú desplegable tipo Excel (checkboxes). Las opciones se calculan
+// sobre TODAS las filas cargadas (no solo las visibles) para que la lista no cambie
+// de tamaño según lo que ya esté filtrado.
+function buildHeaderFilterPopup(field){
+  const options = uniqueSorted(state.rows, field);
+  const selected = state.headerFilters[field];
+  const allChecked = selected.size===0;
+  const boxes = options.map(v => {
+    const checked = allChecked || selected.has(v);
+    return `<label><input type="checkbox" value="${esc(v)}" ${checked?'checked':''}> ${esc(v)}</label>`;
+  }).join('');
+  return `
+    <div class="th-filter-popup" data-field="${field}" hidden>
+      <div class="th-filter-list">${boxes || '<div style="color:var(--muted);padding:4px 2px;">Sin valores</div>'}</div>
+      <div class="th-filter-actions">
+        <button type="button" class="th-filter-clear" data-field="${field}">Todas</button>
+        <button type="button" class="th-filter-apply primary" data-field="${field}">Aplicar</button>
+      </div>
+    </div>`;
+}
+function renderTable(scoped){
+  let rows = scoped;
+  if (state.quickFilter==='abiertas') rows = rows.filter(r=>r.abierta);
+  if (state.quickFilter==='criticas') rows = rows.filter(r=>r.critica);
+  if (state.quickFilter==='cerradas') rows = rows.filter(r=>r.cerrada);
+
+  const note = document.getElementById('tableFilterNote');
+  const activeHeaderFilters = Object.entries(state.headerFilters).filter(([,s])=>s.size>0).map(([k])=>k);
+  const noteParts = [];
+  if (state.quickFilter) noteParts.push({abiertas:'Vacantes Abiertas',criticas:'Vacantes Críticas',cerradas:'Cerradas'}[state.quickFilter]);
+  if (activeHeaderFilters.length) noteParts.push('filtros de columna activos');
+  note.textContent = noteParts.length ? '— '+noteParts.join(', ') : '';
+
+  if (state.sort.key){
+    rows = [...rows].sort((a,b)=>{
+      let va=a[state.sort.key], vb=b[state.sort.key];
+      if (va instanceof Date) va = va.getTime(); if (vb instanceof Date) vb = vb.getTime();
+      if (va===null||va===undefined) va=''; if (vb===null||vb===undefined) vb='';
+      if (va<vb) return -1*state.sort.dir; if (va>vb) return 1*state.sort.dir; return 0;
+    });
+  }
+
+  let html = '<table><thead><tr>';
+  TABLE_COLS.forEach(c => {
+    const isFilterable = !!c.filterField;
+    const isActive = isFilterable && state.headerFilters[c.filterField].size>0;
+    html += `<th data-key="${c.key}" class="${isFilterable?'filterable':''}">`;
+    html += `<span class="th-label">${c.label}${state.sort.key===c.key? (state.sort.dir>0?' ▲':' ▼'):''}</span>`;
+    if (isFilterable){
+      html += `<button type="button" class="th-filter-btn ${isActive?'active':''}" data-field="${c.filterField}" title="Filtrar ${c.label}">▾</button>`;
+      html += buildHeaderFilterPopup(c.filterField);
+    }
+    html += `</th>`;
+  });
+  html += '</tr></thead><tbody>';
+  if (!rows.length){
+    html += `<tr><td colspan="${TABLE_COLS.length}"><div class="empty-state">No hay vacantes que coincidan con los filtros seleccionados.</div></td></tr>`;
+  } else {
+    rows.forEach(r=>{
+      const dotClass = (r.cerrada || r.excluida) ? 'grey' : (r.critica ? 'red' : (r.diasHabiles>15 ? 'yellow' : 'green'));
+      html += `<tr class="${r.critica?'row-critical':''}">`;
+      html += `<td><span class="dot ${dotClass}"></span>${r.critica?'<span class="warn-icon" title="Supera 30 días abierta">⚠</span>':''}</td>`;
+      html += `<td>${esc(r.cargo)}</td><td>${esc(r.tipoVacante)}</td><td>${esc(r.profesional)}</td><td>${esc(r.direccion)}</td>`;
+      html += `<td>${fmtDate(r.fechaLiberacion)}</td><td>${r.diasHabiles!==null&&r.diasHabiles!==undefined? r.diasHabiles:'—'}</td>`;
+      html += `<td><span class="badge ${r.excluida?'excluded':(r.abierta?'open':'closed')}">${esc(r.estado)}</span></td>`;
+      const comentarioHtml = r.comentarios
+        ? `<button type="button" class="btn-ver-comentario">Ver comentario</button><div class="comentario-full" hidden>${esc(r.comentarios)}</div>`
+        : '';
+      html += `<td class="comentarios">${comentarioHtml}</td></tr>`;
+    });
+  }
+  html += '</tbody></table>';
+  document.getElementById('tableWrap').innerHTML = html;
+  bindTableHeaderEvents();
+}
+function bindTableHeaderEvents(){
+  document.querySelectorAll('#tableWrap th').forEach(th=>{
+    th.addEventListener('click', (e)=>{
+      if (e.target.closest('.th-filter-btn') || e.target.closest('.th-filter-popup')) return;
+      const key = th.dataset.key; if (!key) return;
+      state.sort.dir = (state.sort.key===key) ? state.sort.dir*-1 : 1;
+      state.sort.key = key; renderTable(applyGlobalFilters(state.rows));
+    });
+  });
+  document.querySelectorAll('.th-filter-btn').forEach(btn=>{
+    btn.addEventListener('click', (e)=>{
+      e.stopPropagation();
+      const field = btn.dataset.field;
+      const popup = document.querySelector(`.th-filter-popup[data-field="${field}"]`);
+      const wasOpen = popup && !popup.hidden;
+      document.querySelectorAll('.th-filter-popup').forEach(p=>p.hidden = true);
+      if (popup) popup.hidden = wasOpen; // toggla: si estaba abierto, se cierra; si no, se abre
+    });
+  });
+  document.querySelectorAll('.th-filter-popup').forEach(popup=>{
+    popup.addEventListener('click', e=>e.stopPropagation());
+    const field = popup.dataset.field;
+    const applyBtn = popup.querySelector('.th-filter-apply');
+    const clearBtn = popup.querySelector('.th-filter-clear');
+    if (applyBtn) applyBtn.addEventListener('click', ()=>{
+      const boxes = Array.from(popup.querySelectorAll('input[type=checkbox]'));
+      const checked = boxes.filter(b=>b.checked).map(b=>b.value);
+      state.headerFilters[field] = (checked.length===0 || checked.length===boxes.length) ? new Set() : new Set(checked);
+      popup.hidden = true;
+      render();
+    });
+    if (clearBtn) clearBtn.addEventListener('click', ()=>{
+      state.headerFilters[field] = new Set();
+      popup.hidden = true;
+      render();
+    });
+  });
+}
+// Cierra cualquier menú de filtro abierto si se hace clic fuera de la tabla.
+document.addEventListener('click', ()=>{
+  document.querySelectorAll('.th-filter-popup').forEach(p=>p.hidden = true);
+});
+// "Ver comentario": se enlaza UNA sola vez sobre el contenedor de la tabla (que nunca se
+// reemplaza, solo su innerHTML), así sigue funcionando aunque la tabla se vuelva a dibujar.
+// Solo oculta/muestra el texto completo -- nunca lo recorta ni lo resume.
+document.getElementById('tableWrap').addEventListener('click', (e)=>{
+  const btn = e.target.closest('.btn-ver-comentario');
+  if (!btn) return;
+  const td = btn.closest('td.comentarios');
+  const full = td && td.querySelector('.comentario-full');
+  if (!full) return;
+  const estaOculto = full.hasAttribute('hidden');
+  if (estaOculto){ full.removeAttribute('hidden'); btn.textContent = 'Ocultar comentario'; }
+  else { full.setAttribute('hidden',''); btn.textContent = 'Ver comentario'; }
+});
+
+/* ============================================================
+   7. PÁGINA 2: ANÁLISIS DE INDICADORES
+   ============================================================ */
+document.getElementById('btnToggleView').addEventListener('click', ()=>{
+  const seg = document.getElementById('pageSeguimiento');
+  const ind = document.getElementById('pageIndicadores');
+  const showInd = seg.style.display !== 'none' ? true : false;
+  if (showInd){ seg.style.display='none'; ind.style.display='block'; document.getElementById('toggleLabel').textContent='Volver a Seguimiento'; }
+  else { seg.style.display='block'; ind.style.display='none'; document.getElementById('toggleLabel').textContent='Análisis de Indicadores'; }
+});
+
+function ageFromBirth(d){ if (!(d instanceof Date)) return null; const diff = Date.now()-d.getTime(); return Math.floor(diff/(365.25*24*3600*1000)); }
+function renderIndicadores(){
+  if (!state.rows.length) return;
+  let rows = state.rows.filter(r=>r.cerrada); // "contratadas" = vacantes realmente cerradas (se excluyen canceladas/anuladas)
+  const f = state.indFilters;
+  rows = rows.filter(r => (!f.profesional||r.profesional===f.profesional) && (!f.direccion||r.direccion===f.direccion) && (!f.tipoVacante||r.tipoVacante===f.tipoVacante));
+
+  const haveGenero = state.cols.genero!==undefined;
+  const haveEdadInfo = state.cols.edad!==undefined || state.cols.fechaNacimiento!==undefined;
+  const haveNivel = state.cols.nivelContribucion!==undefined;
+  const haveFuncion = state.cols.funcionNivelCargo!==undefined;
+
+  if (haveGenero && rows.length){
+    const mujeres = rows.filter(r=>normalize(r.genero).startsWith('F') || normalize(r.genero).includes('MUJER'));
+    const hombres = rows.filter(r=>normalize(r.genero).startsWith('M') && !normalize(r.genero).includes('MUJER') || normalize(r.genero).includes('HOMBRE'));
+    document.getElementById('ind_pctMujeres').textContent = round0(100*mujeres.length/rows.length)+'%';
+    document.getElementById('ind_pctHombres').textContent = round0(100*hombres.length/rows.length)+'%';
+  } else { document.getElementById('ind_pctMujeres').textContent='—'; document.getElementById('ind_pctHombres').textContent='—'; }
+
+  if (haveEdadInfo && rows.length){
+    const edades = rows.map(r => (typeof r.edad==='number') ? r.edad : ageFromBirth(r.fechaNacimiento)).filter(v=>typeof v==='number');
+    const joven = edades.filter(e=>e<29).length;
+    document.getElementById('ind_pctJoven').textContent = edades.length? round0(100*joven/edades.length)+'%':'—';
+  } else { document.getElementById('ind_pctJoven').textContent='—'; }
+
+  renderIndPlaceholderOrChart('chartFuncionGenero','funcionGenero','ind_wrapFuncion', haveFuncion, rows, ()=>{
+    const funciones = uniqueSorted(rows,'funcionNivelCargo');
+    const generos = haveGenero? uniqueSorted(rows,'genero') : ['Total'];
+    const palette = ['#2f6fed','#d6336c','#8b5cf6','#27ae60'];
+    const datasets = generos.map((g,i)=>({ label:g, backgroundColor:palette[i%palette.length], stack:'s',
+      data: funciones.map(fn => rows.filter(r=>r.funcionNivelCargo===fn && (!haveGenero || r.genero===g)).length) }));
+    return { type:'bar', data:{labels:funciones, datasets}, options:{ responsive:true, maintainAspectRatio:false,
+      plugins:{legend:{position:'bottom',labels:{boxWidth:10,font:{size:10}}}},
+      scales:{x:{stacked:true,grid:{display:false}}, y:{stacked:true, beginAtZero:true, ticks:{precision:0}}} } };
+  });
+
+  // tabla por dirección
+  const direcciones = uniqueSorted(rows,'direccion');
+  let html = '<table><thead><tr><th>Dirección</th><th>Prom. Edad</th><th>% Mujeres</th><th>% Hombres</th></tr></thead><tbody>';
+  if (!direcciones.length){ html = '<div class="placeholder-note">No hay columna de Dirección / datos suficientes en el Excel cargado.</div>'; }
+  else{
+    direcciones.forEach(d=>{
+      const sub = rows.filter(r=>r.direccion===d);
+      const edades = sub.map(r => (typeof r.edad==='number')?r.edad:ageFromBirth(r.fechaNacimiento)).filter(v=>typeof v==='number');
+      const promE = edades.length? round0(avg(edades)) : '—';
+      let pctM='—', pctH='—';
+      if (haveGenero && sub.length){
+        const m = sub.filter(r=>normalize(r.genero).startsWith('F')||normalize(r.genero).includes('MUJER')).length;
+        const h = sub.filter(r=>normalize(r.genero).startsWith('M')&&!normalize(r.genero).includes('MUJER')||normalize(r.genero).includes('HOMBRE')).length;
+        pctM = round0(100*m/sub.length)+'%'; pctH = round0(100*h/sub.length)+'%';
+      }
+      html += `<tr><td>${esc(d)}</td><td>${promE}</td><td>${pctM}</td><td>${pctH}</td></tr>`;
+    });
+    html += '</tbody></table>';
+  }
+  document.getElementById('ind_tableDireccion').innerHTML = html;
+
+  if (!rows.length){
+    document.getElementById('ind_tableDireccion').innerHTML = '<div class="placeholder-note">No hay vacantes cerradas (contratadas) con los filtros actuales.</div>';
+  }
+
+  // Tiempo por etapa: se calcula sobre TODAS las vacantes con los filtros actuales (abiertas y
+  // cerradas), no solo las cerradas, porque un tramo lento también se puede ver en el pipeline
+  // que sigue en curso.
+  const rowsEtapas = state.rows.filter(r => (!f.profesional||r.profesional===f.profesional) && (!f.direccion||r.direccion===f.direccion) && (!f.tipoVacante||r.tipoVacante===f.tipoVacante));
+  const segmentosEtapas = computeSegmentStats(rowsEtapas);
+  renderTablaEtapas(segmentosEtapas);
+  safeRenderChart('chartEtapasProm', ()=>renderOrPlaceholderEtapasProm(segmentosEtapas));
+  safeRenderChart('chartCuelloBotella', ()=>renderOrPlaceholderCuelloBotella(segmentosEtapas));
+  safeRenderChart('chartEtapasEva', ()=>renderOrPlaceholderEtapasEva());
+}
+// Calcula, para cada tramo consecutivo de STAGE_SEQUENCE, el promedio, mínimo, máximo y número
+// de vacantes con ambas fechas del tramo disponibles (en días hábiles).
+function computeSegmentStats(rows){
+  const segmentos = [];
+  for (let i=0; i<STAGE_SEQUENCE.length-1; i++){
+    const [keyA, labelA] = STAGE_SEQUENCE[i];
+    const [keyB, labelB] = STAGE_SEQUENCE[i+1];
+    const dias = [];
+    rows.forEach(r=>{
+      const sd = r.stageDates;
+      if (sd && sd[keyA] && sd[keyB]){
+        const d = businessDaysBetween(sd[keyA], sd[keyB]);
+        if (d!==null) dias.push(d);
+      }
+    });
+    segmentos.push({
+      nombre: labelA+' → '+labelB,
+      prom: round0(avg(dias)),
+      min: dias.length? Math.min(...dias) : null,
+      max: dias.length? Math.max(...dias) : null,
+      n: dias.length
+    });
+  }
+  return segmentos;
+}
+const SIN_DATOS_ETAPAS_MSG = 'No se encontraron suficientes fechas de etapas en la columna Comentarios para calcular esto (se buscan las etiquetas RECLUTAMIENTO, RELACIONES_LABORALES, PRUEBA_TECNICA, ENTREGADO_COMPENSACION, ESTUDIO_SEGURIDAD y EXAMEN_MEDICO seguidas de una fecha).';
+function renderChartEtapasProm(segmentos){
+  destroyChart('etapasProm');
+  const ctx = document.getElementById('chartEtapasProm');
+  const colors = ['#2f6fed','#8b5cf6','#27ae60','#f2994a','#e5493d'];
+  state.charts.etapasProm = new Chart(ctx, {
+    type:'bar',
+    data:{ labels: segmentos.map(s=>s.nombre), datasets:[{ label:'Prom. días hábiles', data: segmentos.map(s=>s.prom), backgroundColor:colors, borderRadius:4 }]},
+    options:{ indexAxis:'y', responsive:true, maintainAspectRatio:false,
+      plugins:{legend:{display:false}},
+      scales:{ x:{beginAtZero:true, ticks:{precision:0}}, y:{grid:{display:false}} } }
+  });
+}
+function renderOrPlaceholderEtapasProm(segmentos){
+  const wrap = document.getElementById('ind_wrapEtapasProm');
+  if (!segmentos.some(s=>s.n>0)){
+    destroyChart('etapasProm');
+    wrap.innerHTML = `<div class="placeholder-note">${SIN_DATOS_ETAPAS_MSG}</div>`;
+    return;
+  }
+  if (!document.getElementById('chartEtapasProm')) wrap.innerHTML = '<canvas id="chartEtapasProm"></canvas>';
+  renderChartEtapasProm(segmentos);
+}
+// "Cuello de botella": compara Promedio vs. Máximo por tramo -- un tramo puede tener un
+// promedio moderado pero un máximo muy alto (mucha varianza), lo cual también señala un
+// punto de riesgo en el proceso, no solo el que tiene el promedio más alto.
+function renderChartCuelloBotella(segmentos){
+  destroyChart('cuelloBotella');
+  const ctx = document.getElementById('chartCuelloBotella');
+  state.charts.cuelloBotella = new Chart(ctx, {
+    type:'bar',
+    data:{ labels: segmentos.map(s=>s.nombre), datasets:[
+      { label:'Promedio', data: segmentos.map(s=>s.prom), backgroundColor:'#2f6fed', borderRadius:4 },
+      { label:'Máximo', data: segmentos.map(s=>s.max), backgroundColor:'#e5493d', borderRadius:4 }
+    ]},
+    options:{ indexAxis:'y', responsive:true, maintainAspectRatio:false,
+      plugins:{legend:{position:'bottom', labels:{boxWidth:10,font:{size:10}}}},
+      scales:{ x:{beginAtZero:true, ticks:{precision:0}}, y:{grid:{display:false}} } }
+  });
+}
+function renderOrPlaceholderCuelloBotella(segmentos){
+  const wrap = document.getElementById('ind_wrapCuelloBotella');
+  if (!segmentos.some(s=>s.n>0)){
+    destroyChart('cuelloBotella');
+    wrap.innerHTML = `<div class="placeholder-note">${SIN_DATOS_ETAPAS_MSG}</div>`;
+    return;
+  }
+  if (!document.getElementById('chartCuelloBotella')) wrap.innerHTML = '<canvas id="chartCuelloBotella"></canvas>';
+  renderChartCuelloBotella(segmentos);
+}
+// Tiempo por etapa restringido a Eva Ramírez únicamente -- independiente de los filtros de la
+// página (Profesional/Dirección/Tipo Vacante), siempre muestra solo sus vacantes.
+function renderChartEtapasEva(segmentos){
+  destroyChart('etapasEva');
+  const ctx = document.getElementById('chartEtapasEva');
+  state.charts.etapasEva = new Chart(ctx, {
+    type:'bar',
+    data:{ labels: segmentos.map(s=>s.nombre), datasets:[{ label:'Prom. días hábiles (Eva Ramírez)', data: segmentos.map(s=>s.prom), backgroundColor:'#8b5cf6', borderRadius:4 }]},
+    options:{ indexAxis:'y', responsive:true, maintainAspectRatio:false,
+      plugins:{legend:{display:false}},
+      scales:{ x:{beginAtZero:true, ticks:{precision:0}}, y:{grid:{display:false}} } }
+  });
+}
+function renderOrPlaceholderEtapasEva(){
+  const wrap = document.getElementById('ind_wrapEtapasEva');
+  const rowsEva = state.rows.filter(r => normalize(r.profesional) === 'EVA RAMIREZ');
+  const segmentos = computeSegmentStats(rowsEva);
+  if (!segmentos.some(s=>s.n>0)){
+    destroyChart('etapasEva');
+    wrap.innerHTML = '<div class="placeholder-note">No se encontraron fechas de etapas para "Eva Ramírez" en los datos cargados (revisa que el nombre en la columna Profesional coincida).</div>';
+    return;
+  }
+  if (!document.getElementById('chartEtapasEva')) wrap.innerHTML = '<canvas id="chartEtapasEva"></canvas>';
+  renderChartEtapasEva(segmentos);
+}
+function renderTablaEtapas(segmentos){
+  const wrap = document.getElementById('ind_tableEtapas');
+  if (!wrap) return;
+  if (!segmentos.some(s=>s.n>0)){
+    wrap.innerHTML = `<div class="placeholder-note">${SIN_DATOS_ETAPAS_MSG}</div>`;
+    return;
+  }
+  const maxProm = Math.max(...segmentos.filter(s=>s.n>0).map(s=>s.prom));
+  let html = '<table><thead><tr><th>Tramo del proceso</th><th>Prom. días hábiles</th><th># vacantes con dato</th></tr></thead><tbody>';
+  segmentos.forEach(s=>{
+    const esCuello = s.n>0 && s.prom===maxProm;
+    html += `<tr class="${esCuello?'row-critical':''}">`;
+    html += `<td>${esc(s.nombre)}${esCuello?' <span class="warn-icon" title="Tramo con el mayor tiempo promedio">⚠ Cuello de botella</span>':''}</td>`;
+    html += `<td>${s.n? s.prom : '—'}</td>`;
+    html += `<td>${s.n}</td>`;
+    html += '</tr>';
+  });
+  html += '</tbody></table>';
+  wrap.innerHTML = html;
+}
+function renderIndPlaceholderOrChart(canvasId, chartKey, wrapId, haveCols, rows, buildConfig){
+  const wrap = document.getElementById(wrapId);
+  if (!haveCols || !rows.length){
+    destroyChart(chartKey);
+    wrap.innerHTML = `<div class="placeholder-note">No se encontró la columna necesaria en el Excel para este indicador (o no hay vacantes cerradas con los filtros actuales).</div>`;
+    return;
+  }
+  if (!document.getElementById(canvasId)) wrap.innerHTML = `<canvas id="${canvasId}"></canvas>`;
+  destroyChart(chartKey);
+  try{
+    if (typeof Chart === 'undefined') throw new Error('La librería de gráficas no se pudo cargar.');
+    const cfg = buildConfig();
+    state.charts[chartKey] = new Chart(document.getElementById(canvasId), cfg);
+  }catch(err){
+    console.error('No se pudo dibujar '+canvasId, err);
+    wrap.innerHTML = `<div class="placeholder-note">No se pudo dibujar esta gráfica.<br>${esc(err.message)}</div>`;
+  }
+}
+
+/* ============================================================
+   8. TEMA (MODO OSCURO / CLARO)
+   ============================================================ */
+const THEME_KEY = 'vacantes_tablero_theme';
+function getStoredTheme(){ try{ return localStorage.getItem(THEME_KEY); }catch(e){ return null; } }
+function setStoredTheme(v){ try{ localStorage.setItem(THEME_KEY, v); }catch(e){} }
+function applyTheme(theme){
+  document.documentElement.setAttribute('data-theme', theme);
+  const btn = document.getElementById('btnThemeToggle');
+  if (btn) btn.textContent = theme==='dark' ? '☀️' : '🌙';
+  render(); // re-dibuja las gráficas con los colores correctos para el tema activo
+}
+document.getElementById('btnThemeToggle').addEventListener('click', ()=>{
+  const current = document.documentElement.getAttribute('data-theme')==='dark' ? 'dark' : 'light';
+  const next = current==='dark' ? 'light' : 'dark';
+  setStoredTheme(next);
+  applyTheme(next);
+});
+(function initTheme(){
+  const stored = getStoredTheme();
+  const prefiereOscuro = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+  applyTheme(stored || (prefiereOscuro ? 'dark' : 'light'));
+})();
+
+/* ============================================================
+   9. INICIO
+   ============================================================ */
+renderEmpty();
+try{
+  const last = localStorage.getItem('vacantes_last_source');
+  if (last) setStatus('fetchStatus', 'La última vez cargaste datos desde: '+last+'. Vuelve a cargar el Excel para refrescarlos (por seguridad, los datos no se guardan entre sesiones).', null);
+}catch(e){}
+</script>
+</body>
+</html>
