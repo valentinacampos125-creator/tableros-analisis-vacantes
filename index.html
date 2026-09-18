@@ -1,5 +1,5 @@
 <!doctype html>
-<!-- Tablero Vacantes - build 2026-09-18 v20 (uso interno para control de versión, no visible en el tablero) -->
+<!-- Tablero Vacantes - build 2026-09-18 v21 (uso interno para control de versión, no visible en el tablero) -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -238,7 +238,13 @@ loadScriptWithFallbacks([
       <select id="fProfesional"><option value="">Profesional (Todas)</option></select>
       <select id="fEstado"><option value="">Estado (Todas)</option></select>
       <select id="fDireccion"><option value="">Dirección Comité (Todas)</option></select>
-      <select id="fMes"><option value="">Mes (Todas)</option></select>
+      <select id="fAnio"><option value="">Año (Todos)</option></select>
+      <select id="fMes"><option value="">Mes (Todos)</option></select>
+      <select id="fCargoSegmentado" title="Cargos Estratégicos: Jefe, Gerente y Director. Cargos Base: el resto.">
+        <option value="">Cargo Segmentado (Todos)</option>
+        <option value="estrategico">Cargos Estratégicos</option>
+        <option value="base">Cargos Base</option>
+      </select>
       <select id="fGranularidad" title="Cambia el período del KPI 'Prom. Vacantes Cerradas' de abajo">
         <option value="mes">Promedio por: Mes</option>
         <option value="semana">Promedio por: Semana</option>
@@ -350,7 +356,7 @@ const state = {
   cols: {},                 // mapeo de columnas detectadas
   missingCols: [],          // columnas canonicas no encontradas
   quickFilter: null,        // 'abiertas' | 'criticas' | 'cerradas' | null
-  filters: { profesional:'', estado:'', direccion:'', mes:'' },
+  filters: { profesional:'', estado:'', direccion:'', anio:'', mes:'', cargoSegmento:'' },
   granularidad: 'mes',      // 'mes' | 'semana' -- para el KPI "Prom. Vacantes Cerradas"
   // Filtros tipo Excel en los encabezados de la tabla: un Set vacío = "todas" (sin filtrar).
   headerFilters: { tipoVacante: new Set(), profesional: new Set(), estado: new Set() },
@@ -760,8 +766,12 @@ function populateFilterOptions(){
   fillSelect('fProfesional', uniqueSorted(state.rows,'profesional'), 'Profesional (Todas)');
   fillSelect('fEstado', uniqueSorted(state.rows,'estado'), 'Estado (Todas)');
   fillSelect('fDireccion', uniqueSorted(state.rows,'direccion'), 'Dirección Comité (Todas)');
-  const meses = {}; state.rows.forEach(r=>{ const m = mesKeyLabel(mesFiltroDate(r)); if (m) meses[m.key]=m.label; });
-  fillSelect('fMes', Object.keys(meses).sort().map(k=>({value:k,label:meses[k]})), 'Mes (Todas)', true);
+  // Año y Mes ahora son dos filtros independientes -- Año se calcula a partir de los años
+  // presentes en los datos (mesFiltroDate); Mes siempre lista los 12 meses del calendario, sin
+  // atarlos a un año en particular, para poder combinarlos libremente con el filtro de Año.
+  const anios = new Set(); state.rows.forEach(r=>{ const d = mesFiltroDate(r); if (d instanceof Date && !isNaN(d)) anios.add(d.getFullYear()); });
+  fillSelect('fAnio', [...anios].sort().map(a=>({value:String(a),label:String(a)})), 'Año (Todos)', true);
+  fillSelect('fMes', MESES_ES.map((nombre,i)=>({value:String(i+1),label:nombre})), 'Mes (Todos)', true);
 
   fillSelect('iProfesional', uniqueSorted(state.rows,'profesional'), 'Profesional (Todas)');
   fillSelect('iDireccion', uniqueSorted(state.rows,'direccion'), 'Dirección Comité (Todas)');
@@ -790,15 +800,27 @@ function applyGlobalFilters(rows){
     (!f.profesional || r.profesional===f.profesional) &&
     (!f.estado || r.estado===f.estado) &&
     (!f.direccion || r.direccion===f.direccion) &&
-    (!f.mes || (mesFiltroDate(r) && mesKeyLabel(mesFiltroDate(r)) && mesKeyLabel(mesFiltroDate(r)).key===f.mes)) &&
+    // Año y Mes son dos filtros independientes (no un solo combo "Mes AAAA" como antes): cada uno
+    // se cruza por separado contra la misma fecha de referencia (mesFiltroDate), así se pueden
+    // combinar libremente -- por ejemplo, "Año: 2026" solo, "Mes: Julio" solo (cualquier año), o
+    // ambos a la vez para un mes específico.
+    (!f.anio || (mesFiltroDate(r) && mesFiltroDate(r).getFullYear()===parseInt(f.anio,10))) &&
+    (!f.mes || (mesFiltroDate(r) && (mesFiltroDate(r).getMonth()+1)===parseInt(f.mes,10))) &&
+    (!f.cargoSegmento || (f.cargoSegmento==='estrategico' ? esCargoEstrategico(r.funcionNivelCargo) : !esCargoEstrategico(r.funcionNivelCargo))) &&
     (hf.tipoVacante.size===0 || hf.tipoVacante.has(r.tipoVacante)) &&
     (hf.profesional.size===0 || hf.profesional.has(r.profesional)) &&
     (hf.estado.size===0 || hf.estado.has(r.estado))
   );
 }
-['fProfesional','fEstado','fDireccion','fMes'].forEach(id=>{
+// "Cargos Estratégicos": Jefe, Gerente y Director (según Función-Nivel de Cargo); "Cargos Base"
+// es el complemento -- todo lo demás (Analista, Consultor, Ingeniero, etc.).
+function esCargoEstrategico(funcionNivelCargo){
+  const n = normalize(funcionNivelCargo);
+  return n.includes('JEFE') || n.includes('GERENTE') || n.includes('DIRECTOR');
+}
+['fProfesional','fEstado','fDireccion','fAnio','fMes','fCargoSegmentado'].forEach(id=>{
   document.getElementById(id).addEventListener('change', e=>{
-    const map = {fProfesional:'profesional',fEstado:'estado',fDireccion:'direccion',fMes:'mes'};
+    const map = {fProfesional:'profesional',fEstado:'estado',fDireccion:'direccion',fAnio:'anio',fMes:'mes',fCargoSegmentado:'cargoSegmento'};
     state.filters[map[id]] = e.target.value; render();
   });
 });
@@ -806,11 +828,11 @@ document.getElementById('fGranularidad').addEventListener('change', e=>{
   state.granularidad = e.target.value; render();
 });
 document.getElementById('btnClearFilters').addEventListener('click', ()=>{
-  state.filters = {profesional:'',estado:'',direccion:'',mes:''};
+  state.filters = {profesional:'',estado:'',direccion:'',anio:'',mes:'',cargoSegmento:''};
   state.headerFilters = { tipoVacante: new Set(), profesional: new Set(), estado: new Set() };
   state.quickFilter = null;
   state.cardFilters = { antiguedad:'', profesional:'', criticas:'' };
-  ['fProfesional','fEstado','fDireccion','fMes','cfAntiguedad','cfProfesional','cfCriticas'].forEach(id=>document.getElementById(id).value='');
+  ['fProfesional','fEstado','fDireccion','fAnio','fMes','fCargoSegmentado','cfAntiguedad','cfProfesional','cfCriticas'].forEach(id=>document.getElementById(id).value='');
   render();
 });
 ['cfAntiguedad','cfProfesional','cfCriticas'].forEach(id=>{
