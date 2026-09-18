@@ -187,7 +187,7 @@ loadScriptWithFallbacks([
     <span class="pill" id="pillUpdated">Sin datos cargados</span>
     <span class="pill" id="pillExcluidas" style="display:none;" title="Estados como Cancelada/Anulada/Desierta: no se cuentan como abiertas, críticas ni cerradas">⛔ <span id="excluidasCount">0</span> excluidas</span>
     <span class="pill alert" id="pillAlert" style="display:none;">⚠️ <span id="alertCount">0</span> &gt; 30 días</span>
-  
+    <span class="pill" style="font-size:10px;opacity:.75;" title="Versión del tablero, útil para confirmar que tienes el archivo más reciente">build 2026-09-17 v19</span>
   </div>
 </div>
 
@@ -311,6 +311,10 @@ loadScriptWithFallbacks([
 
     <div class="charts" style="grid-template-columns:1fr;">
       <div class="chart-card"><h3><svg class="ic-title" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>Vacantes cerradas por Función-Nivel de Cargo (por Género)</h3><div class="canvas-wrap" id="ind_wrapFuncion"><canvas id="chartFuncionGenero"></canvas></div></div>
+    </div>
+
+    <div class="charts" style="grid-template-columns:1fr;">
+      <div class="chart-card"><h3><svg class="ic-title" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg>Vacantes Liberadas vs. Cerradas por Mes <span style="font-weight:400;color:var(--muted);font-size:11px;">(Liberadas: todas, según Fecha Liberación · Cerradas: según Fecha Envío a Compensación)</span></h3><div class="canvas-wrap" id="ind_wrapLiberadasCerradas"><canvas id="chartLiberadasCerradasMes"></canvas></div></div>
     </div>
 
     <div class="ind-tables" style="grid-template-columns:1fr;">
@@ -502,6 +506,7 @@ const COLUMN_RULES = [
   ['edad',            h => h === 'EDAD' || h.includes('EDAD CANDIDATO')],
   ['fechaNacimiento', h => h.includes('NACIMIENTO')],
   ['fechaIngreso',    h => h.includes('FECHA') && h.includes('INGRESO')],
+  ['fechaEnvioCompensacion', h => h.includes('ENVIO') && h.includes('COMPENSACION')],
   ['nivelContribucion', h => h.includes('NIVEL DE CONTRIBUCION')],
   ['funcionNivelCargo', h => h.includes('FUNCION') && h.includes('NIVEL')],
 ];
@@ -543,6 +548,11 @@ function loadWorkbook(data, sourceLabel){
       const fechaLib = toDate(get('fechaLiberacion'));
       const estado = titleCase(get('estado'));
       const fechaIngreso = toDate(get('fechaIngreso'));
+      // Fecha de envío a compensación: es un dato adicional, usado ÚNICAMENTE por el gráfico de
+      // "Vacantes Liberadas vs. Cerradas por Mes" en Análisis de Indicadores. No participa en la
+      // clasificación cerrada/excluida/abierta ni en fechaCierre (que siguen usando solo Fecha
+      // Ingreso, como se estableció arriba).
+      const fechaEnvioComp = toDate(get('fechaEnvioCompensacion'));
       // "Cerrada" se identifica únicamente cruzando Estado (columna E) con Fecha Ingreso (columna
       // W) -- no se lee ninguna otra columna para esto: si ya hay una fecha de ingreso real, la
       // vacante quedó cerrada aunque el Estado no lo diga literalmente (o esté desactualizado); y
@@ -563,7 +573,7 @@ function loadWorkbook(data, sourceLabel){
       rows.push({
         cargo: cleanText(get('cargo')), tipoVacante: titleCase(get('tipoVacante')), profesional: cleanText(get('profesional')),
         direccion: cleanText(get('direccion')), fechaLiberacion: fechaLib, fechaCierre: fechaCierre,
-        estado: estado, abierta, cerrada, excluida, diasHabiles, fechaIngreso,
+        estado: estado, abierta, cerrada, excluida, diasHabiles, fechaIngreso, fechaEnvioComp,
         critica: abierta && typeof diasHabiles==='number' && diasHabiles > CRITICAL_DAYS,
         comentarios: cleanText(get('comentarios')), genero: titleCase(get('genero')), edad: get('edad'),
         fechaNacimiento: toDate(get('fechaNacimiento')), nivelContribucion: cleanText(get('nivelContribucion')),
@@ -1161,6 +1171,8 @@ function renderIndicadores(){
       scales:{x:{stacked:true,grid:{display:false}}, y:{stacked:true, beginAtZero:true, ticks:{precision:0}}} } };
   });
 
+  renderChartLiberadasCerradasMes();
+
   // tabla por dirección
   const direcciones = uniqueSorted(rows,'direccion');
   let html = '<table><thead><tr><th>Dirección</th><th>Prom. Edad</th><th>% Mujeres</th><th>% Hombres</th></tr></thead><tbody>';
@@ -1211,11 +1223,16 @@ function computeSegmentStats(rows){
         if (d!==null) dias.push(d);
       }
     });
+    const max = dias.length? Math.max(...dias) : null;
     segmentos.push({
       nombre: labelA+' → '+labelB,
       prom: round0(avg(dias)),
       min: dias.length? Math.min(...dias) : null,
-      max: dias.length? Math.max(...dias) : null,
+      max: max,
+      // Cuántas vacantes de este tramo llegaron exactamente a ese máximo de días hábiles --
+      // solo se usa para el tooltip de "Cuello de Botella" (Promedio vs. Máximo); no cambia el
+      // valor de la barra ni los ejes de ningún gráfico.
+      maxCount: max!==null ? dias.filter(d=>d===max).length : null,
       n: dias.length
     });
   }
@@ -1257,7 +1274,19 @@ function renderChartCuelloBotella(segmentos){
       { label:'Máximo', data: segmentos.map(s=>s.max), backgroundColor:'#e5493d', borderRadius:4 }
     ]},
     options:{ indexAxis:'y', responsive:true, maintainAspectRatio:false,
-      plugins:{legend:{position:'bottom', labels:{boxWidth:10,font:{size:10}}}},
+      plugins:{legend:{position:'bottom', labels:{boxWidth:10,font:{size:10}}},
+        // Al pasar el mouse sobre la barra de "Máximo" se muestra además cuántas vacantes de ese
+        // tramo llegaron a ese máximo de días hábiles -- no cambia el valor de la barra ni los
+        // ejes, solo el texto del tooltip.
+        tooltip:{ callbacks:{ label: function(context){
+          const value = context.parsed.x;
+          if (context.dataset.label === 'Máximo'){
+            const seg = segmentos[context.dataIndex];
+            const cnt = seg ? seg.maxCount : null;
+            if (typeof cnt === 'number') return `Máximo: ${value} días (${cnt} vacante${cnt===1?'':'s'})`;
+          }
+          return context.dataset.label+': '+value;
+        } } } },
       scales:{ x:{beginAtZero:true, ticks:{precision:0}}, y:{grid:{display:false}} } }
   });
 }
@@ -1315,6 +1344,73 @@ function renderTablaEtapas(segmentos){
   });
   html += '</tbody></table>';
   wrap.innerHTML = html;
+}
+// Gráfico de líneas "Vacantes Liberadas vs. Cerradas por Mes" (Análisis de Indicadores).
+// Línea "Liberadas": TODAS las vacantes (abiertas o cerradas, sin importar su estado actual),
+// agrupadas por el mes de su Fecha Liberación (columna B, formato día/mes/año).
+// Línea "Cerradas": únicamente las vacantes cerradas, agrupadas por el mes de su Fecha Envío a
+// Compensación -- una columna DISTINTA a la Fecha Ingreso que se usa en el resto del tablero
+// (KPI "Cerradas", filtro de "Mes", promedio por periodo). Esta es la única gráfica que usa esa
+// columna; no afecta ningún otro cálculo del tablero.
+function renderChartLiberadasCerradasMes(){
+  const wrapId = 'ind_wrapLiberadasCerradas', canvasId = 'chartLiberadasCerradasMes', chartKey = 'liberadasCerradasMes';
+  const wrap = document.getElementById(wrapId);
+  const f = state.indFilters;
+  const rowsBase = state.rows.filter(r => (!f.profesional||r.profesional===f.profesional) && (!f.direccion||r.direccion===f.direccion) && (!f.tipoVacante||r.tipoVacante===f.tipoVacante));
+  const haveEnvioComp = state.cols.fechaEnvioCompensacion !== undefined;
+
+  if (!haveEnvioComp || !rowsBase.length){
+    destroyChart(chartKey);
+    wrap.innerHTML = `<div class="placeholder-note">No se encontró la columna "Fecha Envío a Compensación" en el Excel para este indicador (o no hay vacantes con los filtros actuales).</div>`;
+    return;
+  }
+
+  const liberadas = rowsBase.filter(r => r.fechaLiberacion instanceof Date && !isNaN(r.fechaLiberacion));
+  const cerradasComp = rowsBase.filter(r => r.cerrada && r.fechaEnvioComp instanceof Date && !isNaN(r.fechaEnvioComp));
+
+  if (!liberadas.length && !cerradasComp.length){
+    destroyChart(chartKey);
+    wrap.innerHTML = `<div class="placeholder-note">No hay fechas válidas de Liberación o de Envío a Compensación con los filtros actuales.</div>`;
+    return;
+  }
+
+  // Rango continuo de meses (incluye meses sin actividad en alguna de las dos líneas) entre la
+  // fecha más antigua y la más reciente de ambas series, para que el eje X no tenga huecos.
+  const todasFechas = [...liberadas.map(r=>r.fechaLiberacion), ...cerradasComp.map(r=>r.fechaEnvioComp)];
+  const minF = new Date(Math.min(...todasFechas)), maxF = new Date(Math.max(...todasFechas));
+  const meses = [];
+  let cursor = new Date(minF.getFullYear(), minF.getMonth(), 1);
+  const fin = new Date(maxF.getFullYear(), maxF.getMonth(), 1);
+  while (cursor <= fin){
+    meses.push(mesKeyLabel(cursor));
+    cursor = new Date(cursor.getFullYear(), cursor.getMonth()+1, 1);
+  }
+  const countByMonth = (arr, dateField) => {
+    const map = {};
+    arr.forEach(r=>{ const mk = mesKeyLabel(r[dateField]); if (mk) map[mk.key] = (map[mk.key]||0)+1; });
+    return meses.map(m=>map[m.key]||0);
+  };
+  const dataLiberadas = countByMonth(liberadas, 'fechaLiberacion');
+  const dataCerradas = countByMonth(cerradasComp, 'fechaEnvioComp');
+
+  if (!document.getElementById(canvasId)) wrap.innerHTML = `<canvas id="${canvasId}"></canvas>`;
+  destroyChart(chartKey);
+  try{
+    if (typeof Chart === 'undefined') throw new Error('La librería de gráficas no se pudo cargar.');
+    state.charts[chartKey] = new Chart(document.getElementById(canvasId), {
+      type: 'line',
+      data: { labels: meses.map(m=>m.label), datasets: [
+        { label: 'Vacantes Liberadas', data: dataLiberadas, borderColor: '#2f6fed', backgroundColor: '#2f6fed22', tension: 0.25, fill: false },
+        { label: 'Vacantes Cerradas (Envío a Compensación)', data: dataCerradas, borderColor: '#27ae60', backgroundColor: '#27ae6022', tension: 0.25, fill: false },
+      ] },
+      options: { responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 10 } } } },
+        scales: { x: { grid: { display: false } }, y: { beginAtZero: true, ticks: { precision: 0 } } } }
+    });
+  }catch(err){
+    console.error('No se pudo dibujar '+canvasId, err);
+    wrap.innerHTML = `<div class="placeholder-note">No se pudo dibujar esta gráfica.<br>${esc(err.message)}</div>`;
+  }
 }
 function renderIndPlaceholderOrChart(canvasId, chartKey, wrapId, haveCols, rows, buildConfig){
   const wrap = document.getElementById(wrapId);
