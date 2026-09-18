@@ -1,5 +1,5 @@
 <!doctype html>
-<!-- Tablero Vacantes - build 2026-09-18 v21 (uso interno para control de versión, no visible en el tablero) -->
+<!-- Tablero Vacantes - build 2026-09-18 v22 (uso interno para control de versión, no visible en el tablero) -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -122,6 +122,15 @@ loadScriptWithFallbacks([
   .kpi.v-promperiodo .kpi-value{color:#16b5a1;}
   .kpi-check{position:absolute;top:8px;right:10px;font-size:13px;color:var(--blue);}
 
+  .kpis-tipo{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:14px;max-width:520px;}
+  .kpi-mini{background:var(--card);border:1px solid var(--border);border-radius:12px;box-shadow:var(--shadow);padding:12px 14px;transition:background-color .2s,border-color .2s;}
+  .kpi-mini-label{font-size:11.5px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.3px;}
+  .kpi-mini-value{font-size:22px;font-weight:800;margin-top:4px;}
+  .kpi-mini-pct{font-size:14px;font-weight:600;color:var(--muted);margin-left:4px;}
+  .kpi-mini.v-interna .kpi-mini-value{color:var(--blue);}
+  .kpi-mini.v-externa .kpi-mini-value{color:#8b5cf6;}
+  .charts.single-chart{grid-template-columns:1fr;}
+
   .ic-title{width:15px;height:15px;flex:none;vertical-align:-3px;}
   .kpi-label .ic-title{vertical-align:-2px;opacity:.85;}
   .chart-card h3, .table-card h3{display:flex;align-items:center;gap:7px;}
@@ -160,7 +169,7 @@ loadScriptWithFallbacks([
   .comentario-full{margin-top:8px;white-space:normal;max-width:360px;font-size:12px;line-height:1.5;}
   .comentario-full[hidden]{display:none;}
   .dot{display:inline-block;width:11px;height:11px;border-radius:50%;margin-right:5px;vertical-align:middle;}
-  .dot.red{background:var(--red);} .dot.yellow{background:var(--yellow);} .dot.green{background:var(--green);} .dot.grey{background:var(--dot-grey);}
+  .dot.red{background:var(--red);} .dot.orange{background:var(--orange);} .dot.yellow{background:var(--yellow);} .dot.green{background:var(--green);} .dot.grey{background:var(--dot-grey);}
   .badge{padding:2px 8px;border-radius:20px;font-size:10.5px;font-weight:700;}
   .badge.open{background:var(--badge-open-bg);color:var(--blue-dark);}
   .badge.closed{background:var(--badge-closed-bg);color:var(--badge-closed-fg);}
@@ -176,7 +185,7 @@ loadScriptWithFallbacks([
   .placeholder-note{font-size:12px;color:var(--muted);padding:14px;text-align:center;border:1px dashed var(--border);border-radius:8px;}
 
   @media (max-width:1100px){ .kpis{grid-template-columns:repeat(3,1fr);} .charts{grid-template-columns:1fr 1fr;} .ind-grid{grid-template-columns:repeat(2,1fr);} .ind-tables{grid-template-columns:1fr;} }
-  @media (max-width:640px){ .kpis{grid-template-columns:repeat(2,1fr);} .charts{grid-template-columns:1fr;} .app-title{order:3;width:100%;text-align:left;} }
+  @media (max-width:640px){ .kpis{grid-template-columns:repeat(2,1fr);} .charts{grid-template-columns:1fr;} .app-title{order:3;width:100%;text-align:left;} .kpis-tipo{grid-template-columns:1fr;} }
 </style>
 </head>
 <body>
@@ -187,7 +196,7 @@ loadScriptWithFallbacks([
   <div class="header-right">
     <button class="theme-toggle" id="btnThemeToggle" title="Cambiar entre modo claro y oscuro" aria-label="Cambiar entre modo claro y oscuro">🌙</button>
     <span class="pill" id="pillExcluidas" style="display:none;" title="Estados como Cancelada/Anulada/Desierta: no se cuentan como abiertas, críticas ni cerradas">⛔ <span id="excluidasCount">0</span> excluidas</span>
-    <span class="pill alert" id="pillAlert" style="display:none;">⚠️ <span id="alertCount">0</span> &gt; 30 días</span>
+    <span class="pill alert" id="pillAlert" style="display:none;">⚠️ <span id="alertCount">0</span> &ge; 29 días</span>
   </div>
 </div>
 
@@ -264,10 +273,10 @@ loadScriptWithFallbacks([
         <div class="kpi-value">0</div>
         <div class="kpi-sub">solo estado abierto</div>
       </div>
-      <div class="kpi v-criticas clickable" id="kpiCriticas" title="Clic para filtrar la tabla por vacantes críticas (>30 días)">
+      <div class="kpi v-criticas clickable" id="kpiCriticas" title="Clic para filtrar la tabla por vacantes críticas (≥29 días)">
         <div class="kpi-label"><svg class="ic-title" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>Vacantes Críticas</div>
         <div class="kpi-value">0</div>
-        <div class="kpi-sub">abiertas &gt; 30 días</div>
+        <div class="kpi-sub">abiertas &ge; 29 días</div>
         <div class="kpi-check">✓</div>
       </div>
       <div class="kpi v-cerradas clickable" id="kpiCerradas" title="Clic para filtrar la tabla por vacantes cerradas">
@@ -289,9 +298,20 @@ loadScriptWithFallbacks([
       </div>
     </div>
 
-    <div class="charts">
-      <div class="chart-card"><h3><svg class="ic-title" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h12"></path><path d="M6 22h12"></path><path d="M6 2c0 6 6 6 6 10s-6 4-6 10"></path><path d="M18 2c0 6-6 6-6 10s6 4 6 10"></path></svg>Vacantes por Antigüedad<select class="chart-filter-select" id="cfAntiguedad" title="Filtrar solo esta gráfica por Dirección"><option value="">Dirección (Todas)</option></select></h3><div class="canvas-wrap" id="wrapAntiguedad"><canvas id="chartAntiguedad"></canvas></div></div>
-      <div class="chart-card"><h3><svg class="ic-title" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>Vacantes por Profesional<select class="chart-filter-select" id="cfProfesional" title="Filtrar solo esta gráfica por Dirección"><option value="">Dirección (Todas)</option></select></h3><div class="canvas-wrap" id="wrapProfesional"><canvas id="chartProfesional"></canvas></div></div>
+    <div class="kpis-tipo" id="kpisTipoVacante">
+      <div class="kpi-mini v-interna">
+        <div class="kpi-mini-label">Vacantes Internas</div>
+        <div class="kpi-mini-value"><span id="kpiInternasCount">0</span><span class="kpi-mini-pct" id="kpiInternasPct">(0%)</span></div>
+      </div>
+      <div class="kpi-mini v-externa">
+        <div class="kpi-mini-label">Vacantes Externas</div>
+        <div class="kpi-mini-value"><span id="kpiExternasCount">0</span><span class="kpi-mini-pct" id="kpiExternasPct">(0%)</span></div>
+      </div>
+    </div>
+
+    <div class="charts" id="chartsSeguimiento">
+      <div class="chart-card" id="cardAntiguedad"><h3><svg class="ic-title" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h12"></path><path d="M6 22h12"></path><path d="M6 2c0 6 6 6 6 10s-6 4-6 10"></path><path d="M18 2c0 6-6 6-6 10s6 4 6 10"></path></svg>Vacantes por Antigüedad<select class="chart-filter-select" id="cfAntiguedad" title="Filtrar solo esta gráfica por Dirección"><option value="">Dirección (Todas)</option></select></h3><div class="canvas-wrap" id="wrapAntiguedad"><canvas id="chartAntiguedad"></canvas></div></div>
+      <div class="chart-card" id="cardProfesional"><h3><svg class="ic-title" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>Vacantes por Profesional<select class="chart-filter-select" id="cfProfesional" title="Filtrar solo esta gráfica por Dirección"><option value="">Dirección (Todas)</option></select></h3><div class="canvas-wrap" id="wrapProfesional"><canvas id="chartProfesional"></canvas></div></div>
       <div class="chart-card"><h3><svg class="ic-title" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>Vacantes Críticas por Profesional<select class="chart-filter-select" id="cfCriticas" title="Filtrar solo esta gráfica por Dirección"><option value="">Dirección (Todas)</option></select></h3><div class="canvas-wrap" id="wrapCriticasProf"><canvas id="chartCriticasProf"></canvas></div></div>
     </div>
 
@@ -370,7 +390,7 @@ const state = {
   shareUrl: "https://claromovilco-my.sharepoint.com/:x:/r/personal/46399725_claro_com_co/_layouts/15/Doc.aspx?sourcedoc=%7B4FE93107-B4CA-4DDA-BDA9-4DD33A71DF21%7D&file=Seguimiento%20Vacantes1.xlsx&action=default&mobileredirect=true"
 };
 const CLOSED_KEYWORD = 'CERRAD';
-const CRITICAL_DAYS = 30;
+const CRITICAL_DAYS = 28; // "críticas" = 29 días o más (contiguo con el último bucket de la gráfica de antigüedad, 19-28 / 29+)
 const MESES_ES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
 
 /* ============================================================
@@ -908,6 +928,17 @@ function render(){
   document.getElementById('alertCount').textContent = criticas.length;
   document.getElementById('lastUpdatedText').textContent = state.lastUpdated? state.lastUpdated.toLocaleString('es-CO') : '—';
 
+  // Vacantes Internas vs Externas (según Tipo Vacante) sobre el total filtrado actual (scoped),
+  // con su respectivo porcentaje sobre ese total.
+  const internas = scoped.filter(r=>normalize(r.tipoVacante)==='INTERNA').length;
+  const externas = scoped.filter(r=>normalize(r.tipoVacante)==='EXTERNA').length;
+  const pctInternas = scoped.length ? round1(internas/scoped.length*100) : null;
+  const pctExternas = scoped.length ? round1(externas/scoped.length*100) : null;
+  document.getElementById('kpiInternasCount').textContent = internas;
+  document.getElementById('kpiExternasCount').textContent = externas;
+  document.getElementById('kpiInternasPct').textContent = pctInternas!==null ? `(${pctInternas}%)` : '(—)';
+  document.getElementById('kpiExternasPct').textContent = pctExternas!==null ? `(${pctExternas}%)` : '(—)';
+
   // Cada una de estas 3 gráficas tiene, además de los filtros generales de arriba, su propio
   // filtro de Dirección (independiente entre sí) directamente en la tarjeta -- por eso cada una
   // aplica cf.<tarjeta> sobre su propio conjunto de datos (abiertas/scoped/criticas) antes de
@@ -916,8 +947,25 @@ function render(){
   const abiertasAntig = cf.antiguedad ? abiertas.filter(r=>r.direccion===cf.antiguedad) : abiertas;
   const scopedProf = cf.profesional ? scoped.filter(r=>r.direccion===cf.profesional) : scoped;
   const criticasFiltradas = cf.criticas ? criticas.filter(r=>r.direccion===cf.criticas) : criticas;
-  safeRenderChart('chartAntiguedad', ()=>{ ensureCanvas('wrapAntiguedad','chartAntiguedad'); renderChartAntiguedad(abiertasAntig); });
-  safeRenderChart('chartProfesional', ()=>renderOrPlaceholderProfesional(scopedProf));
+
+  // Cuando el filtro activo es "Cerradas" (sea por el select de Estado = "Cerrada" o por el
+  // clic en el KPI de Cerradas), las gráficas de "Vacantes por Antigüedad" y "Vacantes por
+  // Profesional" dejan de tener sentido (la primera solo mide antigüedad de abiertas, que
+  // quedaría en cero) y se ocultan por completo; la de "Críticas por Profesional" queda sola
+  // y ocupa el ancho completo.
+  const hideCerradasCharts = (state.filters.estado === 'Cerrada') || (state.quickFilter === 'cerradas');
+  const cardAntig = document.getElementById('cardAntiguedad');
+  const cardProf = document.getElementById('cardProfesional');
+  if (cardAntig) cardAntig.style.display = hideCerradasCharts ? 'none' : '';
+  if (cardProf) cardProf.style.display = hideCerradasCharts ? 'none' : '';
+  document.getElementById('chartsSeguimiento').classList.toggle('single-chart', hideCerradasCharts);
+  if (hideCerradasCharts){
+    destroyChart('antiguedad');
+    destroyChart('profesional');
+  } else {
+    safeRenderChart('chartAntiguedad', ()=>{ ensureCanvas('wrapAntiguedad','chartAntiguedad'); renderChartAntiguedad(abiertasAntig); });
+    safeRenderChart('chartProfesional', ()=>renderOrPlaceholderProfesional(scopedProf));
+  }
   safeRenderChart('chartCriticasProf', ()=>{ ensureCanvas('wrapCriticasProf','chartCriticasProf'); renderChartCriticasProf(criticasFiltradas); });
 
   try{ renderTable(scoped); }
@@ -962,13 +1010,13 @@ function ensureCanvas(wrapId, canvasId){
 }
 function bucketAntiguedad(dias){
   if (dias===null||dias===undefined) return null;
-  if (dias<=15) return '0-15 días';
-  if (dias<=30) return '16-30 días';
-  if (dias<=45) return '31-45 días';
-  return '46+ días';
+  if (dias<=9) return '0-9 días';
+  if (dias<=18) return '10-18 días';
+  if (dias<=28) return '19-28 días';
+  return '29+ días (Críticas)';
 }
 function renderChartAntiguedad(abiertas){
-  const buckets = ['0-15 días','16-30 días','31-45 días','46+ días'];
+  const buckets = ['0-9 días','10-18 días','19-28 días','29+ días (Críticas)'];
   const colors = ['#27ae60','#f2c94c','#f2994a','#e5493d'];
   const counts = buckets.map(b => abiertas.filter(r=>bucketAntiguedad(r.diasHabiles)===b).length);
   destroyChart('antiguedad');
@@ -1101,9 +1149,9 @@ function renderTable(scoped){
     html += `<tr><td colspan="${TABLE_COLS.length}"><div class="empty-state">No hay vacantes que coincidan con los filtros seleccionados.</div></td></tr>`;
   } else {
     rows.forEach(r=>{
-      const dotClass = (r.cerrada || r.excluida) ? 'grey' : (r.critica ? 'red' : (r.diasHabiles>15 ? 'yellow' : 'green'));
+      const dotClass = (r.cerrada || r.excluida) ? 'grey' : (r.critica ? 'red' : (r.diasHabiles>18 ? 'orange' : (r.diasHabiles>9 ? 'yellow' : 'green')));
       html += `<tr class="${r.critica?'row-critical':''}">`;
-      html += `<td><span class="dot ${dotClass}"></span>${r.critica?'<span class="warn-icon" title="Supera 30 días abierta">⚠</span>':''}</td>`;
+      html += `<td><span class="dot ${dotClass}"></span>${r.critica?'<span class="warn-icon" title="29 días o más abierta">⚠</span>':''}</td>`;
       html += `<td>${esc(r.cargo)}</td><td>${esc(r.tipoVacante)}</td><td>${esc(r.profesional)}</td><td>${esc(r.direccion)}</td>`;
       html += `<td>${fmtDate(r.fechaLiberacion)}</td><td>${r.diasHabiles!==null&&r.diasHabiles!==undefined? r.diasHabiles:'—'}</td>`;
       html += `<td><span class="badge ${r.excluida?'excluded':(r.abierta?'open':'closed')}">${esc(r.estado)}</span></td>`;
