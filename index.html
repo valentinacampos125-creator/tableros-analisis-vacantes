@@ -1,4 +1,5 @@
 <!doctype html>
+<!-- Tablero Vacantes - build 2026-09-18 v20 (uso interno para control de versión, no visible en el tablero) -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -129,6 +130,7 @@ loadScriptWithFallbacks([
   .charts{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:14px;}
   .chart-card{background:var(--card);border:1px solid var(--border);border-radius:12px;box-shadow:var(--shadow);padding:12px;transition:background-color .2s,border-color .2s;}
   .chart-card h3{margin:0 0 8px;font-size:13px;font-weight:700;color:var(--ink);}
+  .chart-filter-select{margin-left:auto;font-size:11px;font-weight:400;padding:3px 6px;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--ink);max-width:150px;}
   .chart-card .canvas-wrap{position:relative;height:230px;}
 
   .table-card{background:var(--card);border:1px solid var(--border);border-radius:12px;box-shadow:var(--shadow);padding:14px;overflow:auto;transition:background-color .2s,border-color .2s;}
@@ -184,10 +186,8 @@ loadScriptWithFallbacks([
   <div class="app-title">SEGUIMIENTO DE VACANTES</div>
   <div class="header-right">
     <button class="theme-toggle" id="btnThemeToggle" title="Cambiar entre modo claro y oscuro" aria-label="Cambiar entre modo claro y oscuro">🌙</button>
-    <span class="pill" id="pillUpdated">Sin datos cargados</span>
     <span class="pill" id="pillExcluidas" style="display:none;" title="Estados como Cancelada/Anulada/Desierta: no se cuentan como abiertas, críticas ni cerradas">⛔ <span id="excluidasCount">0</span> excluidas</span>
     <span class="pill alert" id="pillAlert" style="display:none;">⚠️ <span id="alertCount">0</span> &gt; 30 días</span>
-    <span class="pill" style="font-size:10px;opacity:.75;" title="Versión del tablero, útil para confirmar que tienes el archivo más reciente">build 2026-09-17 v19</span>
   </div>
 </div>
 
@@ -275,17 +275,18 @@ loadScriptWithFallbacks([
         <div class="kpi-value">0</div>
         <div class="kpi-sub">apertura → cierre</div>
       </div>
-      <div class="kpi v-promperiodo" title="Total de vacantes cerradas (con los filtros actuales) dividido entre el número de periodos entre la primera y la última fecha de cierre -- incluyendo periodos sin cierres.">
+      <div class="kpi v-promperiodo clickable" id="kpiPromPeriodo" title="Clic para ver en la tabla de abajo exactamente cuáles vacantes cerradas (con fecha de cierre válida) se están contando aquí.">
         <div class="kpi-label"><svg class="ic-title" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg>Prom. Vacantes Cerradas <span id="lblGranularidad">/ Mes</span></div>
         <div class="kpi-value" id="kpiPromCierrePeriodo">—</div>
         <div class="kpi-sub" id="kpiPromCierrePeriodoSub">según filtro de arriba</div>
+        <div class="kpi-check">✓</div>
       </div>
     </div>
 
     <div class="charts">
-      <div class="chart-card"><h3><svg class="ic-title" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h12"></path><path d="M6 22h12"></path><path d="M6 2c0 6 6 6 6 10s-6 4-6 10"></path><path d="M18 2c0 6-6 6-6 10s6 4 6 10"></path></svg>Vacantes por Antigüedad</h3><div class="canvas-wrap" id="wrapAntiguedad"><canvas id="chartAntiguedad"></canvas></div></div>
-      <div class="chart-card"><h3><svg class="ic-title" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>Vacantes por Profesional</h3><div class="canvas-wrap" id="wrapProfesional"><canvas id="chartProfesional"></canvas></div></div>
-      <div class="chart-card"><h3><svg class="ic-title" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>Vacantes Críticas por Profesional</h3><div class="canvas-wrap" id="wrapCriticasProf"><canvas id="chartCriticasProf"></canvas></div></div>
+      <div class="chart-card"><h3><svg class="ic-title" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h12"></path><path d="M6 22h12"></path><path d="M6 2c0 6 6 6 6 10s-6 4-6 10"></path><path d="M18 2c0 6-6 6-6 10s6 4 6 10"></path></svg>Vacantes por Antigüedad<select class="chart-filter-select" id="cfAntiguedad" title="Filtrar solo esta gráfica por Dirección"><option value="">Dirección (Todas)</option></select></h3><div class="canvas-wrap" id="wrapAntiguedad"><canvas id="chartAntiguedad"></canvas></div></div>
+      <div class="chart-card"><h3><svg class="ic-title" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>Vacantes por Profesional<select class="chart-filter-select" id="cfProfesional" title="Filtrar solo esta gráfica por Dirección"><option value="">Dirección (Todas)</option></select></h3><div class="canvas-wrap" id="wrapProfesional"><canvas id="chartProfesional"></canvas></div></div>
+      <div class="chart-card"><h3><svg class="ic-title" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>Vacantes Críticas por Profesional<select class="chart-filter-select" id="cfCriticas" title="Filtrar solo esta gráfica por Dirección"><option value="">Dirección (Todas)</option></select></h3><div class="canvas-wrap" id="wrapCriticasProf"><canvas id="chartCriticasProf"></canvas></div></div>
     </div>
 
     <div class="table-card">
@@ -354,6 +355,9 @@ const state = {
   // Filtros tipo Excel en los encabezados de la tabla: un Set vacío = "todas" (sin filtrar).
   headerFilters: { tipoVacante: new Set(), profesional: new Set(), estado: new Set() },
   indFilters: { profesional:'', direccion:'', tipoVacante:'' },
+  // Filtros propios de cada tarjeta de gráfico en "Seguimiento de Vacantes" (por Dirección),
+  // independientes entre sí y de los filtros generales de arriba.
+  cardFilters: { antiguedad:'', profesional:'', criticas:'' },
   sort: { key:null, dir:1 },
   charts: {},
   lastUpdated: null,
@@ -762,6 +766,10 @@ function populateFilterOptions(){
   fillSelect('iProfesional', uniqueSorted(state.rows,'profesional'), 'Profesional (Todas)');
   fillSelect('iDireccion', uniqueSorted(state.rows,'direccion'), 'Dirección Comité (Todas)');
   fillSelect('iTipoVacante', uniqueSorted(state.rows,'tipoVacante'), 'Tipo Vacante (Todas)');
+
+  fillSelect('cfAntiguedad', uniqueSorted(state.rows,'direccion'), 'Dirección (Todas)');
+  fillSelect('cfProfesional', uniqueSorted(state.rows,'direccion'), 'Dirección (Todas)');
+  fillSelect('cfCriticas', uniqueSorted(state.rows,'direccion'), 'Dirección (Todas)');
 }
 function fillSelect(id, items, placeholder, isObj){
   const sel = document.getElementById(id);
@@ -801,8 +809,15 @@ document.getElementById('btnClearFilters').addEventListener('click', ()=>{
   state.filters = {profesional:'',estado:'',direccion:'',mes:''};
   state.headerFilters = { tipoVacante: new Set(), profesional: new Set(), estado: new Set() };
   state.quickFilter = null;
-  ['fProfesional','fEstado','fDireccion','fMes'].forEach(id=>document.getElementById(id).value='');
+  state.cardFilters = { antiguedad:'', profesional:'', criticas:'' };
+  ['fProfesional','fEstado','fDireccion','fMes','cfAntiguedad','cfProfesional','cfCriticas'].forEach(id=>document.getElementById(id).value='');
   render();
+});
+['cfAntiguedad','cfProfesional','cfCriticas'].forEach(id=>{
+  document.getElementById(id).addEventListener('change', e=>{
+    const map = {cfAntiguedad:'antiguedad',cfProfesional:'profesional',cfCriticas:'criticas'};
+    state.cardFilters[map[id]] = e.target.value; render();
+  });
 });
 ['iProfesional','iDireccion','iTipoVacante'].forEach(id=>{
   document.getElementById(id).addEventListener('change', e=>{
@@ -821,6 +836,7 @@ function bindKpiToggle(id, key){
 bindKpiToggle('kpiAbiertas','abiertas');
 bindKpiToggle('kpiCriticas','criticas');
 bindKpiToggle('kpiCerradas','cerradas');
+bindKpiToggle('kpiPromPeriodo','cerradasPeriodo');
 
 /* ============================================================
    6. RENDER: KPIs, GRÁFICAS, TABLA
@@ -859,8 +875,8 @@ function render(){
     ? `${cerradas.filter(r=>r.fechaCierre instanceof Date).length} cierres en ${promPeriodo.numPeriodos} ${state.granularidad==='semana'?'semanas':'meses'}`
     : 'sin fechas de cierre suficientes';
 
-  ['kpiAbiertas','kpiCriticas','kpiCerradas'].forEach(id=>{
-    const key = {kpiAbiertas:'abiertas',kpiCriticas:'criticas',kpiCerradas:'cerradas'}[id];
+  ['kpiAbiertas','kpiCriticas','kpiCerradas','kpiPromPeriodo'].forEach(id=>{
+    const key = {kpiAbiertas:'abiertas',kpiCriticas:'criticas',kpiCerradas:'cerradas',kpiPromPeriodo:'cerradasPeriodo'}[id];
     document.getElementById(id).classList.toggle('active', state.quickFilter===key);
   });
 
@@ -868,12 +884,19 @@ function render(){
   document.getElementById('excluidasCount').textContent = excluidas.length;
   document.getElementById('pillAlert').style.display = criticas.length? 'flex':'none';
   document.getElementById('alertCount').textContent = criticas.length;
-  document.getElementById('pillUpdated').textContent = 'Actualizado: '+ (state.lastUpdated? state.lastUpdated.toLocaleString('es-CO') : '—');
   document.getElementById('lastUpdatedText').textContent = state.lastUpdated? state.lastUpdated.toLocaleString('es-CO') : '—';
 
-  safeRenderChart('chartAntiguedad', ()=>{ ensureCanvas('wrapAntiguedad','chartAntiguedad'); renderChartAntiguedad(abiertas); });
-  safeRenderChart('chartProfesional', ()=>renderOrPlaceholderProfesional(scoped));
-  safeRenderChart('chartCriticasProf', ()=>{ ensureCanvas('wrapCriticasProf','chartCriticasProf'); renderChartCriticasProf(criticas); });
+  // Cada una de estas 3 gráficas tiene, además de los filtros generales de arriba, su propio
+  // filtro de Dirección (independiente entre sí) directamente en la tarjeta -- por eso cada una
+  // aplica cf.<tarjeta> sobre su propio conjunto de datos (abiertas/scoped/criticas) antes de
+  // dibujarse, sin afectar a las demás gráficas ni a la tabla de abajo.
+  const cf = state.cardFilters;
+  const abiertasAntig = cf.antiguedad ? abiertas.filter(r=>r.direccion===cf.antiguedad) : abiertas;
+  const scopedProf = cf.profesional ? scoped.filter(r=>r.direccion===cf.profesional) : scoped;
+  const criticasFiltradas = cf.criticas ? criticas.filter(r=>r.direccion===cf.criticas) : criticas;
+  safeRenderChart('chartAntiguedad', ()=>{ ensureCanvas('wrapAntiguedad','chartAntiguedad'); renderChartAntiguedad(abiertasAntig); });
+  safeRenderChart('chartProfesional', ()=>renderOrPlaceholderProfesional(scopedProf));
+  safeRenderChart('chartCriticasProf', ()=>{ ensureCanvas('wrapCriticasProf','chartCriticasProf'); renderChartCriticasProf(criticasFiltradas); });
 
   try{ renderTable(scoped); }
   catch(err){ console.error('Error en renderTable', err); document.getElementById('tableWrap').innerHTML = '<div class="empty-state">Ocurrió un error mostrando la tabla: '+esc(err.message)+'</div>'; }
@@ -1018,11 +1041,15 @@ function renderTable(scoped){
   if (state.quickFilter==='abiertas') rows = rows.filter(r=>r.abierta);
   if (state.quickFilter==='criticas') rows = rows.filter(r=>r.critica);
   if (state.quickFilter==='cerradas') rows = rows.filter(r=>r.cerrada);
+  // Mismo universo de vacantes que usa el KPI "Prom. Vacantes Cerradas / Semana o Mes" para su
+  // cálculo (computePromCierrePorPeriodo): cerradas con una Fecha de Cierre (Fecha Ingreso)
+  // válida -- así, al hacer clic en ese KPI, se ve exactamente cuáles vacantes está contando.
+  if (state.quickFilter==='cerradasPeriodo') rows = rows.filter(r=>r.cerrada && r.fechaCierre instanceof Date && !isNaN(r.fechaCierre));
 
   const note = document.getElementById('tableFilterNote');
   const activeHeaderFilters = Object.entries(state.headerFilters).filter(([,s])=>s.size>0).map(([k])=>k);
   const noteParts = [];
-  if (state.quickFilter) noteParts.push({abiertas:'Vacantes Abiertas',criticas:'Vacantes Críticas',cerradas:'Cerradas'}[state.quickFilter]);
+  if (state.quickFilter) noteParts.push({abiertas:'Vacantes Abiertas',criticas:'Vacantes Críticas',cerradas:'Cerradas',cerradasPeriodo:'Cerradas con fecha de cierre (las que cuenta el promedio por periodo)'}[state.quickFilter]);
   if (activeHeaderFilters.length) noteParts.push('filtros de columna activos');
   note.textContent = noteParts.length ? '— '+noteParts.join(', ') : '';
 
