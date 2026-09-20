@@ -1,5 +1,5 @@
 <!doctype html>
-<!-- Tablero Vacantes - build 2026-09-20 v26 (uso interno para control de versión, no visible en el tablero) -->
+<!-- Tablero Vacantes - build 2026-09-20 v27 (uso interno para control de versión, no visible en el tablero) -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -367,16 +367,19 @@ loadScriptWithFallbacks([
       <select id="iProfesional"><option value="">Profesional (Todas)</option></select>
       <select id="iDireccion"><option value="">Dirección Comité (Todas)</option></select>
       <select id="iTipoVacante"><option value="">Tipo Vacante (Todas)</option></select>
+      <select id="iAnio" title="Año de contratación (según Fecha Envío a Compensación)"><option value="">Año Contratación (Todos)</option></select>
+      <select id="iMes" title="Mes de contratación (según Fecha Envío a Compensación)"><option value="">Mes Contratación (Todos)</option></select>
     </div>
 
     <div class="ind-grid">
-      <div class="kpi"><div class="kpi-label"><svg class="ic-title" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="9" r="6"></circle><line x1="12" y1="15" x2="12" y2="22"></line><line x1="9" y1="19" x2="15" y2="19"></line></svg>% Mujeres Contratadas</div><div class="kpi-value" id="ind_pctMujeres" style="color:#d6336c;">—</div></div>
-      <div class="kpi"><div class="kpi-label"><svg class="ic-title" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="14" r="6"></circle><line x1="14.5" y1="9.5" x2="21" y2="3"></line><polyline points="15 3 21 3 21 9"></polyline></svg>% Hombres Contratados</div><div class="kpi-value" id="ind_pctHombres" style="color:#2f6fed;">—</div></div>
-      <div class="kpi"><div class="kpi-label"><svg class="ic-title" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>% Talento Joven (&lt;29)</div><div class="kpi-value" id="ind_pctJoven" style="color:#27ae60;">—</div></div>
+      <div class="kpi"><div class="kpi-label"><svg class="ic-title" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="9" r="6"></circle><line x1="12" y1="15" x2="12" y2="22"></line><line x1="9" y1="19" x2="15" y2="19"></line></svg>% Mujeres Contratadas</div><div class="kpi-value" id="ind_pctMujeres" style="color:#d6336c;">—</div><div class="kpi-sub" id="ind_countMujeres"></div></div>
+      <div class="kpi"><div class="kpi-label"><svg class="ic-title" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="14" r="6"></circle><line x1="14.5" y1="9.5" x2="21" y2="3"></line><polyline points="15 3 21 3 21 9"></polyline></svg>% Hombres Contratados</div><div class="kpi-value" id="ind_pctHombres" style="color:#2f6fed;">—</div><div class="kpi-sub" id="ind_countHombres"></div></div>
+      <div class="kpi"><div class="kpi-label"><svg class="ic-title" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>% Talento Joven (&lt;29)</div><div class="kpi-value" id="ind_pctJoven" style="color:#27ae60;">—</div><div class="kpi-sub" id="ind_countJoven"></div></div>
     </div>
 
-    <div class="charts" style="grid-template-columns:1fr;">
+    <div class="charts" style="grid-template-columns:1fr 1fr;">
       <div class="chart-card"><h3><svg class="ic-title" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>Vacantes cerradas por Función-Nivel de Cargo (por Género)</h3><div class="canvas-wrap" id="ind_wrapFuncion"><canvas id="chartFuncionGenero"></canvas></div></div>
+      <div class="chart-card"><h3><svg class="ic-title" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>Vacantes cerradas por Función-Nivel de Cargo (Talento Joven)</h3><div class="canvas-wrap" id="ind_wrapTalentoJoven"><canvas id="chartTalentoJoven"></canvas></div></div>
     </div>
 
     <div class="charts" style="grid-template-columns:1fr;">
@@ -423,7 +426,9 @@ const state = {
   granularidad: 'mes',      // 'mes' | 'semana' -- para el KPI "Prom. Vacantes Cerradas"
   // Filtros tipo Excel en los encabezados de la tabla: un Set vacío = "todas" (sin filtrar).
   headerFilters: { tipoVacante: new Set(), profesional: new Set(), estado: new Set() },
-  indFilters: { profesional:'', direccion:'', tipoVacante:'' },
+  // "anio"/"mes" = año/mes de contratación (según Fecha Envío a Compensación de las vacantes
+  // cerradas), aplican a toda la página de Análisis de Indicadores.
+  indFilters: { profesional:'', direccion:'', tipoVacante:'', anio:'', mes:'' },
   // Filtros propios de cada tarjeta de gráfico en "Seguimiento de Vacantes" (por Dirección),
   // independientes entre sí y de los filtros generales de arriba.
   cardFilters: { antiguedad:'', profesional:'', criticas:'' },
@@ -841,6 +846,13 @@ function mesKeyLabel(d){
 // filtro de Mes).
 // Si la vacante sigue abierta, se usa el mes en que se liberó.
 function mesFiltroDate(r){ return r.cerrada ? r.fechaCierre : r.fechaLiberacion; }
+// Compara una fecha cualquiera contra los filtros de Año/Mes de Análisis de Indicadores (iAnio/
+// iMes) -- se usa tanto para "personas contratadas" (Fecha de Cierre) como, en la gráfica de
+// Liberadas vs. Cerradas, para cada una de sus dos series con su propia fecha de referencia.
+function matchesAnioMes(date, anio, mes){
+  if (!(date instanceof Date) || isNaN(date)) return !anio && !mes;
+  return (!anio || date.getFullYear()===parseInt(anio,10)) && (!mes || (date.getMonth()+1)===parseInt(mes,10));
+}
 function populateFilterOptions(){
   fillSelect('fProfesional', uniqueSorted(state.rows,'profesional'), 'Profesional (Todas)');
   fillSelect('fEstado', uniqueSorted(state.rows,'estado'), 'Estado (Todas)');
@@ -855,6 +867,13 @@ function populateFilterOptions(){
   fillSelect('iProfesional', uniqueSorted(state.rows,'profesional'), 'Profesional (Todas)');
   fillSelect('iDireccion', uniqueSorted(state.rows,'direccion'), 'Dirección Comité (Todas)');
   fillSelect('iTipoVacante', uniqueSorted(state.rows,'tipoVacante'), 'Tipo Vacante (Todas)');
+  // Año/Mes de contratación (Análisis de Indicadores): Año se calcula solo a partir de vacantes
+  // cerradas con una Fecha de Cierre (Envío a Compensación) válida -- solo esas tienen un "año en
+  // que se contrató"; Mes siempre lista los 12 meses del calendario, igual que en Seguimiento.
+  const aniosInd = new Set();
+  state.rows.forEach(r=>{ if (r.cerrada && r.fechaCierre instanceof Date && !isNaN(r.fechaCierre)) aniosInd.add(r.fechaCierre.getFullYear()); });
+  fillSelect('iAnio', [...aniosInd].sort().map(a=>({value:String(a),label:String(a)})), 'Año Contratación (Todos)', true);
+  fillSelect('iMes', MESES_ES.map((nombre,i)=>({value:String(i+1),label:nombre})), 'Mes Contratación (Todos)', true);
 
   fillSelect('cfAntiguedad', uniqueSorted(state.rows,'direccion'), 'Dirección (Todas)');
   fillSelect('cfProfesional', uniqueSorted(state.rows,'direccion'), 'Dirección (Todas)');
@@ -921,9 +940,9 @@ document.getElementById('btnClearFilters').addEventListener('click', ()=>{
     state.cardFilters[map[id]] = e.target.value; render();
   });
 });
-['iProfesional','iDireccion','iTipoVacante'].forEach(id=>{
+['iProfesional','iDireccion','iTipoVacante','iAnio','iMes'].forEach(id=>{
   document.getElementById(id).addEventListener('change', e=>{
-    const map = {iProfesional:'profesional',iDireccion:'direccion',iTipoVacante:'tipoVacante'};
+    const map = {iProfesional:'profesional',iDireccion:'direccion',iTipoVacante:'tipoVacante',iAnio:'anio',iMes:'mes'};
     state.indFilters[map[id]] = e.target.value; renderIndicadores();
   });
 });
@@ -1360,25 +1379,40 @@ function renderIndicadores(){
   if (!state.rows.length) return;
   let rows = state.rows.filter(r=>r.cerrada); // "contratadas" = vacantes realmente cerradas (se excluyen canceladas/anuladas)
   const f = state.indFilters;
-  rows = rows.filter(r => (!f.profesional||r.profesional===f.profesional) && (!f.direccion||r.direccion===f.direccion) && (!f.tipoVacante||r.tipoVacante===f.tipoVacante));
+  // Año/Mes de Contratación se cruzan contra la Fecha de Cierre (Fecha Envío a Compensación) de
+  // cada vacante cerrada -- la misma fecha que el resto del tablero usa como "fecha real de
+  // cierre" -- y aplican a toda esta página (KPIs de género/edad, ambas gráficas de Función-Nivel
+  // de Cargo, tabla por Dirección y la gráfica de Liberadas vs. Cerradas más abajo).
+  rows = rows.filter(r => (!f.profesional||r.profesional===f.profesional) && (!f.direccion||r.direccion===f.direccion) && (!f.tipoVacante||r.tipoVacante===f.tipoVacante) && matchesAnioMes(r.fechaCierre, f.anio, f.mes));
 
   const haveGenero = state.cols.genero!==undefined;
   const haveEdadInfo = state.cols.edad!==undefined || state.cols.fechaNacimiento!==undefined;
   const haveNivel = state.cols.nivelContribucion!==undefined;
   const haveFuncion = state.cols.funcionNivelCargo!==undefined;
+  const esJoven = r => { const e = (typeof r.edad==='number') ? r.edad : ageFromBirth(r.fechaNacimiento); return typeof e==='number' && e<29; };
+  const tieneEdad = r => { const e = (typeof r.edad==='number') ? r.edad : ageFromBirth(r.fechaNacimiento); return typeof e==='number'; };
 
   if (haveGenero && rows.length){
     const mujeres = rows.filter(r=>normalize(r.genero).startsWith('F') || normalize(r.genero).includes('MUJER'));
     const hombres = rows.filter(r=>normalize(r.genero).startsWith('M') && !normalize(r.genero).includes('MUJER') || normalize(r.genero).includes('HOMBRE'));
     document.getElementById('ind_pctMujeres').textContent = round0(100*mujeres.length/rows.length)+'%';
     document.getElementById('ind_pctHombres').textContent = round0(100*hombres.length/rows.length)+'%';
-  } else { document.getElementById('ind_pctMujeres').textContent='—'; document.getElementById('ind_pctHombres').textContent='—'; }
+    document.getElementById('ind_countMujeres').textContent = mujeres.length+' contratadas';
+    document.getElementById('ind_countHombres').textContent = hombres.length+' contratados';
+  } else {
+    document.getElementById('ind_pctMujeres').textContent='—'; document.getElementById('ind_pctHombres').textContent='—';
+    document.getElementById('ind_countMujeres').textContent=''; document.getElementById('ind_countHombres').textContent='';
+  }
 
   if (haveEdadInfo && rows.length){
-    const edades = rows.map(r => (typeof r.edad==='number') ? r.edad : ageFromBirth(r.fechaNacimiento)).filter(v=>typeof v==='number');
-    const joven = edades.filter(e=>e<29).length;
-    document.getElementById('ind_pctJoven').textContent = edades.length? round0(100*joven/edades.length)+'%':'—';
-  } else { document.getElementById('ind_pctJoven').textContent='—'; }
+    const conEdad = rows.filter(tieneEdad);
+    const joven = conEdad.filter(esJoven).length;
+    document.getElementById('ind_pctJoven').textContent = conEdad.length? round0(100*joven/conEdad.length)+'%':'—';
+    document.getElementById('ind_countJoven').textContent = conEdad.length? joven+' contratados (Generación Z)':'';
+  } else {
+    document.getElementById('ind_pctJoven').textContent='—';
+    document.getElementById('ind_countJoven').textContent='';
+  }
 
   renderIndPlaceholderOrChart('chartFuncionGenero','funcionGenero','ind_wrapFuncion', haveFuncion, rows, ()=>{
     const funciones = uniqueSorted(rows,'funcionNivelCargo');
@@ -1386,6 +1420,23 @@ function renderIndicadores(){
     const palette = ['#2f6fed','#d6336c','#8b5cf6','#27ae60'];
     const datasets = generos.map((g,i)=>({ label:g, backgroundColor:palette[i%palette.length], stack:'s',
       data: funciones.map(fn => rows.filter(r=>r.funcionNivelCargo===fn && (!haveGenero || r.genero===g)).length) }));
+    return { type:'bar', data:{labels:funciones, datasets}, options:{ responsive:true, maintainAspectRatio:false,
+      plugins:{legend:{position:'bottom',labels:{boxWidth:10,font:{size:10}}}},
+      scales:{x:{stacked:true,grid:{display:false}}, y:{stacked:true, beginAtZero:true, ticks:{precision:0}}} } };
+  });
+
+  // Misma idea que la gráfica anterior, pero por Talento Joven (Generación Z, <29 años) en vez de
+  // género -- vacantes sin ningún dato de edad no entran en ninguna de las dos franjas (igual que
+  // el % de Talento Joven de arriba, que tampoco las cuenta).
+  renderIndPlaceholderOrChart('chartTalentoJoven','talentoJoven','ind_wrapTalentoJoven', haveFuncion && haveEdadInfo, rows.filter(tieneEdad), ()=>{
+    const conEdad = rows.filter(tieneEdad);
+    const funciones = uniqueSorted(conEdad,'funcionNivelCargo');
+    const categorias = [
+      { label:'Generación Z (<29)', color:'#27ae60', test:esJoven },
+      { label:'29 años o más', color:'#8b8f99', test:r=>!esJoven(r) },
+    ];
+    const datasets = categorias.map(c=>({ label:c.label, backgroundColor:c.color, stack:'s',
+      data: funciones.map(fn => conEdad.filter(r=>r.funcionNivelCargo===fn && c.test(r)).length) }));
     return { type:'bar', data:{labels:funciones, datasets}, options:{ responsive:true, maintainAspectRatio:false,
       plugins:{legend:{position:'bottom',labels:{boxWidth:10,font:{size:10}}}},
       scales:{x:{stacked:true,grid:{display:false}}, y:{stacked:true, beginAtZero:true, ticks:{precision:0}}} } };
@@ -1571,6 +1622,12 @@ function renderTablaEtapas(segmentos){
 // Línea "Cerradas": únicamente las vacantes cerradas, agrupadas por el mes de su Fecha Envío a
 // Compensación -- la misma fecha que fechaCierre usa para el resto del tablero (KPI "Cerradas",
 // filtro de "Mes", promedio por periodo) desde que esta pasó a ser la fecha real de cierre.
+// El eje X ahora son los 12 meses del calendario (Enero..Diciembre) en vez de "Mes Año": con el
+// filtro de Año Contratación ya se puede aislar un año específico, así que ya no hace falta
+// combinar mes y año en la misma etiqueta -- y si "Año" queda en "Todos", cada mes suma los datos
+// de todos los años (tal como se pidió). Cada serie se filtra por Año/Mes usando su propia fecha
+// de referencia (Liberación para "Liberadas", Envío a Compensación para "Cerradas"), igual que ya
+// hacía cada una para agruparse.
 function renderChartLiberadasCerradasMes(){
   const wrapId = 'ind_wrapLiberadasCerradas', canvasId = 'chartLiberadasCerradasMes', chartKey = 'liberadasCerradasMes';
   const wrap = document.getElementById(wrapId);
@@ -1584,8 +1641,8 @@ function renderChartLiberadasCerradasMes(){
     return;
   }
 
-  const liberadas = rowsBase.filter(r => r.fechaLiberacion instanceof Date && !isNaN(r.fechaLiberacion));
-  const cerradasComp = rowsBase.filter(r => r.cerrada && r.fechaEnvioComp instanceof Date && !isNaN(r.fechaEnvioComp));
+  const liberadas = rowsBase.filter(r => r.fechaLiberacion instanceof Date && !isNaN(r.fechaLiberacion) && matchesAnioMes(r.fechaLiberacion, f.anio, f.mes));
+  const cerradasComp = rowsBase.filter(r => r.cerrada && r.fechaEnvioComp instanceof Date && !isNaN(r.fechaEnvioComp) && matchesAnioMes(r.fechaEnvioComp, f.anio, f.mes));
 
   if (!liberadas.length && !cerradasComp.length){
     destroyChart(chartKey);
@@ -1593,21 +1650,11 @@ function renderChartLiberadasCerradasMes(){
     return;
   }
 
-  // Rango continuo de meses (incluye meses sin actividad en alguna de las dos líneas) entre la
-  // fecha más antigua y la más reciente de ambas series, para que el eje X no tenga huecos.
-  const todasFechas = [...liberadas.map(r=>r.fechaLiberacion), ...cerradasComp.map(r=>r.fechaEnvioComp)];
-  const minF = new Date(Math.min(...todasFechas)), maxF = new Date(Math.max(...todasFechas));
-  const meses = [];
-  let cursor = new Date(minF.getFullYear(), minF.getMonth(), 1);
-  const fin = new Date(maxF.getFullYear(), maxF.getMonth(), 1);
-  while (cursor <= fin){
-    meses.push(mesKeyLabel(cursor));
-    cursor = new Date(cursor.getFullYear(), cursor.getMonth()+1, 1);
-  }
+  const meses = MESES_ES;
   const countByMonth = (arr, dateField) => {
-    const map = {};
-    arr.forEach(r=>{ const mk = mesKeyLabel(r[dateField]); if (mk) map[mk.key] = (map[mk.key]||0)+1; });
-    return meses.map(m=>map[m.key]||0);
+    const counts = new Array(12).fill(0);
+    arr.forEach(r=>{ counts[r[dateField].getMonth()]++; });
+    return counts;
   };
   const dataLiberadas = countByMonth(liberadas, 'fechaLiberacion');
   const dataCerradas = countByMonth(cerradasComp, 'fechaEnvioComp');
@@ -1618,7 +1665,7 @@ function renderChartLiberadasCerradasMes(){
     if (typeof Chart === 'undefined') throw new Error('La librería de gráficas no se pudo cargar.');
     state.charts[chartKey] = new Chart(document.getElementById(canvasId), {
       type: 'line',
-      data: { labels: meses.map(m=>m.label), datasets: [
+      data: { labels: meses, datasets: [
         { label: 'Vacantes Liberadas', data: dataLiberadas, borderColor: '#2f6fed', backgroundColor: '#2f6fed22', tension: 0.25, fill: false },
         { label: 'Vacantes Cerradas (Envío a Compensación)', data: dataCerradas, borderColor: '#27ae60', backgroundColor: '#27ae6022', tension: 0.25, fill: false },
       ] },
