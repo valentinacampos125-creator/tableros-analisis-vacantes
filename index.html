@@ -1,5 +1,5 @@
 <!doctype html>
-<!-- Tablero Vacantes - build 2026-09-18 v23 (uso interno para control de versión, no visible en el tablero) -->
+<!-- Tablero Vacantes - build 2026-09-20 v24 (uso interno para control de versión, no visible en el tablero) -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -122,14 +122,30 @@ loadScriptWithFallbacks([
   .kpi.v-promperiodo .kpi-value{color:#16b5a1;}
   .kpi-check{position:absolute;top:8px;right:10px;font-size:13px;color:var(--blue);}
 
-  .kpis-tipo{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:14px;max-width:520px;}
-  .kpi-mini{background:var(--card);border:1px solid var(--border);border-radius:12px;box-shadow:var(--shadow);padding:12px 14px;transition:background-color .2s,border-color .2s;}
-  .kpi-mini-label{font-size:11.5px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.3px;}
-  .kpi-mini-value{font-size:22px;font-weight:800;margin-top:4px;}
-  .kpi-mini-pct{font-size:14px;font-weight:600;color:var(--muted);margin-left:4px;}
-  .kpi-mini.v-interna .kpi-mini-value{color:var(--blue);}
-  .kpi-mini.v-externa .kpi-mini-value{color:#8b5cf6;}
   .charts.single-chart{grid-template-columns:1fr;}
+
+  .secondary-row{display:flex;gap:14px;align-items:stretch;flex-wrap:wrap;margin-bottom:14px;}
+  .kpi-chips{display:flex;gap:10px;}
+  .kpi-chip{width:96px;background:var(--card);border:1px solid var(--border);border-radius:10px;box-shadow:var(--shadow);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:8px 6px;transition:background-color .2s,border-color .2s,transform .15s,box-shadow .15s;}
+  .kpi-chip.clickable{cursor:pointer;}
+  .kpi-chip.clickable:hover{transform:translateY(-2px);box-shadow:0 4px 14px rgba(20,30,60,.14);}
+  .kpi-chip.active{border-color:var(--blue);box-shadow:0 0 0 2px var(--blue) inset,var(--shadow);}
+  .kpi-chip-value{font-size:22px;font-weight:800;}
+  .kpi-chip-label{font-size:10.5px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.2px;margin-top:2px;}
+  .kpi-chip.v-pausada .kpi-chip-value{color:#e5a53d;}
+  .kpi-chip.v-cancelada .kpi-chip-value{color:#8b8f99;}
+
+  .tipo-square{width:230px;background:var(--card);border:1px solid var(--border);border-radius:12px;box-shadow:var(--shadow);overflow:hidden;display:flex;flex-direction:column;transition:background-color .2s,border-color .2s;}
+  .tipo-square-title{font-size:10.5px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.3px;text-align:center;padding:5px 0;border-bottom:1px solid var(--border);}
+  .tipo-square-band{flex:1;display:flex;align-items:center;justify-content:space-between;padding:6px 12px;font-size:12.5px;font-weight:700;border-bottom:1px solid var(--border);}
+  .tipo-square-band:last-child{border-bottom:none;}
+  .tipo-square-band .tipo-square-stat{font-weight:800;}
+  .tipo-square-band.v-interna{background:rgba(47,111,237,.10);}
+  .tipo-square-band.v-interna .tipo-square-stat{color:var(--blue);}
+  .tipo-square-band.v-externa{background:rgba(139,92,246,.10);}
+  .tipo-square-band.v-externa .tipo-square-stat{color:#8b5cf6;}
+  .tipo-square-band.v-mixta{background:rgba(242,153,74,.12);}
+  .tipo-square-band.v-mixta .tipo-square-stat{color:var(--orange);}
 
   .ic-title{width:15px;height:15px;flex:none;vertical-align:-3px;}
   .kpi-label .ic-title{vertical-align:-2px;opacity:.85;}
@@ -185,7 +201,7 @@ loadScriptWithFallbacks([
   .placeholder-note{font-size:12px;color:var(--muted);padding:14px;text-align:center;border:1px dashed var(--border);border-radius:8px;}
 
   @media (max-width:1100px){ .kpis{grid-template-columns:repeat(3,1fr);} .charts{grid-template-columns:1fr 1fr;} .ind-grid{grid-template-columns:repeat(2,1fr);} .ind-tables{grid-template-columns:1fr;} }
-  @media (max-width:640px){ .kpis{grid-template-columns:repeat(2,1fr);} .charts{grid-template-columns:1fr;} .app-title{order:3;width:100%;text-align:left;} .kpis-tipo{grid-template-columns:1fr;} }
+  @media (max-width:640px){ .kpis{grid-template-columns:repeat(2,1fr);} .charts{grid-template-columns:1fr;} .app-title{order:3;width:100%;text-align:left;} .secondary-row{flex-direction:column;} .tipo-square{width:100%;} }
 </style>
 </head>
 <body>
@@ -298,14 +314,31 @@ loadScriptWithFallbacks([
       </div>
     </div>
 
-    <div class="kpis-tipo" id="kpisTipoVacante">
-      <div class="kpi-mini v-interna">
-        <div class="kpi-mini-label">Vacantes Internas</div>
-        <div class="kpi-mini-value"><span id="kpiInternasCount">0</span><span class="kpi-mini-pct" id="kpiInternasPct">(0%)</span></div>
+    <div class="secondary-row">
+      <div class="kpi-chips">
+        <div class="kpi-chip v-pausada clickable" id="kpiPausada" title="Clic para filtrar la tabla por vacantes en pausa">
+          <div class="kpi-chip-value">0</div>
+          <div class="kpi-chip-label">En Pausa</div>
+        </div>
+        <div class="kpi-chip v-cancelada clickable" id="kpiCancelada" title="Clic para filtrar la tabla por vacantes canceladas">
+          <div class="kpi-chip-value">0</div>
+          <div class="kpi-chip-label">Cancelada</div>
+        </div>
       </div>
-      <div class="kpi-mini v-externa">
-        <div class="kpi-mini-label">Vacantes Externas</div>
-        <div class="kpi-mini-value"><span id="kpiExternasCount">0</span><span class="kpi-mini-pct" id="kpiExternasPct">(0%)</span></div>
+      <div class="tipo-square" id="tipoVacanteSquare" title="Distribución de vacantes por Tipo Vacante">
+        <div class="tipo-square-title">Tipo de Vacante</div>
+        <div class="tipo-square-band v-interna">
+          <span class="tipo-square-name">Internas</span>
+          <span class="tipo-square-stat"><span id="kpiInternasCount">0</span> <span id="kpiInternasPct">(0%)</span></span>
+        </div>
+        <div class="tipo-square-band v-externa">
+          <span class="tipo-square-name">Externas</span>
+          <span class="tipo-square-stat"><span id="kpiExternasCount">0</span> <span id="kpiExternasPct">(0%)</span></span>
+        </div>
+        <div class="tipo-square-band v-mixta">
+          <span class="tipo-square-name">Mixtas</span>
+          <span class="tipo-square-stat"><span id="kpiMixtasCount">0</span> <span id="kpiMixtasPct">(0%)</span></span>
+        </div>
       </div>
     </div>
 
@@ -493,7 +526,9 @@ function fmtDate(d){
   return String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0')+'/'+d.getFullYear();
 }
 function avg(arr){ const a = arr.filter(v=>typeof v==='number' && !isNaN(v)); return a.length? a.reduce((s,v)=>s+v,0)/a.length : null; }
-function round1(n){ return n===null||n===undefined ? null : Math.round(n*10)/10; }
+// Nota: este tablero NUNCA muestra porcentajes con decimales -- todos se redondean a entero con
+// round0. No se usa una función de redondeo a 1 decimal a propósito, para evitar reintroducirla
+// por error en futuras actualizaciones.
 function round0(n){ return n===null||n===undefined ? null : Math.round(n); }
 function isClosedStatus(estado){ return normalize(estado).includes(CLOSED_KEYWORD); }
 // Estados que NO cuentan como "abierta" ni como "cerrada" (se muestran en la tabla
@@ -502,6 +537,9 @@ function isClosedStatus(estado){ return normalize(estado).includes(CLOSED_KEYWOR
 // otras palabras.
 const EXCLUDED_KEYWORDS = ['CANCELAD', 'ANULAD', 'DESIERT'];
 function isExcludedStatus(estado){ const n = normalize(estado); return EXCLUDED_KEYWORDS.some(k => n.includes(k)); }
+// Estados "En Pausa" (p.ej. "En Pausa", "Pausada", "Pausado por..."): tampoco cuentan como
+// "abierta" -- tienen su propio botón y quedan fuera de las gráficas de antigüedad/profesional.
+function isPausedStatus(estado){ return normalize(estado).includes('PAUSA'); }
 function cleanText(v){ return (typeof v === 'string') ? v.trim().replace(/\s+/g,' ') : v; }
 function titleCase(v){
   const t = cleanText(v);
@@ -591,7 +629,14 @@ function loadWorkbook(data, sourceLabel){
       // la SEÑAL de que la vacante ya se cerró -- no la fecha de cierre en sí (ver fechaCierre).
       const cerrada = isClosedStatus(estado) || !!fechaIngreso;
       const excluida = isExcludedStatus(estado) && !cerrada;
-      const abierta = !cerrada && !excluida;
+      // "En Pausa" es su propia categoría, separada de Abierta/Cerrada/Excluida: una vacante con
+      // Estado que contenga "PAUSA" (y que no esté ya cerrada ni excluida) ya NO cuenta como
+      // "Abierta" ni entra en sus gráficas de antigüedad/por profesional -- tiene su propio botón.
+      const pausada = isPausedStatus(estado) && !cerrada && !excluida;
+      const abierta = !cerrada && !excluida && !pausada;
+      // "Cancelada" es un desglose específico dentro de "excluida" (que también incluye Anulada y
+      // Desierta), para poder mostrarla y filtrarla por separado con su propio botón.
+      const cancelada = normalize(estado).includes('CANCELAD') && !cerrada;
       // La fecha de cierre real de una vacante cerrada es su Fecha Envío a Compensación (no Fecha
       // Ingreso, que solo sirve como señal de que ya cerró -- ver arriba). Con esta fecha se
       // agrupa/filtra por "Mes" cuántas cerraron y se calcula el promedio de vacantes cerradas por
@@ -606,7 +651,7 @@ function loadWorkbook(data, sourceLabel){
       rows.push({
         cargo: cleanText(get('cargo')), tipoVacante: titleCase(get('tipoVacante')), profesional: cleanText(get('profesional')),
         direccion: cleanText(get('direccion')), fechaLiberacion: fechaLib, fechaCierre: fechaCierre,
-        estado: estado, abierta, cerrada, excluida, diasHabiles, fechaIngreso, fechaEnvioComp,
+        estado: estado, abierta, cerrada, excluida, pausada, cancelada, diasHabiles, fechaIngreso, fechaEnvioComp,
         critica: abierta && typeof diasHabiles==='number' && diasHabiles > CRITICAL_DAYS,
         comentarios: cleanText(get('comentarios')), genero: titleCase(get('genero')), edad: get('edad'),
         fechaNacimiento: toDate(get('fechaNacimiento')), nivelContribucion: cleanText(get('nivelContribucion')),
@@ -883,6 +928,8 @@ bindKpiToggle('kpiAbiertas','abiertas');
 bindKpiToggle('kpiCriticas','criticas');
 bindKpiToggle('kpiCerradas','cerradas');
 bindKpiToggle('kpiPromPeriodo','cerradasPeriodo');
+bindKpiToggle('kpiPausada','pausada');
+bindKpiToggle('kpiCancelada','cancelada');
 
 /* ============================================================
    6. RENDER: KPIs, GRÁFICAS, TABLA
@@ -902,11 +949,15 @@ function render(){
   const abiertas = scoped.filter(r=>r.abierta);
   const cerradas = scoped.filter(r=>r.cerrada);
   const excluidas = scoped.filter(r=>r.excluida);
+  const pausadas = scoped.filter(r=>r.pausada);
+  const canceladas = scoped.filter(r=>r.cancelada);
   const criticas = abiertas.filter(r=>r.critica);
 
   // KPIs
   setKpi('kpiAbiertas', abiertas.length);
   setKpi('kpiCriticas', criticas.length);
+  setKpiChip('kpiPausada', pausadas.length);
+  setKpiChip('kpiCancelada', canceladas.length);
   setKpi('kpiCerradas', cerradas.length);
   const promAbiertas = round0(avg(abiertas.map(r=>r.diasHabiles)));
   document.querySelector('.kpi.v-promedio .kpi-value').textContent = promAbiertas!==null? promAbiertas : '—';
@@ -921,8 +972,8 @@ function render(){
     ? `${cerradas.filter(r=>r.fechaCierre instanceof Date).length} cierres en ${promPeriodo.numPeriodos} ${state.granularidad==='semana'?'semanas':'meses'}`
     : 'sin fechas de cierre suficientes';
 
-  ['kpiAbiertas','kpiCriticas','kpiCerradas','kpiPromPeriodo'].forEach(id=>{
-    const key = {kpiAbiertas:'abiertas',kpiCriticas:'criticas',kpiCerradas:'cerradas',kpiPromPeriodo:'cerradasPeriodo'}[id];
+  ['kpiAbiertas','kpiCriticas','kpiCerradas','kpiPromPeriodo','kpiPausada','kpiCancelada'].forEach(id=>{
+    const key = {kpiAbiertas:'abiertas',kpiCriticas:'criticas',kpiCerradas:'cerradas',kpiPromPeriodo:'cerradasPeriodo',kpiPausada:'pausada',kpiCancelada:'cancelada'}[id];
     document.getElementById(id).classList.toggle('active', state.quickFilter===key);
   });
 
@@ -932,16 +983,21 @@ function render(){
   document.getElementById('alertCount').textContent = criticas.length;
   document.getElementById('lastUpdatedText').textContent = state.lastUpdated? state.lastUpdated.toLocaleString('es-CO') : '—';
 
-  // Vacantes Internas vs Externas (según Tipo Vacante) sobre el total filtrado actual (scoped),
-  // con su respectivo porcentaje sobre ese total.
+  // Vacantes Internas vs Externas vs Mixtas (según Tipo Vacante) sobre el total filtrado actual
+  // (scoped), con su respectivo porcentaje entero sobre ese total (nunca con decimales, aquí ni
+  // en ningún otro porcentaje del tablero).
   const internas = scoped.filter(r=>normalize(r.tipoVacante)==='INTERNA').length;
   const externas = scoped.filter(r=>normalize(r.tipoVacante)==='EXTERNA').length;
-  const pctInternas = scoped.length ? round1(internas/scoped.length*100) : null;
-  const pctExternas = scoped.length ? round1(externas/scoped.length*100) : null;
+  const mixtas = scoped.filter(r=>normalize(r.tipoVacante)==='MIXTA').length;
+  const pctInternas = scoped.length ? round0(internas/scoped.length*100) : null;
+  const pctExternas = scoped.length ? round0(externas/scoped.length*100) : null;
+  const pctMixtas = scoped.length ? round0(mixtas/scoped.length*100) : null;
   document.getElementById('kpiInternasCount').textContent = internas;
   document.getElementById('kpiExternasCount').textContent = externas;
+  document.getElementById('kpiMixtasCount').textContent = mixtas;
   document.getElementById('kpiInternasPct').textContent = pctInternas!==null ? `(${pctInternas}%)` : '(—)';
   document.getElementById('kpiExternasPct').textContent = pctExternas!==null ? `(${pctExternas}%)` : '(—)';
+  document.getElementById('kpiMixtasPct').textContent = pctMixtas!==null ? `(${pctMixtas}%)` : '(—)';
 
   // Cada una de estas 3 gráficas tiene, además de los filtros generales de arriba, su propio
   // filtro de Dirección (independiente entre sí) directamente en la tarjeta -- por eso cada una
@@ -979,6 +1035,7 @@ function render(){
   catch(err){ console.error('Error en renderIndicadores', err); }
 }
 function setKpi(id, val){ document.querySelector('#'+id+' .kpi-value').textContent = val; }
+function setKpiChip(id, val){ document.querySelector('#'+id+' .kpi-chip-value').textContent = val; }
 
 /* Aísla cada gráfica: si Chart.js no cargó (red corporativa la bloquea) o la
    gráfica falla por cualquier motivo, se muestra un aviso ahí mismo en vez de
@@ -1115,6 +1172,8 @@ function renderTable(scoped){
   if (state.quickFilter==='abiertas') rows = rows.filter(r=>r.abierta);
   if (state.quickFilter==='criticas') rows = rows.filter(r=>r.critica);
   if (state.quickFilter==='cerradas') rows = rows.filter(r=>r.cerrada);
+  if (state.quickFilter==='pausada') rows = rows.filter(r=>r.pausada);
+  if (state.quickFilter==='cancelada') rows = rows.filter(r=>r.cancelada);
   // Mismo universo de vacantes que usa el KPI "Prom. Vacantes Cerradas / Semana o Mes" para su
   // cálculo (computePromCierrePorPeriodo): cerradas con una Fecha de Cierre (Fecha Envío a
   // Compensación) válida -- así, al hacer clic en ese KPI, se ve exactamente cuáles vacantes está contando.
@@ -1123,7 +1182,7 @@ function renderTable(scoped){
   const note = document.getElementById('tableFilterNote');
   const activeHeaderFilters = Object.entries(state.headerFilters).filter(([,s])=>s.size>0).map(([k])=>k);
   const noteParts = [];
-  if (state.quickFilter) noteParts.push({abiertas:'Vacantes Abiertas',criticas:'Vacantes Críticas',cerradas:'Cerradas',cerradasPeriodo:'Cerradas con fecha de cierre (las que cuenta el promedio por periodo)'}[state.quickFilter]);
+  if (state.quickFilter) noteParts.push({abiertas:'Vacantes Abiertas',criticas:'Vacantes Críticas',cerradas:'Cerradas',cerradasPeriodo:'Cerradas con fecha de cierre (las que cuenta el promedio por periodo)',pausada:'En Pausa',cancelada:'Canceladas'}[state.quickFilter]);
   if (activeHeaderFilters.length) noteParts.push('filtros de columna activos');
   note.textContent = noteParts.length ? '— '+noteParts.join(', ') : '';
 
@@ -1153,7 +1212,7 @@ function renderTable(scoped){
     html += `<tr><td colspan="${TABLE_COLS.length}"><div class="empty-state">No hay vacantes que coincidan con los filtros seleccionados.</div></td></tr>`;
   } else {
     rows.forEach(r=>{
-      const dotClass = (r.cerrada || r.excluida) ? 'grey' : (r.critica ? 'red' : (r.diasHabiles>18 ? 'orange' : (r.diasHabiles>9 ? 'yellow' : 'green')));
+      const dotClass = (r.cerrada || r.excluida || r.pausada) ? 'grey' : (r.critica ? 'red' : (r.diasHabiles>18 ? 'orange' : (r.diasHabiles>9 ? 'yellow' : 'green')));
       html += `<tr class="${r.critica?'row-critical':''}">`;
       html += `<td><span class="dot ${dotClass}"></span>${r.critica?'<span class="warn-icon" title="29 días o más abierta">⚠</span>':''}</td>`;
       html += `<td>${esc(r.cargo)}</td><td>${esc(r.tipoVacante)}</td><td>${esc(r.profesional)}</td><td>${esc(r.direccion)}</td>`;
