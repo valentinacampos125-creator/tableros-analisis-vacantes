@@ -1,5 +1,5 @@
 <!doctype html>
-<!-- Tablero Vacantes - build 2026-09-20 v25 (uso interno para control de versión, no visible en el tablero) -->
+<!-- Tablero Vacantes - build 2026-09-20 v26 (uso interno para control de versión, no visible en el tablero) -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -132,10 +132,7 @@ loadScriptWithFallbacks([
   .kpis .kpi-check{font-size:11px;top:6px;right:7px;}
 
   .charts.single-chart{grid-template-columns:1fr;}
-  .charts.two-chart{grid-template-columns:1fr 1fr;}
 
-  .secondary-row{display:flex;gap:14px;align-items:stretch;flex-wrap:wrap;margin-bottom:14px;}
-  .kpi-chips{display:flex;gap:10px;}
   .kpi-chip{width:96px;background:var(--card);border:1px solid var(--border);border-radius:10px;box-shadow:var(--shadow);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:8px 6px;transition:background-color .2s,border-color .2s,transform .15s,box-shadow .15s;}
   .kpi-chip.clickable{cursor:pointer;}
   .kpi-chip.clickable:hover{transform:translateY(-2px);box-shadow:0 4px 14px rgba(20,30,60,.14);}
@@ -215,7 +212,7 @@ loadScriptWithFallbacks([
   .placeholder-note{font-size:12px;color:var(--muted);padding:14px;text-align:center;border:1px dashed var(--border);border-radius:8px;}
 
   @media (max-width:1100px){ .charts{grid-template-columns:1fr 1fr;} .ind-grid{grid-template-columns:repeat(2,1fr);} .ind-tables{grid-template-columns:1fr;} }
-  @media (max-width:640px){ .charts{grid-template-columns:1fr;} .app-title{order:3;width:100%;text-align:left;} .secondary-row{flex-direction:column;} .tipo-square{width:100%;} }
+  @media (max-width:640px){ .charts{grid-template-columns:1fr;} .app-title{order:3;width:100%;text-align:left;} .tipo-square{width:100%;} }
 </style>
 </head>
 <body>
@@ -326,18 +323,13 @@ loadScriptWithFallbacks([
         <div class="kpi-sub" id="kpiPromCierrePeriodoSub">según filtro de arriba</div>
         <div class="kpi-check">✓</div>
       </div>
-    </div>
-
-    <div class="secondary-row">
-      <div class="kpi-chips">
-        <div class="kpi-chip v-pausada clickable" id="kpiPausada" title="Clic para filtrar la tabla por vacantes en pausa">
-          <div class="kpi-chip-value">0</div>
-          <div class="kpi-chip-label">En Pausa</div>
-        </div>
-        <div class="kpi-chip v-cancelada clickable" id="kpiCancelada" title="Clic para filtrar la tabla por vacantes canceladas">
-          <div class="kpi-chip-value">0</div>
-          <div class="kpi-chip-label">Cancelada</div>
-        </div>
+      <div class="kpi-chip v-pausada clickable" id="kpiPausada" title="Clic para filtrar la tabla por vacantes en pausa">
+        <div class="kpi-chip-value">0</div>
+        <div class="kpi-chip-label">En Pausa</div>
+      </div>
+      <div class="kpi-chip v-cancelada clickable" id="kpiCancelada" title="Clic para filtrar la tabla por vacantes canceladas">
+        <div class="kpi-chip-value">0</div>
+        <div class="kpi-chip-label">Cancelada</div>
       </div>
       <div class="tipo-square" id="tipoVacanteSquare" title="Distribución de vacantes por Tipo Vacante">
         <div class="tipo-square-title">Tipo de Vacante</div>
@@ -1042,17 +1034,16 @@ function render(){
   // en ellas mismas).
   const byTipo = arr => state.tipoFilter ? arr.filter(r=>normalize(r.tipoVacante)===normalize(state.tipoFilter)) : arr;
 
-  // Si el filtro rápido activo es "En Pausa" o "Cancelada", esas dos categorías pasan a ser la
-  // base de las gráficas de "Antigüedad" y "Por Profesional" (en vez de Abiertas/Cerradas) --
-  // así el clic en esos botones también se refleja en las gráficas, no solo en la tabla. La
-  // gráfica de "Críticas por Profesional" no aplica a estas dos categorías (una vacante en pausa
-  // o cancelada nunca es "crítica" -- ver el flag `critica`, que exige estar abierta), así que en
-  // ese caso se oculta y las otras dos ocupan el ancho completo entre ambas.
+  // Si el filtro rápido activo es "En Pausa" o "Cancelada", esa categoría pasa a ser la base de
+  // la gráfica de "Por Profesional" (en vez de Cerradas) -- así el clic en esos botones también
+  // se refleja ahí, no solo en la tabla. Ni "Vacantes por Antigüedad" (mide antigüedad de
+  // abiertas) ni "Críticas por Profesional" (una vacante en pausa o cancelada nunca es "crítica"
+  // -- ver el flag `critica`, que exige estar abierta) aplican a estas dos categorías, así que
+  // ambas se ocultan y solo queda "Por Profesional", a todo el ancho.
   const chartMode = (state.quickFilter==='pausada') ? 'pausada' : (state.quickFilter==='cancelada') ? 'cancelada' : null;
-  const baseAntig = chartMode==='pausada' ? pausadas : chartMode==='cancelada' ? canceladas : abiertas;
-  const baseProf  = chartMode ? (chartMode==='pausada' ? pausadas : canceladas) : scoped;
+  const baseProf = chartMode ? (chartMode==='pausada' ? pausadas : canceladas) : scoped;
 
-  const abiertasAntig = byTipo(cf.antiguedad ? baseAntig.filter(r=>r.direccion===cf.antiguedad) : baseAntig);
+  const abiertasAntig = byTipo(cf.antiguedad ? abiertas.filter(r=>r.direccion===cf.antiguedad) : abiertas);
   const scopedProf = byTipo(cf.profesional ? baseProf.filter(r=>r.direccion===cf.profesional) : baseProf);
   const criticasFiltradas = byTipo(cf.criticas ? criticas.filter(r=>r.direccion===cf.criticas) : criticas);
 
@@ -1062,27 +1053,27 @@ function render(){
   // quedaría en cero) y se ocultan por completo; la de "Críticas por Profesional" queda sola
   // y ocupa el ancho completo.
   const hideCerradasCharts = (state.filters.estado === 'Cerrada') || (state.quickFilter === 'cerradas');
+  // "Vacantes por Antigüedad" se oculta tanto al ver Cerradas como al ver En Pausa/Cancelada;
+  // "Vacantes por Profesional" solo se oculta al ver Cerradas (en En Pausa/Cancelada se
+  // reaprovecha, como se explica arriba); "Críticas por Profesional" solo se oculta al ver En
+  // Pausa/Cancelada. En cualquiera de los dos casos queda exactamente una gráfica visible, a
+  // todo el ancho (misma clase "single-chart" para ambos).
+  const hideAntiguedad = hideCerradasCharts || !!chartMode;
+  const hideProfesional = hideCerradasCharts;
+  const hideCriticas = chartMode && !hideCerradasCharts;
   const cardAntig = document.getElementById('cardAntiguedad');
   const cardProf = document.getElementById('cardProfesional');
   const cardCrit = document.getElementById('cardCriticas');
-  if (cardAntig) cardAntig.style.display = hideCerradasCharts ? 'none' : '';
-  if (cardProf) cardProf.style.display = hideCerradasCharts ? 'none' : '';
-  if (cardCrit) cardCrit.style.display = (chartMode && !hideCerradasCharts) ? 'none' : '';
-  document.getElementById('chartsSeguimiento').classList.toggle('single-chart', hideCerradasCharts);
-  document.getElementById('chartsSeguimiento').classList.toggle('two-chart', !hideCerradasCharts && !!chartMode);
-  const antigLabel = chartMode==='pausada' ? 'Vacantes En Pausa' : chartMode==='cancelada' ? 'Vacantes Canceladas' : 'Vacantes Abiertas';
-  if (hideCerradasCharts){
-    destroyChart('antiguedad');
-    destroyChart('profesional');
-  } else {
-    safeRenderChart('chartAntiguedad', ()=>{ ensureCanvas('wrapAntiguedad','chartAntiguedad'); renderChartAntiguedad(abiertasAntig, antigLabel); });
-    safeRenderChart('chartProfesional', ()=>renderOrPlaceholderProfesional(scopedProf, chartMode));
-  }
-  if (chartMode && !hideCerradasCharts){
-    destroyChart('criticasProf');
-  } else {
-    safeRenderChart('chartCriticasProf', ()=>{ ensureCanvas('wrapCriticasProf','chartCriticasProf'); renderChartCriticasProf(criticasFiltradas); });
-  }
+  if (cardAntig) cardAntig.style.display = hideAntiguedad ? 'none' : '';
+  if (cardProf) cardProf.style.display = hideProfesional ? 'none' : '';
+  if (cardCrit) cardCrit.style.display = hideCriticas ? 'none' : '';
+  document.getElementById('chartsSeguimiento').classList.toggle('single-chart', hideCerradasCharts || !!chartMode);
+  if (hideAntiguedad) destroyChart('antiguedad');
+  else safeRenderChart('chartAntiguedad', ()=>{ ensureCanvas('wrapAntiguedad','chartAntiguedad'); renderChartAntiguedad(abiertasAntig); });
+  if (hideProfesional) destroyChart('profesional');
+  else safeRenderChart('chartProfesional', ()=>renderOrPlaceholderProfesional(scopedProf, chartMode));
+  if (hideCriticas) destroyChart('criticasProf');
+  else safeRenderChart('chartCriticasProf', ()=>{ ensureCanvas('wrapCriticasProf','chartCriticasProf'); renderChartCriticasProf(criticasFiltradas); });
 
   try{ renderTable(scoped); }
   catch(err){ console.error('Error en renderTable', err); document.getElementById('tableWrap').innerHTML = '<div class="empty-state">Ocurrió un error mostrando la tabla: '+esc(err.message)+'</div>'; }
