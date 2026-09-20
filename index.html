@@ -1,5 +1,5 @@
 <!doctype html>
-<!-- Tablero Vacantes - build 2026-09-20 v27 (uso interno para control de versión, no visible en el tablero) -->
+<!-- Tablero Vacantes - build 2026-09-20 v28 (uso interno para control de versión, no visible en el tablero) -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -207,11 +207,12 @@ loadScriptWithFallbacks([
   .empty-state .big{font-size:38px;display:block;margin-bottom:10px;}
 
   .page-indicadores{display:none;}
-  .ind-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:14px;}
+  .ind-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:14px;}
   .ind-tables{display:grid;grid-template-columns:1.1fr 1fr;gap:12px;}
   .placeholder-note{font-size:12px;color:var(--muted);padding:14px;text-align:center;border:1px dashed var(--border);border-radius:8px;}
 
-  @media (max-width:1100px){ .charts{grid-template-columns:1fr 1fr;} .ind-grid{grid-template-columns:repeat(2,1fr);} .ind-tables{grid-template-columns:1fr;} }
+  @media (max-width:1100px){ .charts{grid-template-columns:1fr 1fr;} .ind-grid{grid-template-columns:repeat(3,1fr);} .ind-tables{grid-template-columns:1fr;} }
+  @media (max-width:760px){ .ind-grid{grid-template-columns:repeat(2,1fr);} }
   @media (max-width:640px){ .charts{grid-template-columns:1fr;} .app-title{order:3;width:100%;text-align:left;} .tipo-square{width:100%;} }
 </style>
 </head>
@@ -369,12 +370,15 @@ loadScriptWithFallbacks([
       <select id="iTipoVacante"><option value="">Tipo Vacante (Todas)</option></select>
       <select id="iAnio" title="Año de contratación (según Fecha Envío a Compensación)"><option value="">Año Contratación (Todos)</option></select>
       <select id="iMes" title="Mes de contratación (según Fecha Envío a Compensación)"><option value="">Mes Contratación (Todos)</option></select>
+      <select id="iSemana" title="Semana de contratación (según Fecha Envío a Compensación)"><option value="">Semana (Todas)</option></select>
     </div>
 
     <div class="ind-grid">
       <div class="kpi"><div class="kpi-label"><svg class="ic-title" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="9" r="6"></circle><line x1="12" y1="15" x2="12" y2="22"></line><line x1="9" y1="19" x2="15" y2="19"></line></svg>% Mujeres Contratadas</div><div class="kpi-value" id="ind_pctMujeres" style="color:#d6336c;">—</div><div class="kpi-sub" id="ind_countMujeres"></div></div>
       <div class="kpi"><div class="kpi-label"><svg class="ic-title" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="14" r="6"></circle><line x1="14.5" y1="9.5" x2="21" y2="3"></line><polyline points="15 3 21 3 21 9"></polyline></svg>% Hombres Contratados</div><div class="kpi-value" id="ind_pctHombres" style="color:#2f6fed;">—</div><div class="kpi-sub" id="ind_countHombres"></div></div>
       <div class="kpi"><div class="kpi-label"><svg class="ic-title" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>% Talento Joven (&lt;29)</div><div class="kpi-value" id="ind_pctJoven" style="color:#27ae60;">—</div><div class="kpi-sub" id="ind_countJoven"></div></div>
+      <div class="kpi"><div class="kpi-label"><svg class="ic-title" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4v6h6"></path><path d="M4.5 15a8 8 0 1 0 2-8.5L4 10"></path></svg>Vacantes Liberadas</div><div class="kpi-value" id="ind_pctLiberadas" style="color:#2f6fed;">—</div><div class="kpi-sub" id="ind_countLiberadas"></div></div>
+      <div class="kpi"><div class="kpi-label"><svg class="ic-title" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>Vacantes Cerradas</div><div class="kpi-value" id="ind_pctCerradas" style="color:#27ae60;">—</div><div class="kpi-sub" id="ind_countCerradas"></div></div>
     </div>
 
     <div class="charts" style="grid-template-columns:1fr 1fr;">
@@ -428,7 +432,7 @@ const state = {
   headerFilters: { tipoVacante: new Set(), profesional: new Set(), estado: new Set() },
   // "anio"/"mes" = año/mes de contratación (según Fecha Envío a Compensación de las vacantes
   // cerradas), aplican a toda la página de Análisis de Indicadores.
-  indFilters: { profesional:'', direccion:'', tipoVacante:'', anio:'', mes:'' },
+  indFilters: { profesional:'', direccion:'', tipoVacante:'', anio:'', mes:'', semana:'' },
   // Filtros propios de cada tarjeta de gráfico en "Seguimiento de Vacantes" (por Dirección),
   // independientes entre sí y de los filtros generales de arriba.
   cardFilters: { antiguedad:'', profesional:'', criticas:'' },
@@ -846,12 +850,17 @@ function mesKeyLabel(d){
 // filtro de Mes).
 // Si la vacante sigue abierta, se usa el mes en que se liberó.
 function mesFiltroDate(r){ return r.cerrada ? r.fechaCierre : r.fechaLiberacion; }
-// Compara una fecha cualquiera contra los filtros de Año/Mes de Análisis de Indicadores (iAnio/
-// iMes) -- se usa tanto para "personas contratadas" (Fecha de Cierre) como, en la gráfica de
-// Liberadas vs. Cerradas, para cada una de sus dos series con su propia fecha de referencia.
-function matchesAnioMes(date, anio, mes){
-  if (!(date instanceof Date) || isNaN(date)) return !anio && !mes;
-  return (!anio || date.getFullYear()===parseInt(anio,10)) && (!mes || (date.getMonth()+1)===parseInt(mes,10));
+// Compara una fecha cualquiera contra los filtros de Año/Mes/Semana de Análisis de Indicadores
+// (iAnio/iMes/iSemana) -- se usa tanto para "personas contratadas" (Fecha de Cierre) como, en la
+// gráfica de Liberadas vs. Cerradas y sus dos botones, para cada serie con su propia fecha de
+// referencia. "Semana" compara contra el lunes de la semana de esa fecha (misma lógica que
+// mondayOf/computePromCierrePorPeriodo en Seguimiento), y se combina libremente con Año y Mes.
+function matchesFiltrosFecha(date, f){
+  if (!(date instanceof Date) || isNaN(date)) return !f.anio && !f.mes && !f.semana;
+  if (f.anio && date.getFullYear()!==parseInt(f.anio,10)) return false;
+  if (f.mes && (date.getMonth()+1)!==parseInt(f.mes,10)) return false;
+  if (f.semana && mondayOf(date).getTime()!==parseInt(f.semana,10)) return false;
+  return true;
 }
 function populateFilterOptions(){
   fillSelect('fProfesional', uniqueSorted(state.rows,'profesional'), 'Profesional (Todas)');
@@ -874,6 +883,20 @@ function populateFilterOptions(){
   state.rows.forEach(r=>{ if (r.cerrada && r.fechaCierre instanceof Date && !isNaN(r.fechaCierre)) aniosInd.add(r.fechaCierre.getFullYear()); });
   fillSelect('iAnio', [...aniosInd].sort().map(a=>({value:String(a),label:String(a)})), 'Año Contratación (Todos)', true);
   fillSelect('iMes', MESES_ES.map((nombre,i)=>({value:String(i+1),label:nombre})), 'Mes Contratación (Todos)', true);
+  // Semana de contratación: una opción por cada semana (lunes de esa semana) que realmente
+  // aparece en las fechas de cierre -- igual fuente que Año Contratación (fechaCierre de las
+  // vacantes cerradas), ordenadas cronológicamente y con el valor siendo el timestamp del lunes
+  // (parseInt-able), para poder compararse directo contra mondayOf(fecha).getTime() en
+  // matchesFiltrosFecha.
+  const semanasInd = new Map();
+  state.rows.forEach(r=>{
+    if (r.cerrada && r.fechaCierre instanceof Date && !isNaN(r.fechaCierre)){
+      const lunes = mondayOf(r.fechaCierre);
+      semanasInd.set(lunes.getTime(), lunes);
+    }
+  });
+  const semanasOrdenadas = [...semanasInd.entries()].sort((a,b)=>a[0]-b[0]);
+  fillSelect('iSemana', semanasOrdenadas.map(([ts,lunes])=>({value:String(ts), label:'Semana del '+fmtDate(lunes)})), 'Semana (Todas)', true);
 
   fillSelect('cfAntiguedad', uniqueSorted(state.rows,'direccion'), 'Dirección (Todas)');
   fillSelect('cfProfesional', uniqueSorted(state.rows,'direccion'), 'Dirección (Todas)');
@@ -940,9 +963,9 @@ document.getElementById('btnClearFilters').addEventListener('click', ()=>{
     state.cardFilters[map[id]] = e.target.value; render();
   });
 });
-['iProfesional','iDireccion','iTipoVacante','iAnio','iMes'].forEach(id=>{
+['iProfesional','iDireccion','iTipoVacante','iAnio','iMes','iSemana'].forEach(id=>{
   document.getElementById(id).addEventListener('change', e=>{
-    const map = {iProfesional:'profesional',iDireccion:'direccion',iTipoVacante:'tipoVacante',iAnio:'anio',iMes:'mes'};
+    const map = {iProfesional:'profesional',iDireccion:'direccion',iTipoVacante:'tipoVacante',iAnio:'anio',iMes:'mes',iSemana:'semana'};
     state.indFilters[map[id]] = e.target.value; renderIndicadores();
   });
 });
@@ -1383,7 +1406,7 @@ function renderIndicadores(){
   // cada vacante cerrada -- la misma fecha que el resto del tablero usa como "fecha real de
   // cierre" -- y aplican a toda esta página (KPIs de género/edad, ambas gráficas de Función-Nivel
   // de Cargo, tabla por Dirección y la gráfica de Liberadas vs. Cerradas más abajo).
-  rows = rows.filter(r => (!f.profesional||r.profesional===f.profesional) && (!f.direccion||r.direccion===f.direccion) && (!f.tipoVacante||r.tipoVacante===f.tipoVacante) && matchesAnioMes(r.fechaCierre, f.anio, f.mes));
+  rows = rows.filter(r => (!f.profesional||r.profesional===f.profesional) && (!f.direccion||r.direccion===f.direccion) && (!f.tipoVacante||r.tipoVacante===f.tipoVacante) && matchesFiltrosFecha(r.fechaCierre, f));
 
   const haveGenero = state.cols.genero!==undefined;
   const haveEdadInfo = state.cols.edad!==undefined || state.cols.fechaNacimiento!==undefined;
@@ -1441,6 +1464,26 @@ function renderIndicadores(){
       plugins:{legend:{position:'bottom',labels:{boxWidth:10,font:{size:10}}}},
       scales:{x:{stacked:true,grid:{display:false}}, y:{stacked:true, beginAtZero:true, ticks:{precision:0}}} } };
   });
+
+  // Botones-KPI "Vacantes Liberadas" / "Vacantes Cerradas": mismo alcance que la gráfica de
+  // Liberadas vs. Cerradas por Mes (Profesional/Dirección/Tipo de Vacante + Año/Mes/Semana), y el
+  // % de cada uno es su parte del total combinado de ambas categorías (igual que Internas/
+  // Externas/Mixtas en la página de Seguimiento).
+  {
+    const rowsBaseLC = state.rows.filter(r => (!f.profesional||r.profesional===f.profesional) && (!f.direccion||r.direccion===f.direccion) && (!f.tipoVacante||r.tipoVacante===f.tipoVacante));
+    const haveEnvioComp = state.cols.fechaEnvioCompensacion !== undefined;
+    if (haveEnvioComp && rowsBaseLC.length){
+      const { liberadas, cerradasComp } = computeLiberadasCerradas(rowsBaseLC, f);
+      const totalLC = liberadas.length + cerradasComp.length;
+      document.getElementById('ind_countLiberadas').textContent = liberadas.length+' liberadas';
+      document.getElementById('ind_countCerradas').textContent = cerradasComp.length+' cerradas';
+      document.getElementById('ind_pctLiberadas').textContent = totalLC? round0(100*liberadas.length/totalLC)+'%' : '—';
+      document.getElementById('ind_pctCerradas').textContent = totalLC? round0(100*cerradasComp.length/totalLC)+'%' : '—';
+    } else {
+      document.getElementById('ind_pctLiberadas').textContent='—'; document.getElementById('ind_countLiberadas').textContent='';
+      document.getElementById('ind_pctCerradas').textContent='—'; document.getElementById('ind_countCerradas').textContent='';
+    }
+  }
 
   renderChartLiberadasCerradasMes();
 
@@ -1616,6 +1659,16 @@ function renderTablaEtapas(segmentos){
   html += '</tbody></table>';
   wrap.innerHTML = html;
 }
+// Filtra un conjunto de filas (ya acotado por Profesional/Dirección/Tipo de Vacante) contra los
+// filtros de Año/Mes/Semana, separando "Liberadas" (por Fecha Liberación) de "Cerradas" (por
+// Fecha Envío a Compensación) -- cada serie usa su propia fecha, igual que ya hacía cada una para
+// agruparse por mes. La usan tanto los botones-KPI "Vacantes Liberadas"/"Vacantes Cerradas" como
+// la gráfica de líneas, para no duplicar esta lógica en dos lugares.
+function computeLiberadasCerradas(rowsBase, f){
+  const liberadas = rowsBase.filter(r => r.fechaLiberacion instanceof Date && !isNaN(r.fechaLiberacion) && matchesFiltrosFecha(r.fechaLiberacion, f));
+  const cerradasComp = rowsBase.filter(r => r.cerrada && r.fechaEnvioComp instanceof Date && !isNaN(r.fechaEnvioComp) && matchesFiltrosFecha(r.fechaEnvioComp, f));
+  return { liberadas, cerradasComp };
+}
 // Gráfico de líneas "Vacantes Liberadas vs. Cerradas por Mes" (Análisis de Indicadores).
 // Línea "Liberadas": TODAS las vacantes (abiertas o cerradas, sin importar su estado actual),
 // agrupadas por el mes de su Fecha Liberación (columna B, formato día/mes/año).
@@ -1625,9 +1678,10 @@ function renderTablaEtapas(segmentos){
 // El eje X ahora son los 12 meses del calendario (Enero..Diciembre) en vez de "Mes Año": con el
 // filtro de Año Contratación ya se puede aislar un año específico, así que ya no hace falta
 // combinar mes y año en la misma etiqueta -- y si "Año" queda en "Todos", cada mes suma los datos
-// de todos los años (tal como se pidió). Cada serie se filtra por Año/Mes usando su propia fecha
-// de referencia (Liberación para "Liberadas", Envío a Compensación para "Cerradas"), igual que ya
-// hacía cada una para agruparse.
+// de todos los años (tal como se pidió). Cada serie se filtra por Año/Mes/Semana usando su propia
+// fecha de referencia (Liberación para "Liberadas", Envío a Compensación para "Cerradas"), igual
+// que ya hacía cada una para agruparse. Los botones-KPI "Vacantes Liberadas"/"Vacantes Cerradas"
+// (ver renderIndicadores) muestran el mismo total que suman las dos líneas de esta gráfica.
 function renderChartLiberadasCerradasMes(){
   const wrapId = 'ind_wrapLiberadasCerradas', canvasId = 'chartLiberadasCerradasMes', chartKey = 'liberadasCerradasMes';
   const wrap = document.getElementById(wrapId);
@@ -1641,8 +1695,7 @@ function renderChartLiberadasCerradasMes(){
     return;
   }
 
-  const liberadas = rowsBase.filter(r => r.fechaLiberacion instanceof Date && !isNaN(r.fechaLiberacion) && matchesAnioMes(r.fechaLiberacion, f.anio, f.mes));
-  const cerradasComp = rowsBase.filter(r => r.cerrada && r.fechaEnvioComp instanceof Date && !isNaN(r.fechaEnvioComp) && matchesAnioMes(r.fechaEnvioComp, f.anio, f.mes));
+  const { liberadas, cerradasComp } = computeLiberadasCerradas(rowsBase, f);
 
   if (!liberadas.length && !cerradasComp.length){
     destroyChart(chartKey);
