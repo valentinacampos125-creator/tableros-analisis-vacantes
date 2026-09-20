@@ -1,5 +1,5 @@
 <!doctype html>
-<!-- Tablero Vacantes - build 2026-09-18 v22 (uso interno para control de versión, no visible en el tablero) -->
+<!-- Tablero Vacantes - build 2026-09-18 v23 (uso interno para control de versión, no visible en el tablero) -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -578,24 +578,27 @@ function loadWorkbook(data, sourceLabel){
       const fechaLib = toDate(get('fechaLiberacion'));
       const estado = titleCase(get('estado'));
       const fechaIngreso = toDate(get('fechaIngreso'));
-      // Fecha de envío a compensación: es un dato adicional, usado ÚNICAMENTE por el gráfico de
-      // "Vacantes Liberadas vs. Cerradas por Mes" en Análisis de Indicadores. No participa en la
-      // clasificación cerrada/excluida/abierta ni en fechaCierre (que siguen usando solo Fecha
-      // Ingreso, como se estableció arriba).
+      // Fecha de envío a compensación (columna aparte de Fecha Ingreso): a partir de este cambio
+      // es la fecha REAL de cierre de la vacante -- ver fechaCierre más abajo. Antes solo se usaba
+      // para el gráfico de "Vacantes Liberadas vs. Cerradas por Mes" en Análisis de Indicadores;
+      // ahora también alimenta fechaCierre para todo el tablero.
       const fechaEnvioComp = toDate(get('fechaEnvioCompensacion'));
       // "Cerrada" se identifica únicamente cruzando Estado (columna E) con Fecha Ingreso (columna
       // W) -- no se lee ninguna otra columna para esto: si ya hay una fecha de ingreso real, la
       // vacante quedó cerrada aunque el Estado no lo diga literalmente (o esté desactualizado); y
       // una fecha de ingreso real nunca puede convivir con un estado "excluida" (Cancelada/
-      // Anulada/Desierta), porque contradice el ingreso.
+      // Anulada/Desierta), porque contradice el ingreso. Fecha Ingreso sigue siendo, únicamente,
+      // la SEÑAL de que la vacante ya se cerró -- no la fecha de cierre en sí (ver fechaCierre).
       const cerrada = isClosedStatus(estado) || !!fechaIngreso;
       const excluida = isExcludedStatus(estado) && !cerrada;
       const abierta = !cerrada && !excluida;
-      // La fecha de cierre de una vacante cerrada es, exclusivamente, su Fecha Ingreso (columna
-      // W) -- no se usa ninguna otra columna del excel (ni Fecha Liberación ni una columna de
-      // "Fecha Cierre") para esto. Con ella se agrupa/filtra por "Mes" cuántas cerraron y se
-      // calcula el promedio de vacantes cerradas por periodo.
-      const fechaCierre = cerrada ? fechaIngreso : null;
+      // La fecha de cierre real de una vacante cerrada es su Fecha Envío a Compensación (no Fecha
+      // Ingreso, que solo sirve como señal de que ya cerró -- ver arriba). Con esta fecha se
+      // agrupa/filtra por "Mes" cuántas cerraron y se calcula el promedio de vacantes cerradas por
+      // periodo. Si a una vacante cerrada le falta la Fecha Envío a Compensación, sigue contando
+      // como "cerrada" en el total general, pero sin fecha de cierre válida (no cae de vuelta a
+      // Fecha Ingreso ni a Fecha Liberación): no se ubica en ningún mes de cierre específico.
+      const fechaCierre = cerrada ? fechaEnvioComp : null;
       let diasHabiles = null;
       if (abierta && fechaLib) diasHabiles = businessDaysBetween(fechaLib, new Date());
       else if (cerrada && fechaLib && fechaCierre) diasHabiles = businessDaysBetween(fechaLib, fechaCierre);
@@ -776,10 +779,11 @@ function mesKeyLabel(d){
   return { key: d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0'), label: MESES_ES[d.getMonth()]+' '+d.getFullYear() };
 }
 // Fecha que se usa para agrupar/filtrar una vacante por "Mes": si ya está cerrada, el mes en que
-// se cerró (Fecha Cierre / Fecha Ingreso) -- y si está cerrada pero no tiene una fecha de cierre
-// válida (Fecha Ingreso vacía, "NO INGRESO", "PENDIENTE MOVIMIENTO", etc.), NO cae de vuelta a la
-// Fecha Liberación: no se puede ubicar en ningún mes de cierre, así que no cuenta como "cerrada"
-// en ningún mes específico (sí sigue contando en el total general cuando no hay filtro de Mes).
+// se cerró (Fecha Cierre = Fecha Envío a Compensación) -- y si está cerrada pero no tiene una
+// fecha de cierre válida (Fecha Envío a Compensación vacía), NO cae de vuelta a la Fecha
+// Liberación ni a Fecha Ingreso: no se puede ubicar en ningún mes de cierre, así que no cuenta
+// como "cerrada" en ningún mes específico (sí sigue contando en el total general cuando no hay
+// filtro de Mes).
 // Si la vacante sigue abierta, se usa el mes en que se liberó.
 function mesFiltroDate(r){ return r.cerrada ? r.fechaCierre : r.fechaLiberacion; }
 function populateFilterOptions(){
@@ -1112,8 +1116,8 @@ function renderTable(scoped){
   if (state.quickFilter==='criticas') rows = rows.filter(r=>r.critica);
   if (state.quickFilter==='cerradas') rows = rows.filter(r=>r.cerrada);
   // Mismo universo de vacantes que usa el KPI "Prom. Vacantes Cerradas / Semana o Mes" para su
-  // cálculo (computePromCierrePorPeriodo): cerradas con una Fecha de Cierre (Fecha Ingreso)
-  // válida -- así, al hacer clic en ese KPI, se ve exactamente cuáles vacantes está contando.
+  // cálculo (computePromCierrePorPeriodo): cerradas con una Fecha de Cierre (Fecha Envío a
+  // Compensación) válida -- así, al hacer clic en ese KPI, se ve exactamente cuáles vacantes está contando.
   if (state.quickFilter==='cerradasPeriodo') rows = rows.filter(r=>r.cerrada && r.fechaCierre instanceof Date && !isNaN(r.fechaCierre));
 
   const note = document.getElementById('tableFilterNote');
@@ -1446,9 +1450,8 @@ function renderTablaEtapas(segmentos){
 // Línea "Liberadas": TODAS las vacantes (abiertas o cerradas, sin importar su estado actual),
 // agrupadas por el mes de su Fecha Liberación (columna B, formato día/mes/año).
 // Línea "Cerradas": únicamente las vacantes cerradas, agrupadas por el mes de su Fecha Envío a
-// Compensación -- una columna DISTINTA a la Fecha Ingreso que se usa en el resto del tablero
-// (KPI "Cerradas", filtro de "Mes", promedio por periodo). Esta es la única gráfica que usa esa
-// columna; no afecta ningún otro cálculo del tablero.
+// Compensación -- la misma fecha que fechaCierre usa para el resto del tablero (KPI "Cerradas",
+// filtro de "Mes", promedio por periodo) desde que esta pasó a ser la fecha real de cierre.
 function renderChartLiberadasCerradasMes(){
   const wrapId = 'ind_wrapLiberadasCerradas', canvasId = 'chartLiberadasCerradasMes', chartKey = 'liberadasCerradasMes';
   const wrap = document.getElementById(wrapId);
