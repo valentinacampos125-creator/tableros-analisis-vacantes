@@ -1,5 +1,5 @@
 <!doctype html>
-<!-- Tablero Vacantes - build 2026-09-20 v28 (uso interno para control de versión, no visible en el tablero) -->
+<!-- Tablero Vacantes - build 2026-09-21 v29 (uso interno para control de versión, no visible en el tablero) -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -121,9 +121,9 @@ loadScriptWithFallbacks([
   .kpi.v-diascierre .kpi-value{color:#e58a35;}
   .kpi.v-promperiodo .kpi-value{color:#16b5a1;}
   .kpi-check{position:absolute;top:8px;right:10px;font-size:13px;color:var(--blue);}
-  /* Las 6 tarjetas principales de KPI ahora son cuadradas y angostas, del mismo tamaño que los
-     chips de "En Pausa"/"Cancelada" de abajo -- en vez de estirarse a lo ancho en una grilla de 6
-     columnas, se acomodan en fila (con salto de línea si no caben) como los demás chips. */
+  /* Las 6 tarjetas principales de KPI son cuadradas y angostas -- en vez de estirarse a lo ancho
+     en una grilla de 6 columnas, se acomodan en fila junto al cuadro de Tipo de Vacante (con
+     salto de línea si no caben). */
   .kpis .kpi{width:130px;padding:10px 8px;display:flex;flex-direction:column;align-items:center;justify-content:center;}
   .kpis .kpi-label{font-size:10px;line-height:1.25;gap:4px;}
   .kpis .kpi-value{font-size:23px;margin-top:3px;}
@@ -133,14 +133,6 @@ loadScriptWithFallbacks([
 
   .charts.single-chart{grid-template-columns:1fr;}
 
-  .kpi-chip{width:96px;background:var(--card);border:1px solid var(--border);border-radius:10px;box-shadow:var(--shadow);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:8px 6px;transition:background-color .2s,border-color .2s,transform .15s,box-shadow .15s;}
-  .kpi-chip.clickable{cursor:pointer;}
-  .kpi-chip.clickable:hover{transform:translateY(-2px);box-shadow:0 4px 14px rgba(20,30,60,.14);}
-  .kpi-chip.active{border-color:var(--blue);box-shadow:0 0 0 2px var(--blue) inset,var(--shadow);}
-  .kpi-chip-value{font-size:22px;font-weight:800;}
-  .kpi-chip-label{font-size:10.5px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.2px;margin-top:2px;}
-  .kpi-chip.v-pausada .kpi-chip-value{color:#e5a53d;}
-  .kpi-chip.v-cancelada .kpi-chip-value{color:#8b8f99;}
 
   .tipo-square{width:230px;background:var(--card);border:1px solid var(--border);border-radius:12px;box-shadow:var(--shadow);overflow:hidden;display:flex;flex-direction:column;transition:background-color .2s,border-color .2s;}
   .tipo-square-title{font-size:10.5px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.3px;text-align:center;padding:5px 0;border-bottom:1px solid var(--border);}
@@ -177,6 +169,7 @@ loadScriptWithFallbacks([
   th:first-child, td:first-child{border-left:none;}
   th:last-child, td:last-child{border-right:none;}
   tbody tr:last-child td{border-bottom:none;}
+  .ind-total-row td{background:var(--th-bg);border-top:2px solid var(--table-line);}
   th.filterable{position:relative;padding-right:22px;}
   .th-filter-btn{position:absolute;right:2px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--muted);cursor:pointer;font-size:11px;padding:2px 5px;border-radius:4px;}
   .th-filter-btn:hover{background:var(--th-filter-hover);color:var(--ink);}
@@ -324,14 +317,6 @@ loadScriptWithFallbacks([
         <div class="kpi-sub" id="kpiPromCierrePeriodoSub">según filtro de arriba</div>
         <div class="kpi-check">✓</div>
       </div>
-      <div class="kpi-chip v-pausada clickable" id="kpiPausada" title="Clic para filtrar la tabla por vacantes en pausa">
-        <div class="kpi-chip-value">0</div>
-        <div class="kpi-chip-label">En Pausa</div>
-      </div>
-      <div class="kpi-chip v-cancelada clickable" id="kpiCancelada" title="Clic para filtrar la tabla por vacantes canceladas">
-        <div class="kpi-chip-value">0</div>
-        <div class="kpi-chip-label">Cancelada</div>
-      </div>
       <div class="tipo-square" id="tipoVacanteSquare" title="Distribución de vacantes por Tipo Vacante">
         <div class="tipo-square-title">Tipo de Vacante</div>
         <div class="tipo-square-band v-interna clickable" data-tipo="Interna" title="Clic para filtrar por vacantes Internas">
@@ -421,7 +406,7 @@ const state = {
   rows: [],                 // filas normalizadas del excel
   cols: {},                 // mapeo de columnas detectadas
   missingCols: [],          // columnas canonicas no encontradas
-  quickFilter: null,        // 'abiertas' | 'criticas' | 'cerradas' | 'cerradasPeriodo' | 'pausada' | 'cancelada' | null
+  quickFilter: null,        // 'abiertas' | 'criticas' | 'cerradas' | 'cerradasPeriodo' | null -- "En Pausa"/"Cancelada" ya no son quickFilter: se manejan con el filtro de Estado (ver chartMode en render()).
   // Filtro independiente por Tipo Vacante (Interna/Externa/Mixta), activado con clic en las
   // franjas del cuadro "Tipo de Vacante". Es un eje distinto al de quickFilter (una vacante puede
   // ser, a la vez, Abierta e Interna), así que se combina con él en vez de reemplazarlo.
@@ -981,8 +966,6 @@ bindKpiToggle('kpiAbiertas','abiertas');
 bindKpiToggle('kpiCriticas','criticas');
 bindKpiToggle('kpiCerradas','cerradas');
 bindKpiToggle('kpiPromPeriodo','cerradasPeriodo');
-bindKpiToggle('kpiPausada','pausada');
-bindKpiToggle('kpiCancelada','cancelada');
 
 /* Clic en una franja del cuadro "Tipo de Vacante" (Interna/Externa/Mixta) = filtro adicional,
    independiente de quickFilter, que se combina con él tanto en la tabla como en las gráficas. */
@@ -1019,8 +1002,6 @@ function render(){
   // KPIs
   setKpi('kpiAbiertas', abiertas.length);
   setKpi('kpiCriticas', criticas.length);
-  setKpiChip('kpiPausada', pausadas.length);
-  setKpiChip('kpiCancelada', canceladas.length);
   setKpi('kpiCerradas', cerradas.length);
   const promAbiertas = round0(avg(abiertas.map(r=>r.diasHabiles)));
   document.querySelector('.kpi.v-promedio .kpi-value').textContent = promAbiertas!==null? promAbiertas : '—';
@@ -1035,8 +1016,8 @@ function render(){
     ? `${cerradas.filter(r=>r.fechaCierre instanceof Date).length} cierres en ${promPeriodo.numPeriodos} ${state.granularidad==='semana'?'semanas':'meses'}`
     : 'sin fechas de cierre suficientes';
 
-  ['kpiAbiertas','kpiCriticas','kpiCerradas','kpiPromPeriodo','kpiPausada','kpiCancelada'].forEach(id=>{
-    const key = {kpiAbiertas:'abiertas',kpiCriticas:'criticas',kpiCerradas:'cerradas',kpiPromPeriodo:'cerradasPeriodo',kpiPausada:'pausada',kpiCancelada:'cancelada'}[id];
+  ['kpiAbiertas','kpiCriticas','kpiCerradas','kpiPromPeriodo'].forEach(id=>{
+    const key = {kpiAbiertas:'abiertas',kpiCriticas:'criticas',kpiCerradas:'cerradas',kpiPromPeriodo:'cerradasPeriodo'}[id];
     document.getElementById(id).classList.toggle('active', state.quickFilter===key);
   });
   document.querySelectorAll('.tipo-square-band[data-tipo]').forEach(band=>{
@@ -1076,13 +1057,17 @@ function render(){
   // en ellas mismas).
   const byTipo = arr => state.tipoFilter ? arr.filter(r=>normalize(r.tipoVacante)===normalize(state.tipoFilter)) : arr;
 
-  // Si el filtro rápido activo es "En Pausa" o "Cancelada", esa categoría pasa a ser la base de
-  // la gráfica de "Por Profesional" (en vez de Cerradas) -- así el clic en esos botones también
-  // se refleja ahí, no solo en la tabla. Ni "Vacantes por Antigüedad" (mide antigüedad de
-  // abiertas) ni "Críticas por Profesional" (una vacante en pausa o cancelada nunca es "crítica"
-  // -- ver el flag `critica`, que exige estar abierta) aplican a estas dos categorías, así que
-  // ambas se ocultan y solo queda "Por Profesional", a todo el ancho.
-  const chartMode = (state.quickFilter==='pausada') ? 'pausada' : (state.quickFilter==='cancelada') ? 'cancelada' : null;
+  // El modo "En Pausa"/"Cancelada" de la gráfica de Profesional ya no depende de botones aparte
+  // (se quitaron, porque duplicaban el filtro de Estado): se activa directamente cuando el
+  // filtro "Estado (Todas)" de arriba selecciona un estado que sea En Pausa o Cancelada, usando
+  // la misma clasificación que separa cada vacante en pausada/cancelada (isPausedStatus y el
+  // texto "CANCELAD"). Esa categoría pasa a ser la base de la gráfica de "Por Profesional" (en
+  // vez de Cerradas). Ni "Vacantes por Antigüedad" (mide antigüedad de abiertas) ni "Críticas por
+  // Profesional" (una vacante en pausa o cancelada nunca es "crítica" -- ver el flag `critica`,
+  // que exige estar abierta) aplican a estas dos categorías, así que ambas se ocultan y solo
+  // queda "Por Profesional", a todo el ancho. Importante: "Abierta" NUNCA activa este modo -- es
+  // una categoría distinta de "En Pausa", aunque ambas dejen de contar como "Cerradas".
+  const chartMode = isPausedStatus(state.filters.estado) ? 'pausada' : (normalize(state.filters.estado).includes('CANCELAD') ? 'cancelada' : null);
   const baseProf = chartMode ? (chartMode==='pausada' ? pausadas : canceladas) : scoped;
 
   const abiertasAntig = byTipo(cf.antiguedad ? abiertas.filter(r=>r.direccion===cf.antiguedad) : abiertas);
@@ -1124,7 +1109,6 @@ function render(){
   catch(err){ console.error('Error en renderIndicadores', err); }
 }
 function setKpi(id, val){ document.querySelector('#'+id+' .kpi-value').textContent = val; }
-function setKpiChip(id, val){ document.querySelector('#'+id+' .kpi-chip-value').textContent = val; }
 
 /* Aísla cada gráfica: si Chart.js no cargó (red corporativa la bloquea) o la
    gráfica falla por cualquier motivo, se muestra un aviso ahí mismo en vez de
@@ -1270,8 +1254,6 @@ function renderTable(scoped){
   if (state.quickFilter==='abiertas') rows = rows.filter(r=>r.abierta);
   if (state.quickFilter==='criticas') rows = rows.filter(r=>r.critica);
   if (state.quickFilter==='cerradas') rows = rows.filter(r=>r.cerrada);
-  if (state.quickFilter==='pausada') rows = rows.filter(r=>r.pausada);
-  if (state.quickFilter==='cancelada') rows = rows.filter(r=>r.cancelada);
   // Mismo universo de vacantes que usa el KPI "Prom. Vacantes Cerradas / Semana o Mes" para su
   // cálculo (computePromCierrePorPeriodo): cerradas con una Fecha de Cierre (Fecha Envío a
   // Compensación) válida -- así, al hacer clic en ese KPI, se ve exactamente cuáles vacantes está contando.
@@ -1283,7 +1265,7 @@ function renderTable(scoped){
   const note = document.getElementById('tableFilterNote');
   const activeHeaderFilters = Object.entries(state.headerFilters).filter(([,s])=>s.size>0).map(([k])=>k);
   const noteParts = [];
-  if (state.quickFilter) noteParts.push({abiertas:'Vacantes Abiertas',criticas:'Vacantes Críticas',cerradas:'Cerradas',cerradasPeriodo:'Cerradas con fecha de cierre (las que cuenta el promedio por periodo)',pausada:'En Pausa',cancelada:'Canceladas'}[state.quickFilter]);
+  if (state.quickFilter) noteParts.push({abiertas:'Vacantes Abiertas',criticas:'Vacantes Críticas',cerradas:'Cerradas',cerradasPeriodo:'Cerradas con fecha de cierre (las que cuenta el promedio por periodo)'}[state.quickFilter]);
   if (state.tipoFilter) noteParts.push('Tipo: '+state.tipoFilter);
   if (activeHeaderFilters.length) noteParts.push('filtros de columna activos');
   note.textContent = noteParts.length ? '— '+noteParts.join(', ') : '';
@@ -1489,7 +1471,7 @@ function renderIndicadores(){
 
   // tabla por dirección
   const direcciones = uniqueSorted(rows,'direccion');
-  let html = '<table><thead><tr><th>Dirección</th><th>Prom. Edad</th><th>% Mujeres</th><th>% Hombres</th></tr></thead><tbody>';
+  let html = '<table><thead><tr><th>Dirección</th><th>Total Vacantes</th><th>Prom. Edad</th><th>% Mujeres</th><th>% Hombres</th></tr></thead><tbody>';
   if (!direcciones.length){ html = '<div class="placeholder-note">No hay columna de Dirección / datos suficientes en el Excel cargado.</div>'; }
   else{
     direcciones.forEach(d=>{
@@ -1502,8 +1484,13 @@ function renderIndicadores(){
         const h = sub.filter(r=>normalize(r.genero).startsWith('M')&&!normalize(r.genero).includes('MUJER')||normalize(r.genero).includes('HOMBRE')).length;
         pctM = round0(100*m/sub.length)+'%'; pctH = round0(100*h/sub.length)+'%';
       }
-      html += `<tr><td>${esc(d)}</td><td>${promE}</td><td>${pctM}</td><td>${pctH}</td></tr>`;
+      html += `<tr><td>${esc(d)}</td><td>${sub.length}</td><td>${promE}</td><td>${pctM}</td><td>${pctH}</td></tr>`;
     });
+    // Fila de totales: suma de vacantes (contratadas) de todas las direcciones, con los filtros
+    // actuales de Indicadores (Profesional/Dirección/Tipo Vacante/Año/Mes/Semana) -- coincide con
+    // "rows.length" (todas las contratadas ya filtradas), no solo la suma de las direcciones
+    // listadas arriba, por si alguna vacante no tiene Dirección asignada.
+    html += `<tr class="ind-total-row"><td><strong>Total</strong></td><td><strong>${rows.length}</strong></td><td></td><td></td><td></td></tr>`;
     html += '</tbody></table>';
   }
   document.getElementById('ind_tableDireccion').innerHTML = html;
