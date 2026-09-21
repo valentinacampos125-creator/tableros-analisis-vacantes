@@ -1,5 +1,5 @@
 <!doctype html>
-<!-- Tablero Vacantes - build 2026-09-21 v29 (uso interno para control de versión, no visible en el tablero) -->
+<!-- Tablero Vacantes - build 2026-09-21 v30 (uso interno para control de versión, no visible en el tablero) -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -367,7 +367,7 @@ loadScriptWithFallbacks([
     </div>
 
     <div class="charts" style="grid-template-columns:1fr 1fr;">
-      <div class="chart-card"><h3><svg class="ic-title" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>Vacantes cerradas por Función-Nivel de Cargo (por Género)</h3><div class="canvas-wrap" id="ind_wrapFuncion"><canvas id="chartFuncionGenero"></canvas></div></div>
+      <div class="chart-card"><h3><svg class="ic-title" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>Vacantes cerradas por Cargo y Dirección (por Género)</h3><div class="canvas-wrap" id="ind_wrapFuncion"><canvas id="chartFuncionGenero"></canvas></div></div>
       <div class="chart-card"><h3><svg class="ic-title" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>Vacantes cerradas por Función-Nivel de Cargo (Talento Joven)</h3><div class="canvas-wrap" id="ind_wrapTalentoJoven"><canvas id="chartTalentoJoven"></canvas></div></div>
     </div>
 
@@ -881,7 +881,12 @@ function populateFilterOptions(){
     }
   });
   const semanasOrdenadas = [...semanasInd.entries()].sort((a,b)=>a[0]-b[0]);
-  fillSelect('iSemana', semanasOrdenadas.map(([ts,lunes])=>({value:String(ts), label:'Semana del '+fmtDate(lunes)})), 'Semana (Todas)', true);
+  // La etiqueta muestra el rango completo de la semana (lunes a domingo), no solo el día de
+  // inicio -- el valor sigue siendo el timestamp del lunes, así que el filtrado no cambia.
+  fillSelect('iSemana', semanasOrdenadas.map(([ts,lunes])=>{
+    const domingo = new Date(lunes.getFullYear(), lunes.getMonth(), lunes.getDate()+6);
+    return {value:String(ts), label:'Semana del '+fmtDate(lunes)+' al '+fmtDate(domingo)};
+  }), 'Semana (Todas)', true);
 
   fillSelect('cfAntiguedad', uniqueSorted(state.rows,'direccion'), 'Dirección (Todas)');
   fillSelect('cfProfesional', uniqueSorted(state.rows,'direccion'), 'Dirección (Todas)');
@@ -1379,7 +1384,19 @@ document.getElementById('btnToggleView').addEventListener('click', ()=>{
   else { seg.style.display='block'; ind.style.display='none'; document.getElementById('toggleLabel').textContent='Análisis de Indicadores'; }
 });
 
-function ageFromBirth(d){ if (!(d instanceof Date)) return null; const diff = Date.now()-d.getTime(); return Math.floor(diff/(365.25*24*3600*1000)); }
+// Edad calculada a partir de la Fecha de Nacimiento, SIEMPRE respecto a una fecha de referencia
+// explícita (normalmente la Fecha de Cierre = Fecha de Envío a Compensación de esa vacante) --
+// nunca respecto a "hoy": una vacante cerrada hace tiempo debe reflejar la edad que la persona
+// tenía al momento de contratarse, no su edad actual (que solo sigue creciendo con el tiempo y
+// haría que alguien contratado como Talento Joven dejara de contar como tal años después). Si no
+// se pasa una fecha de referencia válida, se usa "hoy" como último recurso (p.ej. si la vacante
+// no tiene Fecha de Envío a Compensación registrada).
+function ageFromBirth(d, ref){
+  if (!(d instanceof Date) || isNaN(d)) return null;
+  const reference = (ref instanceof Date && !isNaN(ref)) ? ref : new Date();
+  const diff = reference.getTime()-d.getTime();
+  return Math.floor(diff/(365.25*24*3600*1000));
+}
 function renderIndicadores(){
   if (!state.rows.length) return;
   let rows = state.rows.filter(r=>r.cerrada); // "contratadas" = vacantes realmente cerradas (se excluyen canceladas/anuladas)
@@ -1394,8 +1411,10 @@ function renderIndicadores(){
   const haveEdadInfo = state.cols.edad!==undefined || state.cols.fechaNacimiento!==undefined;
   const haveNivel = state.cols.nivelContribucion!==undefined;
   const haveFuncion = state.cols.funcionNivelCargo!==undefined;
-  const esJoven = r => { const e = (typeof r.edad==='number') ? r.edad : ageFromBirth(r.fechaNacimiento); return typeof e==='number' && e<29; };
-  const tieneEdad = r => { const e = (typeof r.edad==='number') ? r.edad : ageFromBirth(r.fechaNacimiento); return typeof e==='number'; };
+  // La edad de cada vacante cerrada se calcula al momento de su Fecha de Cierre (Fecha de Envío a
+  // Compensación), no a la fecha de hoy -- ver la nota en ageFromBirth.
+  const esJoven = r => { const e = (typeof r.edad==='number') ? r.edad : ageFromBirth(r.fechaNacimiento, r.fechaCierre); return typeof e==='number' && e<29; };
+  const tieneEdad = r => { const e = (typeof r.edad==='number') ? r.edad : ageFromBirth(r.fechaNacimiento, r.fechaCierre); return typeof e==='number'; };
 
   if (haveGenero && rows.length){
     const mujeres = rows.filter(r=>normalize(r.genero).startsWith('F') || normalize(r.genero).includes('MUJER'));
@@ -1419,15 +1438,19 @@ function renderIndicadores(){
     document.getElementById('ind_countJoven').textContent='';
   }
 
-  renderIndPlaceholderOrChart('chartFuncionGenero','funcionGenero','ind_wrapFuncion', haveFuncion, rows, ()=>{
-    const funciones = uniqueSorted(rows,'funcionNivelCargo');
+  // El eje de esta gráfica ya NO agrupa por "Función-Nivel de Cargo" (una categoría genérica) --
+  // ahora muestra el Cargo exacto junto con la Dirección exacta de cada vacante cerrada (ambas
+  // columnas del Excel, sin agrupar ni resumir), para poder ver el puesto y la dirección reales.
+  const cargoDireccionKey = r => `${r.cargo || '(Sin Cargo)'} — ${r.direccion || '(Sin Dirección)'}`;
+  renderIndPlaceholderOrChart('chartFuncionGenero','funcionGenero','ind_wrapFuncion', true, rows, ()=>{
+    const categorias = [...new Set(rows.map(cargoDireccionKey))].sort((a,b)=>a.localeCompare(b,'es'));
     const generos = haveGenero? uniqueSorted(rows,'genero') : ['Total'];
     const palette = ['#2f6fed','#d6336c','#8b5cf6','#27ae60'];
     const datasets = generos.map((g,i)=>({ label:g, backgroundColor:palette[i%palette.length], stack:'s',
-      data: funciones.map(fn => rows.filter(r=>r.funcionNivelCargo===fn && (!haveGenero || r.genero===g)).length) }));
-    return { type:'bar', data:{labels:funciones, datasets}, options:{ responsive:true, maintainAspectRatio:false,
+      data: categorias.map(cat => rows.filter(r=>cargoDireccionKey(r)===cat && (!haveGenero || r.genero===g)).length) }));
+    return { type:'bar', data:{labels:categorias, datasets}, options:{ responsive:true, maintainAspectRatio:false,
       plugins:{legend:{position:'bottom',labels:{boxWidth:10,font:{size:10}}}},
-      scales:{x:{stacked:true,grid:{display:false}}, y:{stacked:true, beginAtZero:true, ticks:{precision:0}}} } };
+      scales:{x:{stacked:true,grid:{display:false},ticks:{autoSkip:false}}, y:{stacked:true, beginAtZero:true, ticks:{precision:0}}} } };
   });
 
   // Misma idea que la gráfica anterior, pero por Talento Joven (Generación Z, <29 años) en vez de
@@ -1476,7 +1499,7 @@ function renderIndicadores(){
   else{
     direcciones.forEach(d=>{
       const sub = rows.filter(r=>r.direccion===d);
-      const edades = sub.map(r => (typeof r.edad==='number')?r.edad:ageFromBirth(r.fechaNacimiento)).filter(v=>typeof v==='number');
+      const edades = sub.map(r => (typeof r.edad==='number')?r.edad:ageFromBirth(r.fechaNacimiento, r.fechaCierre)).filter(v=>typeof v==='number');
       const promE = edades.length? round0(avg(edades)) : '—';
       let pctM='—', pctH='—';
       if (haveGenero && sub.length){
