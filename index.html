@@ -1,5 +1,5 @@
 <!doctype html>
-<!-- Tablero Vacantes - build 2026-09-21 v30 (uso interno para control de versión, no visible en el tablero) -->
+<!-- Tablero Vacantes - build 2026-09-21 v31 (uso interno para control de versión, no visible en el tablero) -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -120,6 +120,8 @@ loadScriptWithFallbacks([
   .kpi.v-promedio .kpi-value{color:#9b7bf7;}
   .kpi.v-diascierre .kpi-value{color:#e58a35;}
   .kpi.v-promperiodo .kpi-value{color:#16b5a1;}
+  .kpi.v-estado-especial.is-pausada .kpi-value{color:#e5a53d;}
+  .kpi.v-estado-especial.is-cancelada .kpi-value{color:#8b8f99;}
   .kpi-check{position:absolute;top:8px;right:10px;font-size:13px;color:var(--blue);}
   /* Las 6 tarjetas principales de KPI son cuadradas y angostas -- en vez de estirarse a lo ancho
      en una grilla de 6 columnas, se acomodan en fila junto al cuadro de Tipo de Vacante (con
@@ -316,6 +318,11 @@ loadScriptWithFallbacks([
         <div class="kpi-value" id="kpiPromCierrePeriodo">—</div>
         <div class="kpi-sub" id="kpiPromCierrePeriodoSub">según filtro de arriba</div>
         <div class="kpi-check">✓</div>
+      </div>
+      <div class="kpi v-estado-especial" id="kpiEstadoEspecial" style="display:none;" title="Cantidad de vacantes en el estado actualmente filtrado (En Pausa o Cancelada)">
+        <div class="kpi-label"><svg class="ic-title" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg><span id="kpiEstadoEspecialLabel">Estado</span></div>
+        <div class="kpi-value" id="kpiEstadoEspecialValue">0</div>
+        <div class="kpi-sub">según filtro de Estado</div>
       </div>
       <div class="tipo-square" id="tipoVacanteSquare" title="Distribución de vacantes por Tipo Vacante">
         <div class="tipo-square-title">Tipo de Vacante</div>
@@ -1074,6 +1081,21 @@ function render(){
   // una categoría distinta de "En Pausa", aunque ambas dejen de contar como "Cerradas".
   const chartMode = isPausedStatus(state.filters.estado) ? 'pausada' : (normalize(state.filters.estado).includes('CANCELAD') ? 'cancelada' : null);
   const baseProf = chartMode ? (chartMode==='pausada' ? pausadas : canceladas) : scoped;
+
+  // Tarjeta "En Pausa"/"Cancelada": permanece oculta -- ya no tiene sentido mostrarla siempre,
+  // porque duplicaría el filtro de Estado -- y solo aparece cuando el filtro de Estado de arriba
+  // está puesto justo en "En Pausa" o "Cancelada", mostrando en ese momento el número exacto de
+  // esa categoría (pausadas.length o canceladas.length, ya calculados arriba sobre "scoped").
+  const kpiEstadoEspecial = document.getElementById('kpiEstadoEspecial');
+  if (chartMode){
+    kpiEstadoEspecial.style.display = '';
+    kpiEstadoEspecial.classList.toggle('is-pausada', chartMode==='pausada');
+    kpiEstadoEspecial.classList.toggle('is-cancelada', chartMode==='cancelada');
+    document.getElementById('kpiEstadoEspecialLabel').textContent = chartMode==='pausada' ? 'En Pausa' : 'Cancelada';
+    document.getElementById('kpiEstadoEspecialValue').textContent = chartMode==='pausada' ? pausadas.length : canceladas.length;
+  } else {
+    kpiEstadoEspecial.style.display = 'none';
+  }
 
   const abiertasAntig = byTipo(cf.antiguedad ? abiertas.filter(r=>r.direccion===cf.antiguedad) : abiertas);
   const scopedProf = byTipo(cf.profesional ? baseProf.filter(r=>r.direccion===cf.profesional) : baseProf);
