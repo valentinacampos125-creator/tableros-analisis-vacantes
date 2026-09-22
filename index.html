@@ -1,5 +1,5 @@
 <!doctype html>
-<!-- Tablero Vacantes - build 2026-09-22 v35 (uso interno para control de versión, no visible en el tablero) -->
+<!-- Tablero Vacantes - build 2026-09-22 v37 (uso interno para control de versión, no visible en el tablero) -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -445,6 +445,18 @@ function normalize(s){
     .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
     .toUpperCase().trim().replace(/\s+/g,' ');
 }
+// La columna "Tipo Vacante" no solo trae "Interna"/"Externa"/"Mixta": tambi\u00e9n trae variantes como
+// "Interna Cerrada"/"Externa Cerrada" para ese mismo tipo (a diferencia del Estado, que es una
+// columna aparte). El cuadro "Tipo de Vacante" (Internas/Externas/Mixtas) y su filtro deben
+// agrupar esas variantes bajo el mismo tipo base -- "Interna" cuenta tambi\u00e9n lo que diga "Interna
+// Cerrada", "Externa" tambi\u00e9n lo que diga "Externa Cerrada", etc.
+function tipoVacanteBase(tipoVacante){
+  const n = normalize(tipoVacante);
+  if (n.startsWith('INTERNA')) return 'INTERNA';
+  if (n.startsWith('EXTERNA')) return 'EXTERNA';
+  if (n.startsWith('MIXTA')) return 'MIXTA';
+  return n;
+}
 function toDate(v){
   if (v instanceof Date && !isNaN(v)) return v;
   if (typeof v === 'number') { // serial excel
@@ -567,6 +579,37 @@ function stripNivelSuffix(v){
   return t.replace(/\s*\(\s*a\s*\)\s*$/i, '').trim();
 }
 function esc(s){ return (s===null||s===undefined?'':String(s)).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+// El Excel trae la misma Dirección escrita con y sin tilde (p. ej. "Direccion Auditoria" y
+// "Dirección Auditoria"), lo que hace que aparezca duplicada en el filtro y en las tablas por
+// Dirección. Se agrupan por su forma sin tildes (normalize) y se unifica cada grupo bajo una sola
+// forma -- la variante con tilde más frecuente si existe alguna, o si no, la variante (con
+// cualquier tilde) más frecuente tal cual viene del Excel.
+function stripDiacritics(v){ return v.normalize('NFD').replace(/[̀-ͯ]/g,'').normalize('NFC'); }
+function canonicalizeDireccion(rows){
+  const groups = new Map();
+  rows.forEach(r=>{
+    const v = r.direccion;
+    if (typeof v !== 'string' || !v) return;
+    const nk = normalize(v);
+    if (!groups.has(nk)) groups.set(nk, new Map());
+    const m = groups.get(nk);
+    m.set(v, (m.get(v)||0)+1);
+  });
+  const canon = new Map();
+  groups.forEach((variants, nk)=>{
+    let best = null, bestScore = -1;
+    variants.forEach((count, val)=>{
+      const score = (val !== stripDiacritics(val) ? 1000 : 0) + count;
+      if (score > bestScore || (score === bestScore && best!==null && val.localeCompare(best,'es')<0)){
+        best = val; bestScore = score;
+      }
+    });
+    canon.set(nk, best);
+  });
+  rows.forEach(r=>{
+    if (typeof r.direccion === 'string' && r.direccion) r.direccion = canon.get(normalize(r.direccion));
+  });
+}
 // Convierte el valor crudo de una columna Sí/No a booleano -- null cuando la celda está vacía o
 // no se pudo interpretar, para poder distinguir "marcada como No" de "sin dato" (y así aplicar un
 // respaldo, como el cálculo por edad para Talento Joven, solo cuando de verdad falta el dato).
@@ -691,6 +734,7 @@ function loadWorkbook(data, sourceLabel){
         stageDates: extractStageDates(get('comentarios')),
       });
     }
+    canonicalizeDireccion(rows);
     state.rows = rows;
     state.cols = cols;
     state.missingCols = missing;
@@ -1084,15 +1128,17 @@ function render(){
   document.getElementById('alertCount').textContent = criticas.length;
   document.getElementById('lastUpdatedText').textContent = state.lastUpdated? state.lastUpdated.toLocaleString('es-CO') : '—';
 
-  // Vacantes Internas vs Externas vs Mixtas (según Tipo Vacante): solo cuentan las Abiertas y las
-  // Cerradas (internas + internas cerradas, externas + externas cerradas, etc.) -- las que están
-  // En Pausa, Canceladas o Excluidas (Anulada/Desierta) no entran en este conteo ni en su
-  // porcentaje, a pedido explícito de Valentina. El porcentaje entero (nunca con decimales, aquí
-  // ni en ningún otro porcentaje del tablero) es sobre ese mismo total (abiertas+cerradas).
+  // Vacantes Internas vs Externas vs Mixtas (según Tipo Vacante): "Internas" agrupa tanto lo que
+  // diga literalmente "Interna" como "Interna Cerrada" (mismo tipo, variante de esa columna); lo
+  // mismo "Externas" con "Externa"/"Externa Cerrada" (ver tipoVacanteBase). Además, solo cuentan
+  // las Abiertas y las Cerradas -- las que están En Pausa, Canceladas o Excluidas (Anulada/
+  // Desierta) no entran en este conteo ni en su porcentaje, a pedido explícito de Valentina. El
+  // porcentaje entero (nunca con decimales, aquí ni en ningún otro porcentaje del tablero) es
+  // sobre ese mismo total (abiertas+cerradas).
   const tipoBase = scoped.filter(r=>r.abierta || r.cerrada);
-  const internas = tipoBase.filter(r=>normalize(r.tipoVacante)==='INTERNA').length;
-  const externas = tipoBase.filter(r=>normalize(r.tipoVacante)==='EXTERNA').length;
-  const mixtas = tipoBase.filter(r=>normalize(r.tipoVacante)==='MIXTA').length;
+  const internas = tipoBase.filter(r=>tipoVacanteBase(r.tipoVacante)==='INTERNA').length;
+  const externas = tipoBase.filter(r=>tipoVacanteBase(r.tipoVacante)==='EXTERNA').length;
+  const mixtas = tipoBase.filter(r=>tipoVacanteBase(r.tipoVacante)==='MIXTA').length;
   const pctInternas = tipoBase.length ? round0(internas/tipoBase.length*100) : null;
   const pctExternas = tipoBase.length ? round0(externas/tipoBase.length*100) : null;
   const pctMixtas = tipoBase.length ? round0(mixtas/tipoBase.length*100) : null;
@@ -1112,7 +1158,7 @@ function render(){
   // cualquier otro filtro de cada tarjeta, sin afectar los conteos del propio cuadro (esos se
   // calculan arriba, sobre "scoped", igual que las demás tarjetas KPI no cambian al hacer clic
   // en ellas mismas).
-  const byTipo = arr => state.tipoFilter ? arr.filter(r=>normalize(r.tipoVacante)===normalize(state.tipoFilter)) : arr;
+  const byTipo = arr => state.tipoFilter ? arr.filter(r=>tipoVacanteBase(r.tipoVacante)===tipoVacanteBase(state.tipoFilter)) : arr;
 
   // El modo "En Pausa"/"Cancelada" de la gráfica de Profesional ya no depende de botones aparte
   // (se quitaron, porque duplicaban el filtro de Estado): se activa directamente cuando el
@@ -1332,11 +1378,12 @@ function renderTable(scoped){
   if (state.quickFilter==='cerradasPeriodo') rows = rows.filter(r=>r.cerrada && r.fechaCierre instanceof Date && !isNaN(r.fechaCierre));
   // Filtro adicional por Tipo Vacante (clic en el cuadro "Tipo de Vacante"): se combina con
   // cualquier quickFilter activo, tanto en la tabla como en las gráficas (ver byTipo en render()).
-  // Nota: esto sigue dejando pasar cualquier Estado (incluida En Pausa/Cancelada) al hacer clic en
-  // la banda -- solo el NÚMERO que muestra la propia banda (ver "tipoBase" en render()) se
-  // restringe a Abiertas+Cerradas; el clic conserva el comportamiento ya existente de cruzarse
-  // libremente con el filtro de Estado.
-  if (state.tipoFilter) rows = rows.filter(r=>normalize(r.tipoVacante)===normalize(state.tipoFilter));
+  // "Interna" agrupa también lo que diga "Interna Cerrada" (mismo tipo, variante de esa columna),
+  // igual "Externa" con "Externa Cerrada" -- ver tipoVacanteBase. Nota: esto sigue dejando pasar
+  // cualquier Estado (incluida En Pausa/Cancelada) al hacer clic en la banda -- solo el NÚMERO que
+  // muestra la propia banda (ver "tipoBase" en render()) se restringe a Abiertas+Cerradas; el clic
+  // conserva el comportamiento ya existente de cruzarse libremente con el filtro de Estado.
+  if (state.tipoFilter) rows = rows.filter(r=>tipoVacanteBase(r.tipoVacante)===tipoVacanteBase(state.tipoFilter));
 
   const note = document.getElementById('tableFilterNote');
   const activeHeaderFilters = Object.entries(state.headerFilters).filter(([,s])=>s.size>0).map(([k])=>k);
