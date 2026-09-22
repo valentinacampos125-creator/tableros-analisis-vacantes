@@ -1,5 +1,5 @@
 <!doctype html>
-<!-- Tablero Vacantes - build 2026-09-21 v32 (uso interno para control de versión, no visible en el tablero) -->
+<!-- Tablero Vacantes - build 2026-09-22 v35 (uso interno para control de versión, no visible en el tablero) -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -272,10 +272,10 @@ loadScriptWithFallbacks([
       <select id="fDireccion"><option value="">Dirección Comité (Todas)</option></select>
       <select id="fAnio"><option value="">Año (Todos)</option></select>
       <select id="fMes"><option value="">Mes (Todos)</option></select>
-      <select id="fCargoSegmentado" title="Cargos Estratégicos: Jefe, Gerente y Director. Cargos Base: el resto.">
+      <select id="fCargoSegmentado" title="Según la columna 'Nivel de Contribución' del Excel: Líderes Estratégicos vs. Contribuidores Individuales.">
         <option value="">Cargo Segmentado (Todos)</option>
-        <option value="estrategico">Cargos Estratégicos</option>
-        <option value="base">Cargos Base</option>
+        <option value="estrategico">Líderes Estratégicos</option>
+        <option value="base">Contribuidores Individuales</option>
       </select>
       <select id="fGranularidad" title="Cambia el período del KPI 'Prom. Vacantes Cerradas' de abajo">
         <option value="mes">Promedio por: Mes</option>
@@ -308,7 +308,7 @@ loadScriptWithFallbacks([
         <div class="kpi-sub">clic para filtrar</div>
         <div class="kpi-check">✓</div>
       </div>
-      <div class="kpi v-diascierre">
+      <div class="kpi v-diascierre" title="Toma la columna 'Días de Cierre de Vacantes' del Excel cuando existe; si no, calcula días hábiles entre Fecha Liberación y Fecha Envío a Compensación.">
         <div class="kpi-label"><svg class="ic-title" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>Promedio Días Cierre</div>
         <div class="kpi-value">0</div>
         <div class="kpi-sub">apertura → cierre</div>
@@ -343,8 +343,8 @@ loadScriptWithFallbacks([
 
     <div class="charts" id="chartsSeguimiento">
       <div class="chart-card" id="cardAntiguedad"><h3><svg class="ic-title" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h12"></path><path d="M6 22h12"></path><path d="M6 2c0 6 6 6 6 10s-6 4-6 10"></path><path d="M18 2c0 6-6 6-6 10s6 4 6 10"></path></svg>Vacantes por Antigüedad<select class="chart-filter-select" id="cfAntiguedad" title="Filtrar solo esta gráfica por Dirección"><option value="">Dirección (Todas)</option></select></h3><div class="canvas-wrap" id="wrapAntiguedad"><canvas id="chartAntiguedad"></canvas></div></div>
-      <div class="chart-card" id="cardProfesional"><h3><svg class="ic-title" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>Vacantes por Profesional<select class="chart-filter-select" id="cfProfesional" title="Filtrar solo esta gráfica por Dirección"><option value="">Dirección (Todas)</option></select></h3><div class="canvas-wrap" id="wrapProfesional"><canvas id="chartProfesional"></canvas></div></div>
-      <div class="chart-card" id="cardCriticas"><h3><svg class="ic-title" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>Vacantes Críticas por Profesional<select class="chart-filter-select" id="cfCriticas" title="Filtrar solo esta gráfica por Dirección"><option value="">Dirección (Todas)</option></select></h3><div class="canvas-wrap" id="wrapCriticasProf"><canvas id="chartCriticasProf"></canvas></div></div>
+      <div class="chart-card" id="cardProfesional"><h3><svg class="ic-title" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>Vacantes por Profesional<select class="chart-filter-select" id="cfProfesional" title="Filtrar solo esta gráfica por Profesional"><option value="">Profesional (Todas)</option></select></h3><div class="canvas-wrap" id="wrapProfesional"><canvas id="chartProfesional"></canvas></div></div>
+      <div class="chart-card" id="cardCriticas"><h3><svg class="ic-title" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>Vacantes Críticas por Profesional<select class="chart-filter-select" id="cfCriticas" title="Filtrar solo esta gráfica por Profesional"><option value="">Profesional (Todas)</option></select></h3><div class="canvas-wrap" id="wrapCriticasProf"><canvas id="chartCriticasProf"></canvas></div></div>
     </div>
 
     <div class="table-card">
@@ -589,6 +589,7 @@ const COLUMN_RULES = [
   ['direccion',       h => h.includes('DIRECCION')],
   ['fechaLiberacion', h => (h.includes('LIBERACION')) || (h.includes('FECHA') && (h.includes('APERTURA')||h.includes('INICIO')))],
   ['diasHabiles',     h => h.includes('DIAS HABIL') || h.includes('DIAS ABIERTA') || h.includes('DIAS HABILES ABIERTA')],
+  ['diasCierreExcel', h => h.includes('DIAS') && h.includes('CIERRE')],
   ['estado',          h => h === 'ESTADO'],
   ['comentarios',     h => h.includes('COMENTARIO')],
   ['genero',          h => h.includes('GENERO')],
@@ -671,10 +672,17 @@ function loadWorkbook(data, sourceLabel){
       if (abierta && fechaLib) diasHabiles = businessDaysBetween(fechaLib, new Date());
       else if (cerrada && fechaLib && fechaCierre) diasHabiles = businessDaysBetween(fechaLib, fechaCierre);
       else { const dh = get('diasHabiles'); diasHabiles = (typeof dh==='number') ? dh : null; }
+      // "Días de Cierre de Vacantes": columna que ya trae el Excel con su propio cálculo de días
+      // de cierre por vacante (independiente de "Días Hábiles" de arriba, que el tablero calcula
+      // por su cuenta). El KPI "Promedio Días Cierre" usa este valor directamente cuando la
+      // columna existe, para coincidir exactamente con lo que Valentina ve al filtrar en Excel.
+      const dcRaw = get('diasCierreExcel');
+      const diasCierreExcel = (typeof dcRaw === 'number') ? dcRaw
+        : (typeof dcRaw === 'string' && dcRaw.trim()!=='' && !isNaN(Number(dcRaw))) ? Number(dcRaw) : null;
       rows.push({
         cargo: cleanText(get('cargo')), tipoVacante: titleCase(get('tipoVacante')), profesional: cleanText(get('profesional')),
         direccion: cleanText(get('direccion')), fechaLiberacion: fechaLib, fechaCierre: fechaCierre,
-        estado: estado, abierta, cerrada, excluida, pausada, cancelada, diasHabiles, fechaIngreso, fechaEnvioComp,
+        estado: estado, abierta, cerrada, excluida, pausada, cancelada, diasHabiles, diasCierreExcel, fechaIngreso, fechaEnvioComp,
         critica: abierta && typeof diasHabiles==='number' && diasHabiles > CRITICAL_DAYS,
         comentarios: cleanText(get('comentarios')), genero: titleCase(get('genero')), edad: get('edad'),
         fechaNacimiento: toDate(get('fechaNacimiento')), nivelContribucion: cleanText(get('nivelContribucion')),
@@ -920,8 +928,8 @@ function populateFilterOptions(){
   }), 'Semana (Todas)', true);
 
   fillSelect('cfAntiguedad', uniqueSorted(state.rows,'direccion'), 'Dirección (Todas)');
-  fillSelect('cfProfesional', uniqueSorted(state.rows,'direccion'), 'Dirección (Todas)');
-  fillSelect('cfCriticas', uniqueSorted(state.rows,'direccion'), 'Dirección (Todas)');
+  fillSelect('cfProfesional', uniqueSorted(state.rows,'profesional'), 'Profesional (Todas)');
+  fillSelect('cfCriticas', uniqueSorted(state.rows,'profesional'), 'Profesional (Todas)');
 }
 function fillSelect(id, items, placeholder, isObj){
   const sel = document.getElementById(id);
@@ -948,17 +956,20 @@ function applyGlobalFilters(rows){
     // ambos a la vez para un mes específico.
     (!f.anio || (mesFiltroDate(r) && mesFiltroDate(r).getFullYear()===parseInt(f.anio,10))) &&
     (!f.mes || (mesFiltroDate(r) && (mesFiltroDate(r).getMonth()+1)===parseInt(f.mes,10))) &&
-    (!f.cargoSegmento || (f.cargoSegmento==='estrategico' ? esCargoEstrategico(r.funcionNivelCargo) : !esCargoEstrategico(r.funcionNivelCargo))) &&
+    (!f.cargoSegmento || (f.cargoSegmento==='estrategico' ? esLiderEstrategico(r.nivelContribucion) : !esLiderEstrategico(r.nivelContribucion))) &&
     (hf.tipoVacante.size===0 || hf.tipoVacante.has(r.tipoVacante)) &&
     (hf.profesional.size===0 || hf.profesional.has(r.profesional)) &&
     (hf.estado.size===0 || hf.estado.has(r.estado))
   );
 }
-// "Cargos Estratégicos": Jefe, Gerente y Director (según Función-Nivel de Cargo); "Cargos Base"
-// es el complemento -- todo lo demás (Analista, Consultor, Ingeniero, etc.).
-function esCargoEstrategico(funcionNivelCargo){
-  const n = normalize(funcionNivelCargo);
-  return n.includes('JEFE') || n.includes('GERENTE') || n.includes('DIRECTOR');
+// "Líderes Estratégicos" vs "Contribuidores Individuales": se toma directamente de la columna
+// "Nivel de Contribución" del Excel (no se adivina por el texto de Función-Nivel de Cargo) --
+// así el segmento coincide exactamente con el que se obtiene filtrando esa columna en Excel.
+// "Contribuidores Individuales" es el complemento: todo lo que no diga "Estratégic..." en esa
+// columna (incluye filas sin ese dato).
+function esLiderEstrategico(nivelContribucion){
+  const n = normalize(nivelContribucion);
+  return n.includes('ESTRATEGIC');
 }
 ['fProfesional','fEstado','fDireccion','fAnio','fMes','fCargoSegmentado'].forEach(id=>{
   document.getElementById(id).addEventListener('change', e=>{
@@ -1041,8 +1052,15 @@ function render(){
   setKpi('kpiCerradas', cerradas.length);
   const promAbiertas = round0(avg(abiertas.map(r=>r.diasHabiles)));
   document.querySelector('.kpi.v-promedio .kpi-value').textContent = promAbiertas!==null? promAbiertas : '—';
-  const cerradasConDatos = cerradas.filter(r=>typeof r.diasHabiles==='number');
-  const promCierre = round0(avg(cerradasConDatos.map(r=>r.diasHabiles)));
+  // "Promedio Días Cierre": usa la columna "Días de Cierre de Vacantes" del propio Excel cuando
+  // existe (para que coincida exactamente con el promedio que da Excel al filtrar esa columna);
+  // si el Excel cargado no trae esa columna, se recurre al cálculo propio del tablero (días
+  // hábiles entre Fecha Liberación y Fecha Envío a Compensación) como respaldo.
+  const haveDiasCierreExcel = state.cols.diasCierreExcel !== undefined;
+  const cerradasConDatos = haveDiasCierreExcel
+    ? cerradas.filter(r=>typeof r.diasCierreExcel==='number')
+    : cerradas.filter(r=>typeof r.diasHabiles==='number');
+  const promCierre = round0(avg(cerradasConDatos.map(r=> haveDiasCierreExcel ? r.diasCierreExcel : r.diasHabiles)));
   document.querySelector('.kpi.v-diascierre .kpi-value').textContent = promCierre!==null? promCierre : '—';
 
   const promPeriodo = computePromCierrePorPeriodo(cerradas, state.granularidad);
@@ -1066,15 +1084,18 @@ function render(){
   document.getElementById('alertCount').textContent = criticas.length;
   document.getElementById('lastUpdatedText').textContent = state.lastUpdated? state.lastUpdated.toLocaleString('es-CO') : '—';
 
-  // Vacantes Internas vs Externas vs Mixtas (según Tipo Vacante) sobre el total filtrado actual
-  // (scoped), con su respectivo porcentaje entero sobre ese total (nunca con decimales, aquí ni
-  // en ningún otro porcentaje del tablero).
-  const internas = scoped.filter(r=>normalize(r.tipoVacante)==='INTERNA').length;
-  const externas = scoped.filter(r=>normalize(r.tipoVacante)==='EXTERNA').length;
-  const mixtas = scoped.filter(r=>normalize(r.tipoVacante)==='MIXTA').length;
-  const pctInternas = scoped.length ? round0(internas/scoped.length*100) : null;
-  const pctExternas = scoped.length ? round0(externas/scoped.length*100) : null;
-  const pctMixtas = scoped.length ? round0(mixtas/scoped.length*100) : null;
+  // Vacantes Internas vs Externas vs Mixtas (según Tipo Vacante): solo cuentan las Abiertas y las
+  // Cerradas (internas + internas cerradas, externas + externas cerradas, etc.) -- las que están
+  // En Pausa, Canceladas o Excluidas (Anulada/Desierta) no entran en este conteo ni en su
+  // porcentaje, a pedido explícito de Valentina. El porcentaje entero (nunca con decimales, aquí
+  // ni en ningún otro porcentaje del tablero) es sobre ese mismo total (abiertas+cerradas).
+  const tipoBase = scoped.filter(r=>r.abierta || r.cerrada);
+  const internas = tipoBase.filter(r=>normalize(r.tipoVacante)==='INTERNA').length;
+  const externas = tipoBase.filter(r=>normalize(r.tipoVacante)==='EXTERNA').length;
+  const mixtas = tipoBase.filter(r=>normalize(r.tipoVacante)==='MIXTA').length;
+  const pctInternas = tipoBase.length ? round0(internas/tipoBase.length*100) : null;
+  const pctExternas = tipoBase.length ? round0(externas/tipoBase.length*100) : null;
+  const pctMixtas = tipoBase.length ? round0(mixtas/tipoBase.length*100) : null;
   document.getElementById('kpiInternasCount').textContent = internas;
   document.getElementById('kpiExternasCount').textContent = externas;
   document.getElementById('kpiMixtasCount').textContent = mixtas;
@@ -1122,8 +1143,8 @@ function render(){
   }
 
   const abiertasAntig = byTipo(cf.antiguedad ? abiertas.filter(r=>r.direccion===cf.antiguedad) : abiertas);
-  const scopedProf = byTipo(cf.profesional ? baseProf.filter(r=>r.direccion===cf.profesional) : baseProf);
-  const criticasFiltradas = byTipo(cf.criticas ? criticas.filter(r=>r.direccion===cf.criticas) : criticas);
+  const scopedProf = byTipo(cf.profesional ? baseProf.filter(r=>r.profesional===cf.profesional) : baseProf);
+  const criticasFiltradas = byTipo(cf.criticas ? criticas.filter(r=>r.profesional===cf.criticas) : criticas);
 
   // Cuando el filtro activo es "Cerradas" (sea por el select de Estado = "Cerrada" o por el
   // clic en el KPI de Cerradas), las gráficas de "Vacantes por Antigüedad" y "Vacantes por
@@ -1311,6 +1332,10 @@ function renderTable(scoped){
   if (state.quickFilter==='cerradasPeriodo') rows = rows.filter(r=>r.cerrada && r.fechaCierre instanceof Date && !isNaN(r.fechaCierre));
   // Filtro adicional por Tipo Vacante (clic en el cuadro "Tipo de Vacante"): se combina con
   // cualquier quickFilter activo, tanto en la tabla como en las gráficas (ver byTipo en render()).
+  // Nota: esto sigue dejando pasar cualquier Estado (incluida En Pausa/Cancelada) al hacer clic en
+  // la banda -- solo el NÚMERO que muestra la propia banda (ver "tipoBase" en render()) se
+  // restringe a Abiertas+Cerradas; el clic conserva el comportamiento ya existente de cruzarse
+  // libremente con el filtro de Estado.
   if (state.tipoFilter) rows = rows.filter(r=>normalize(r.tipoVacante)===normalize(state.tipoFilter));
 
   const note = document.getElementById('tableFilterNote');
@@ -1328,6 +1353,11 @@ function renderTable(scoped){
       if (va===null||va===undefined) va=''; if (vb===null||vb===undefined) vb='';
       if (va<vb) return -1*state.sort.dir; if (va>vb) return 1*state.sort.dir; return 0;
     });
+  } else {
+    // Orden por defecto (mientras no se haga clic en ninguna columna para ordenar manualmente):
+    // las vacantes Críticas (más de CRITICAL_DAYS días hábiles abiertas) aparecen primero, para
+    // que salten a la vista de inmediato -- el resto conserva su orden original entre sí.
+    rows = [...rows].sort((a,b)=> (b.critica?1:0) - (a.critica?1:0));
   }
 
   let html = '<table><thead><tr>';
