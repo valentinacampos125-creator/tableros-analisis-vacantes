@@ -1,5 +1,5 @@
 <!doctype html>
-<!-- Tablero Vacantes - build 2026-09-23 v38 (uso interno para control de versión, no visible en el tablero) -->
+<!-- Tablero Vacantes - build 2026-09-23 v39 (uso interno para control de versión, no visible en el tablero) -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -346,8 +346,8 @@ loadScriptWithFallbacks([
 
     <div class="charts" id="chartsSeguimiento">
       <div class="chart-card" id="cardAntiguedad"><h3><svg class="ic-title" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h12"></path><path d="M6 22h12"></path><path d="M6 2c0 6 6 6 6 10s-6 4-6 10"></path><path d="M18 2c0 6-6 6-6 10s6 4 6 10"></path></svg>Vacantes por Antigüedad<select class="chart-filter-select" id="cfAntiguedad" title="Filtrar solo esta gráfica por Dirección"><option value="">Dirección (Todas)</option></select></h3><div class="canvas-wrap" id="wrapAntiguedad"><canvas id="chartAntiguedad"></canvas></div></div>
-      <div class="chart-card" id="cardProfesional"><h3><svg class="ic-title" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>Vacantes por Profesional<select class="chart-filter-select" id="cfProfesional" title="Filtrar solo esta gráfica por Profesional"><option value="">Profesional (Todas)</option></select></h3><div class="canvas-wrap" id="wrapProfesional"><canvas id="chartProfesional"></canvas></div></div>
-      <div class="chart-card" id="cardCriticas"><h3><svg class="ic-title" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>Vacantes Críticas por Profesional<select class="chart-filter-select" id="cfCriticas" title="Filtrar solo esta gráfica por Profesional"><option value="">Profesional (Todas)</option></select></h3><div class="canvas-wrap" id="wrapCriticasProf"><canvas id="chartCriticasProf"></canvas></div></div>
+      <div class="chart-card" id="cardProfesional"><h3><svg class="ic-title" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>Vacantes por Profesional<select class="chart-filter-select" id="cfProfesional" title="Filtrar solo esta gráfica por Función-Nivel Cargo"><option value="">Función-Nivel Cargo (Todos)</option></select></h3><div class="canvas-wrap" id="wrapProfesional"><canvas id="chartProfesional"></canvas></div></div>
+      <div class="chart-card" id="cardCriticas"><h3><svg class="ic-title" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>Vacantes Críticas por Profesional<select class="chart-filter-select" id="cfCriticas" title="Filtrar solo esta gráfica por Función-Nivel Cargo"><option value="">Función-Nivel Cargo (Todos)</option></select></h3><div class="canvas-wrap" id="wrapCriticasProf"><canvas id="chartCriticasProf"></canvas></div></div>
     </div>
 
     <div class="table-card">
@@ -971,8 +971,8 @@ function populateFilterOptions(){
   }), 'Semana (Todas)', true);
 
   fillSelect('cfAntiguedad', uniqueSorted(state.rows,'direccion'), 'Dirección (Todas)');
-  fillSelect('cfProfesional', uniqueSorted(state.rows,'profesional'), 'Profesional (Todas)');
-  fillSelect('cfCriticas', uniqueSorted(state.rows,'profesional'), 'Profesional (Todas)');
+  fillSelect('cfProfesional', uniqueSorted(state.rows,'funcionNivelCargo'), 'Función-Nivel Cargo (Todos)');
+  fillSelect('cfCriticas', uniqueSorted(state.rows,'funcionNivelCargo'), 'Función-Nivel Cargo (Todos)');
 }
 function fillSelect(id, items, placeholder, isObj){
   const sel = document.getElementById(id);
@@ -1192,8 +1192,8 @@ function render(){
   }
 
   const abiertasAntig = byTipo(cf.antiguedad ? abiertas.filter(r=>r.direccion===cf.antiguedad) : abiertas);
-  const scopedProf = byTipo(cf.profesional ? baseProf.filter(r=>r.profesional===cf.profesional) : baseProf);
-  const criticasFiltradas = byTipo(cf.criticas ? criticas.filter(r=>r.profesional===cf.criticas) : criticas);
+  const scopedProf = byTipo(cf.profesional ? baseProf.filter(r=>r.funcionNivelCargo===cf.profesional) : baseProf);
+  const criticasFiltradas = byTipo(cf.criticas ? criticas.filter(r=>r.funcionNivelCargo===cf.criticas) : criticas);
 
   // Cuando el filtro activo es "Cerradas" (sea por el select de Estado = "Cerrada" o por el
   // clic en el KPI de Cerradas), las gráficas de "Vacantes por Antigüedad" y "Vacantes por
