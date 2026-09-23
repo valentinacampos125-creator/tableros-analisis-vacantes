@@ -1,5 +1,5 @@
 <!doctype html>
-<!-- Tablero Vacantes - build 2026-09-22 v37 (uso interno para control de versión, no visible en el tablero) -->
+<!-- Tablero Vacantes - build 2026-09-23 v38 (uso interno para control de versión, no visible en el tablero) -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -272,10 +272,13 @@ loadScriptWithFallbacks([
       <select id="fDireccion"><option value="">Dirección Comité (Todas)</option></select>
       <select id="fAnio"><option value="">Año (Todos)</option></select>
       <select id="fMes"><option value="">Mes (Todos)</option></select>
-      <select id="fCargoSegmentado" title="Según la columna 'Nivel de Contribución' del Excel: Líderes Estratégicos vs. Contribuidores Individuales.">
+      <select id="fFuncionCargo" title="Según la columna 'Función-Nivel Cargo' del Excel."><option value="">Función-Nivel Cargo (Todos)</option></select>
+      <select id="fCargoSegmentado" title="Según la columna 'Nivel de Contribución' del Excel: Líderes Estratégicos, Líderes Operacionales, Contribuidores Individuales u Otro.">
         <option value="">Cargo Segmentado (Todos)</option>
         <option value="estrategico">Líderes Estratégicos</option>
+        <option value="operacional">Líderes Operacionales</option>
         <option value="base">Contribuidores Individuales</option>
+        <option value="otro">Otro</option>
       </select>
       <select id="fGranularidad" title="Cambia el período del KPI 'Prom. Vacantes Cerradas' de abajo">
         <option value="mes">Promedio por: Mes</option>
@@ -418,7 +421,7 @@ const state = {
   // franjas del cuadro "Tipo de Vacante". Es un eje distinto al de quickFilter (una vacante puede
   // ser, a la vez, Abierta e Interna), así que se combina con él en vez de reemplazarlo.
   tipoFilter: '',
-  filters: { profesional:'', estado:'', direccion:'', anio:'', mes:'', cargoSegmento:'' },
+  filters: { profesional:'', estado:'', direccion:'', anio:'', mes:'', funcionCargo:'', cargoSegmento:'' },
   granularidad: 'mes',      // 'mes' | 'semana' -- para el KPI "Prom. Vacantes Cerradas"
   // Filtros tipo Excel en los encabezados de la tabla: un Set vacío = "todas" (sin filtrar).
   headerFilters: { tipoVacante: new Set(), profesional: new Set(), estado: new Set() },
@@ -582,8 +585,7 @@ function esc(s){ return (s===null||s===undefined?'':String(s)).replace(/[&<>"]/g
 // El Excel trae la misma Dirección escrita con y sin tilde (p. ej. "Direccion Auditoria" y
 // "Dirección Auditoria"), lo que hace que aparezca duplicada en el filtro y en las tablas por
 // Dirección. Se agrupan por su forma sin tildes (normalize) y se unifica cada grupo bajo una sola
-// forma -- la variante con tilde más frecuente si existe alguna, o si no, la variante (con
-// cualquier tilde) más frecuente tal cual viene del Excel.
+// forma -- la variante con tilde más frecuente si existe alguna, o si no, la más frecuente.
 function stripDiacritics(v){ return v.normalize('NFD').replace(/[̀-ͯ]/g,'').normalize('NFC'); }
 function canonicalizeDireccion(rows){
   const groups = new Map();
@@ -899,14 +901,10 @@ function mesKeyLabel(d){
   if (!(d instanceof Date)) return null;
   return { key: d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0'), label: MESES_ES[d.getMonth()]+' '+d.getFullYear() };
 }
-// Fecha que se usa para agrupar/filtrar una vacante por "Mes": si ya está cerrada, el mes en que
-// se cerró (Fecha Cierre = Fecha Envío a Compensación) -- y si está cerrada pero no tiene una
-// fecha de cierre válida (Fecha Envío a Compensación vacía), NO cae de vuelta a la Fecha
-// Liberación ni a Fecha Ingreso: no se puede ubicar en ningún mes de cierre, así que no cuenta
-// como "cerrada" en ningún mes específico (sí sigue contando en el total general cuando no hay
-// filtro de Mes).
-// Si la vacante sigue abierta, se usa el mes en que se liberó.
-function mesFiltroDate(r){ return r.cerrada ? r.fechaCierre : r.fechaLiberacion; }
+// Fecha que usan los filtros de Año y Mes de Seguimiento: siempre la Fecha Liberación, sin
+// importar si la vacante está abierta o cerrada, para que el filtro coincida con la columna
+// "Fecha Liberación" de la tabla (a pedido de Valentina).
+function mesFiltroDate(r){ return r.fechaLiberacion; }
 // Compara una fecha cualquiera contra los filtros de Año/Mes/Semana de Análisis de Indicadores
 // (iAnio/iMes/iSemana) -- se usa tanto para "personas contratadas" (Fecha de Cierre) como, en la
 // gráfica de Liberadas vs. Cerradas y sus dos botones, para cada serie con su propia fecha de
@@ -929,6 +927,7 @@ function populateFilterOptions(){
   const anios = new Set(); state.rows.forEach(r=>{ const d = mesFiltroDate(r); if (d instanceof Date && !isNaN(d)) anios.add(d.getFullYear()); });
   fillSelect('fAnio', [...anios].sort().map(a=>({value:String(a),label:String(a)})), 'Año (Todos)', true);
   fillSelect('fMes', MESES_ES.map((nombre,i)=>({value:String(i+1),label:nombre})), 'Mes (Todos)', true);
+  fillSelect('fFuncionCargo', uniqueSorted(state.rows,'funcionNivelCargo'), 'Función-Nivel Cargo (Todos)');
 
   fillSelect('iProfesional', uniqueSorted(state.rows,'profesional'), 'Profesional (Todas)');
   fillSelect('iDireccion', uniqueSorted(state.rows,'direccion'), 'Dirección Comité (Todas)');
@@ -1000,24 +999,28 @@ function applyGlobalFilters(rows){
     // ambos a la vez para un mes específico.
     (!f.anio || (mesFiltroDate(r) && mesFiltroDate(r).getFullYear()===parseInt(f.anio,10))) &&
     (!f.mes || (mesFiltroDate(r) && (mesFiltroDate(r).getMonth()+1)===parseInt(f.mes,10))) &&
-    (!f.cargoSegmento || (f.cargoSegmento==='estrategico' ? esLiderEstrategico(r.nivelContribucion) : !esLiderEstrategico(r.nivelContribucion))) &&
+    (!f.funcionCargo || r.funcionNivelCargo===f.funcionCargo) &&
+    (!f.cargoSegmento || nivelContribucionBucket(r.nivelContribucion)===f.cargoSegmento) &&
     (hf.tipoVacante.size===0 || hf.tipoVacante.has(r.tipoVacante)) &&
     (hf.profesional.size===0 || hf.profesional.has(r.profesional)) &&
     (hf.estado.size===0 || hf.estado.has(r.estado))
   );
 }
-// "Líderes Estratégicos" vs "Contribuidores Individuales": se toma directamente de la columna
-// "Nivel de Contribución" del Excel (no se adivina por el texto de Función-Nivel de Cargo) --
-// así el segmento coincide exactamente con el que se obtiene filtrando esa columna en Excel.
-// "Contribuidores Individuales" es el complemento: todo lo que no diga "Estratégic..." en esa
-// columna (incluye filas sin ese dato).
-function esLiderEstrategico(nivelContribucion){
+// Segmenta la columna "Nivel de Contribución" del Excel en las 4 categorías que maneja Valentina:
+// "Líderes Estratégicos", "Líderes Operacionales", "Contribuidores Individuales" y "Otro" (lo que
+// no encaje en las 3 anteriores, incluidas las filas sin ese dato) -- se toma directamente de esa
+// columna, no se adivina por el texto de Función-Nivel de Cargo, para que coincida exactamente con
+// lo que se obtiene filtrando esa columna en Excel.
+function nivelContribucionBucket(nivelContribucion){
   const n = normalize(nivelContribucion);
-  return n.includes('ESTRATEGIC');
+  if (n.includes('ESTRATEGIC')) return 'estrategico';
+  if (n.includes('OPERACIONAL')) return 'operacional';
+  if (n.includes('INDIVIDUAL') || n.includes('CONTRIBUIDOR')) return 'base';
+  return 'otro';
 }
-['fProfesional','fEstado','fDireccion','fAnio','fMes','fCargoSegmentado'].forEach(id=>{
+['fProfesional','fEstado','fDireccion','fAnio','fMes','fFuncionCargo','fCargoSegmentado'].forEach(id=>{
   document.getElementById(id).addEventListener('change', e=>{
-    const map = {fProfesional:'profesional',fEstado:'estado',fDireccion:'direccion',fAnio:'anio',fMes:'mes',fCargoSegmentado:'cargoSegmento'};
+    const map = {fProfesional:'profesional',fEstado:'estado',fDireccion:'direccion',fAnio:'anio',fMes:'mes',fFuncionCargo:'funcionCargo',fCargoSegmentado:'cargoSegmento'};
     state.filters[map[id]] = e.target.value; render();
   });
 });
@@ -1025,12 +1028,12 @@ document.getElementById('fGranularidad').addEventListener('change', e=>{
   state.granularidad = e.target.value; render();
 });
 document.getElementById('btnClearFilters').addEventListener('click', ()=>{
-  state.filters = {profesional:'',estado:'',direccion:'',anio:'',mes:'',cargoSegmento:''};
+  state.filters = {profesional:'',estado:'',direccion:'',anio:'',mes:'',funcionCargo:'',cargoSegmento:''};
   state.headerFilters = { tipoVacante: new Set(), profesional: new Set(), estado: new Set() };
   state.quickFilter = null;
   state.tipoFilter = '';
   state.cardFilters = { antiguedad:'', profesional:'', criticas:'' };
-  ['fProfesional','fEstado','fDireccion','fAnio','fMes','fCargoSegmentado','cfAntiguedad','cfProfesional','cfCriticas'].forEach(id=>document.getElementById(id).value='');
+  ['fProfesional','fEstado','fDireccion','fAnio','fMes','fFuncionCargo','fCargoSegmentado','cfAntiguedad','cfProfesional','cfCriticas'].forEach(id=>document.getElementById(id).value='');
   render();
 });
 ['cfAntiguedad','cfProfesional','cfCriticas'].forEach(id=>{
