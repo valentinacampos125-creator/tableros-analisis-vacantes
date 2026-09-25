@@ -1,5 +1,5 @@
 <!doctype html>
-<!-- Tablero Vacantes - build 2026-09-25 v44 (uso interno para control de versión, no visible en el tablero) -->
+<!-- Tablero Vacantes - build 2026-09-25 v45 (uso interno para control de versión, no visible en el tablero) -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -420,6 +420,7 @@ loadScriptWithFallbacks([
       <select id="tjSemana" title="Semana de la Fecha Ingreso"><option value="">Semana (Todas)</option></select>
       <button class="clear-filters" id="tjClear">Limpiar filtros</button>
     </div>
+    <div id="tj_regionNote" style="display:none;font-size:12px;color:var(--muted);margin:-4px 0 12px;"></div>
     <div class="placeholder-note" id="tj_notice" style="margin-bottom:14px;">Carga el Excel para ver el análisis de Talento Joven.</div>
 
     <div class="ind-grid" style="grid-template-columns:repeat(3,1fr);">
@@ -2031,7 +2032,7 @@ function populateTalentoJovenFilters(){
   const tj = state.tjRows.filter(r=>r.esTalentoJoven);
   // El filtro de Región lista TODOS los valores de la columna REGION de la hoja (no solo los de
   // las filas Talento Joven), para que siempre aparezcan R1..R5 y Transversal.
-  const regiones = [...new Set(state.tjRows.map(r=>r.region).filter(Boolean))].sort((a,b)=>String(a).localeCompare(String(b),'es',{numeric:true}));
+  const regiones = [...new Set(['R1','R2','R3','R4','R5','Transversal', ...state.tjRows.map(r=>r.region).filter(Boolean)])].sort((a,b)=>String(a).localeCompare(String(b),'es',{numeric:true}));
   fillSelect('tjRegion', regiones, 'Región (Todas)');
   fillSelect('tjDireccion', uniqueSorted(tj,'direccion'), 'Dirección Comité (Todas)');
   const anios = [...new Set(tj.map(r=>r.anio).filter(a=>a!==null))].sort();
@@ -2107,6 +2108,10 @@ function renderTalentoJoven(){
   notice.style.display = 'none';
   const base = tjApplyFilters(state.tjRows);
   const tj = base.filter(r=>r.esTalentoJoven);
+  const sinRegion = tj.filter(r=>!r.region).length;
+  const regNote = document.getElementById('tj_regionNote');
+  regNote.style.display = sinRegion ? '' : 'none';
+  regNote.textContent = sinRegion ? sinRegion+' de '+tj.length+' personas Talento Joven no tienen valor en la columna REGION del Excel (celda vacía o sin resultado), por eso no aparecen en ninguna región.' : '';
 
   setText('tj_total', tj.length);
   setText('tj_totalSub', 'clasificadas como Talento Joven');
