@@ -1,5 +1,5 @@
 <!doctype html>
-<!-- Tablero Vacantes - build 2026-09-25 v41 (uso interno para control de versión, no visible en el tablero) -->
+<!-- Tablero Vacantes - build 2026-09-25 v42 (uso interno para control de versión, no visible en el tablero) -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -73,6 +73,7 @@ loadScriptWithFallbacks([
   .app-header{position:sticky;top:0;z-index:50;background:linear-gradient(135deg,#c0392b,#e5493d 55%,#b71c1c);color:#fff;padding:12px 20px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;box-shadow:var(--shadow);}
   .btn-indicadores{background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.5);color:#fff;padding:9px 16px;border-radius:8px;font-weight:600;font-size:13px;cursor:pointer;display:flex;align-items:center;gap:8px;white-space:nowrap;transition:background .15s;}
   .btn-indicadores:hover{background:rgba(255,255,255,.3);}
+  .nav-left{display:flex;flex-direction:column;gap:6px;align-items:stretch;}
   .app-title{font-size:19px;font-weight:700;letter-spacing:.3px;flex:1;text-align:center;min-width:200px;}
   .header-right{display:flex;align-items:center;gap:10px;font-size:12px;}
   .pill{background:rgba(255,255,255,.16);border-radius:20px;padding:6px 12px;font-weight:600;display:flex;align-items:center;gap:6px;}
@@ -214,7 +215,10 @@ loadScriptWithFallbacks([
 <body>
 
 <div class="app-header">
-  <button class="btn-indicadores" id="btnToggleView">📊 <span id="toggleLabel">Análisis de Indicadores</span></button>
+  <div class="nav-left">
+    <button class="btn-indicadores" id="btnToggleView">📊 <span id="toggleLabel">Análisis de Indicadores</span></button>
+    <button class="btn-indicadores" id="btnTalentoJoven">🌱 <span id="tjToggleLabel">Talento Joven</span></button>
+  </div>
   <div class="app-title">SEGUIMIENTO DE VACANTES</div>
   <div class="header-right">
     <button class="theme-toggle" id="btnThemeToggle" title="Cambiar entre modo claro y oscuro" aria-label="Cambiar entre modo claro y oscuro">🌙</button>
@@ -406,6 +410,38 @@ loadScriptWithFallbacks([
     </div>
   </div>
 
+  <!-- ===================== PÁGINA 3: TALENTO JOVEN ===================== -->
+  <div id="pageTalentoJoven" class="page-indicadores">
+    <div class="filters">
+      <select id="tjRegion"><option value="">Región (Todas)</option></select>
+      <select id="tjDireccion"><option value="">Dirección Comité (Todas)</option></select>
+      <select id="tjAnio" title="Año de la Fecha Ingreso"><option value="">Año Ingreso (Todos)</option></select>
+      <select id="tjMes" title="Mes según la columna BASE de la hoja TALENTO JOVEN"><option value="">Mes (Todos)</option></select>
+      <select id="tjSemana" title="Semana de la Fecha Ingreso"><option value="">Semana (Todas)</option></select>
+      <button class="clear-filters" id="tjClear">Limpiar filtros</button>
+    </div>
+    <div class="placeholder-note" id="tj_notice" style="margin-bottom:14px;">Carga el Excel para ver el análisis de Talento Joven.</div>
+
+    <div class="ind-grid" style="grid-template-columns:repeat(3,1fr);">
+      <div class="kpi"><div class="kpi-label">Personas Talento Joven</div><div class="kpi-value" id="tj_total" style="color:#27ae60;">—</div><div class="kpi-sub" id="tj_totalSub"></div></div>
+      <div class="kpi"><div class="kpi-label">Edad Promedio</div><div class="kpi-value" id="tj_edad" style="color:#2f6fed;">—</div><div class="kpi-sub" id="tj_edadSub"></div></div>
+      <div class="kpi"><div class="kpi-label">% sobre el Total de Ingresos</div><div class="kpi-value" id="tj_pct" style="color:#8b5cf6;">—</div><div class="kpi-sub" id="tj_pctSub"></div></div>
+    </div>
+
+    <div class="charts" style="grid-template-columns:1fr 1fr;">
+      <div class="chart-card"><h3>Talento Joven por Región</h3><div class="canvas-wrap" id="tj_wrapRegion"><canvas id="chartTjRegion"></canvas></div></div>
+      <div class="chart-card"><h3>Talento Joven por Mes</h3><div class="canvas-wrap" id="tj_wrapMes"><canvas id="chartTjMes"></canvas></div></div>
+    </div>
+    <div class="charts" style="grid-template-columns:1fr;">
+      <div class="chart-card"><h3>Talento Joven por Dirección Comité</h3><div class="canvas-wrap" id="tj_wrapDireccion"><canvas id="chartTjDireccion"></canvas></div></div>
+    </div>
+
+    <div class="table-card" style="margin-top:12px;">
+      <h3>Detalle de Talento Joven</h3>
+      <div id="tj_table" style="overflow-x:auto;"></div>
+    </div>
+  </div>
+
 </div>
 
 <script>
@@ -422,6 +458,10 @@ const state = {
   // ser, a la vez, Abierta e Interna), así que se combina con él en vez de reemplazarlo.
   tipoFilter: '',
   filters: { profesional:'', estado:'', direccion:'', anio:'', mes:'', funcionCargo:'', cargoSegmento:'' },
+  // Hoja "TALENTO JOVEN" del Excel (ventana Talento Joven): filas ya leídas y estado de la carga
+  // ('sinDatos' | 'ok' | 'nosheet' | 'nocol').
+  tjRows: [], tjStatus: 'sinDatos',
+  tjFilters: { region:'', direccion:'', anio:'', mes:'', semana:'' },
   granularidad: 'mes',      // 'mes' | 'semana' -- para el KPI "Prom. Vacantes Cerradas"
   // Filtros tipo Excel en los encabezados de la tabla: un Set vacío = "todas" (sin filtrar).
   headerFilters: { tipoVacante: new Set(), profesional: new Set(), estado: new Set() },
@@ -647,11 +687,11 @@ const COLUMN_RULES = [
   ['talentoJoven',      h => h.includes('TALENTO') && h.includes('JOVEN')],
   ['generacion',        h => h.includes('GENERACION')],
 ];
-function detectColumns(headers){
+function detectColumns(headers, rules = COLUMN_RULES){
   const map = {}; const used = new Set();
   headers.forEach((raw, idx)=>{
     const h = normalize(raw);
-    for (const [key, test] of COLUMN_RULES){
+    for (const [key, test] of rules){
       if (map[key]===undefined && !used.has(key) && test(h)){
         map[key] = idx; used.add(key); break;
       }
@@ -741,6 +781,8 @@ function loadWorkbook(data, sourceLabel){
     state.cols = cols;
     state.missingCols = missing;
     state.lastUpdated = new Date();
+    try{ loadTalentoJovenSheet(wb); populateTalentoJovenFilters(); }
+    catch(err){ console.error('Error leyendo la hoja TALENTO JOVEN', err); state.tjRows = []; state.tjStatus = 'nosheet'; }
     populateFilterOptions();
     render();
     setStatus('fetchStatus', `Cargado correctamente desde ${sourceLabel}: ${rows.length} filas (${sheetName}).`, 'ok');
@@ -1228,6 +1270,8 @@ function render(){
 
   try{ renderIndicadores(); }
   catch(err){ console.error('Error en renderIndicadores', err); }
+  try{ renderTalentoJoven(); }
+  catch(err){ console.error('Error en renderTalentoJoven', err); }
 }
 function setKpi(id, val){ document.querySelector('#'+id+' .kpi-value').textContent = val; }
 
@@ -1502,13 +1546,18 @@ document.getElementById('tableWrap').addEventListener('click', (e)=>{
 /* ============================================================
    7. PÁGINA 2: ANÁLISIS DE INDICADORES
    ============================================================ */
-document.getElementById('btnToggleView').addEventListener('click', ()=>{
-  const seg = document.getElementById('pageSeguimiento');
-  const ind = document.getElementById('pageIndicadores');
-  const showInd = seg.style.display !== 'none' ? true : false;
-  if (showInd){ seg.style.display='none'; ind.style.display='block'; document.getElementById('toggleLabel').textContent='Volver a Seguimiento'; }
-  else { seg.style.display='block'; ind.style.display='none'; document.getElementById('toggleLabel').textContent='Análisis de Indicadores'; }
-});
+let currentPage = 'seg'; // 'seg' | 'ind' | 'tj'
+function showPage(p){
+  currentPage = p;
+  document.getElementById('pageSeguimiento').style.display = p==='seg' ? 'block' : 'none';
+  document.getElementById('pageIndicadores').style.display = p==='ind' ? 'block' : 'none';
+  document.getElementById('pageTalentoJoven').style.display = p==='tj' ? 'block' : 'none';
+  document.getElementById('toggleLabel').textContent = p==='ind' ? 'Volver a Seguimiento' : 'Análisis de Indicadores';
+  document.getElementById('tjToggleLabel').textContent = p==='tj' ? 'Volver a Seguimiento' : 'Talento Joven';
+  if (p==='tj'){ try{ renderTalentoJoven(); }catch(err){ console.error('Error en renderTalentoJoven', err); } }
+}
+document.getElementById('btnToggleView').addEventListener('click', ()=> showPage(currentPage==='ind' ? 'seg' : 'ind'));
+document.getElementById('btnTalentoJoven').addEventListener('click', ()=> showPage(currentPage==='tj' ? 'seg' : 'tj'));
 
 // Edad calculada a partir de la Fecha de Nacimiento, SIEMPRE respecto a una fecha de referencia
 // explícita (normalmente la Fecha de Cierre = Fecha de Envío a Compensación de esa vacante) --
@@ -1905,6 +1954,165 @@ function renderIndPlaceholderOrChart(canvasId, chartKey, wrapId, haveCols, rows,
     console.error('No se pudo dibujar '+canvasId, err);
     wrap.innerHTML = `<div class="placeholder-note">No se pudo dibujar esta gráfica.<br>${esc(err.message)}</div>`;
   }
+}
+
+/* ============================================================
+   7B. PÁGINA 3: TALENTO JOVEN (hoja "TALENTO JOVEN" del Excel)
+   ============================================================ */
+const TJ_COLUMN_RULES = [
+  ['expediente',      h => h.includes('EXPEDIENTE')],
+  ['nombre',          h => h.includes('APELLIDOS') || h==='NOMBRE' || h==='NOMBRES'],
+  ['edad',            h => h==='EDAD'],
+  ['fechaIngreso',    h => h.includes('FECHA') && h.includes('INGRESO')],
+  ['cargo',           h => h==='CARGO'],
+  ['direccionComite', h => h.includes('DIRECCION') && h.includes('COMITE')],
+  ['direccionArea',   h => h.includes('DIRECCION') && h.includes('AREA')],
+  ['gerencia',        h => h.includes('GERENCIA')],
+  ['base',            h => h==='BASE'],
+  ['clasificacion',   h => h.includes('CLASIFICACION')],
+  ['region',          h => h.includes('REGION')],
+];
+// Lee la hoja "TALENTO JOVEN" (columna J = CLASIFICACIÓN, columna K = REGIÓN, columna I = BASE con
+// el mes). Solo cuentan como Talento Joven las filas cuya CLASIFICACIÓN dice "TALENTO JOVEN"
+// ("NO APLICA" y cualquier otro valor se ignoran). El Mes sale de la columna BASE (nombre del mes)
+// y, si está vacía, del mes de la Fecha Ingreso; el Año y la Semana salen de la Fecha Ingreso.
+function loadTalentoJovenSheet(wb){
+  state.tjRows = []; state.tjStatus = 'nosheet';
+  const name = wb.SheetNames.find(n => { const t = normalize(n); return t.includes('TALENTO') && t.includes('JOVEN'); });
+  if (!name) return;
+  const raw = XLSX.utils.sheet_to_json(wb.Sheets[name], {header:1, defval:null, raw:true});
+  if (!raw.length) return;
+  const cols = detectColumns(raw[0].map(h => h===null ? '' : String(h)), TJ_COLUMN_RULES);
+  if (cols.clasificacion === undefined){ state.tjStatus = 'nocol'; return; }
+  const mesIdx = {}; MESES_ES.forEach((m,i)=>{ mesIdx[normalize(m)] = i+1; });
+  const rows = [];
+  for (let i=1;i<raw.length;i++){
+    const r = raw[i];
+    if (!r || r.every(c=>c===null||c==='')) continue;
+    const get = key => cols[key]!==undefined ? r[cols[key]] : null;
+    const fechaIngreso = toDate(get('fechaIngreso'));
+    const edadNum = Number(get('edad'));
+    const clas = normalize(get('clasificacion'));
+    rows.push({
+      expediente: cleanText(get('expediente')), nombre: cleanText(get('nombre')),
+      edad: (get('edad')!==null && get('edad')!=='' && !isNaN(edadNum)) ? edadNum : null,
+      fechaIngreso, cargo: cleanText(get('cargo')),
+      direccion: cleanText(get('direccionComite')), direccionArea: cleanText(get('direccionArea')),
+      gerencia: cleanText(get('gerencia')), base: cleanText(get('base')),
+      region: cleanText(get('region')),
+      mes: mesIdx[normalize(get('base'))] || (fechaIngreso ? fechaIngreso.getMonth()+1 : null),
+      anio: fechaIngreso ? fechaIngreso.getFullYear() : null,
+      esTalentoJoven: clas.includes('TALENTO JOVEN') && !clas.includes('NO APLICA'),
+    });
+  }
+  canonicalizeDireccion(rows);
+  state.tjRows = rows;
+  state.tjStatus = 'ok';
+}
+function populateTalentoJovenFilters(){
+  const tj = state.tjRows.filter(r=>r.esTalentoJoven);
+  const regiones = [...new Set(tj.map(r=>r.region).filter(Boolean))].sort((a,b)=>String(a).localeCompare(String(b),'es',{numeric:true}));
+  fillSelect('tjRegion', regiones, 'Región (Todas)');
+  fillSelect('tjDireccion', uniqueSorted(tj,'direccion'), 'Dirección Comité (Todas)');
+  const anios = [...new Set(tj.map(r=>r.anio).filter(a=>a!==null))].sort();
+  fillSelect('tjAnio', anios.map(a=>({value:String(a),label:String(a)})), 'Año Ingreso (Todos)', true);
+  fillSelect('tjMes', MESES_ES.map((nombre,i)=>({value:String(i+1),label:nombre})), 'Mes (Todos)', true);
+  const semanas = new Map();
+  tj.forEach(r=>{ if (r.fechaIngreso instanceof Date && !isNaN(r.fechaIngreso)){ const l = mondayOf(r.fechaIngreso); semanas.set(l.getTime(), l); } });
+  fillSelect('tjSemana', [...semanas.entries()].sort((a,b)=>a[0]-b[0]).map(([ts,lunes])=>{
+    const domingo = new Date(lunes.getFullYear(), lunes.getMonth(), lunes.getDate()+6);
+    return {value:String(ts), label:'Semana del '+fmtDate(lunes)+' al '+fmtDate(domingo)};
+  }), 'Semana (Todas)', true);
+}
+function tjApplyFilters(rows){
+  const f = state.tjFilters;
+  return rows.filter(r =>
+    (!f.region || r.region===f.region) &&
+    (!f.direccion || r.direccion===f.direccion) &&
+    (!f.anio || r.anio===parseInt(f.anio,10)) &&
+    (!f.mes || r.mes===parseInt(f.mes,10)) &&
+    (!f.semana || (r.fechaIngreso instanceof Date && !isNaN(r.fechaIngreso) && mondayOf(r.fechaIngreso).getTime()===parseInt(f.semana,10)))
+  );
+}
+['tjRegion','tjDireccion','tjAnio','tjMes','tjSemana'].forEach(id=>{
+  document.getElementById(id).addEventListener('change', e=>{
+    const map = {tjRegion:'region',tjDireccion:'direccion',tjAnio:'anio',tjMes:'mes',tjSemana:'semana'};
+    state.tjFilters[map[id]] = e.target.value; renderTalentoJoven();
+  });
+});
+document.getElementById('tjClear').addEventListener('click', ()=>{
+  state.tjFilters = { region:'', direccion:'', anio:'', mes:'', semana:'' };
+  ['tjRegion','tjDireccion','tjAnio','tjMes','tjSemana'].forEach(id=>{ document.getElementById(id).value=''; });
+  renderTalentoJoven();
+});
+function tjRenderChart(canvasId, chartKey, wrapId, rows, buildConfig){
+  const wrap = document.getElementById(wrapId);
+  if (!rows.length){
+    destroyChart(chartKey);
+    wrap.innerHTML = '<div class="placeholder-note">No hay personas de Talento Joven con los filtros actuales.</div>';
+    return;
+  }
+  if (!document.getElementById(canvasId)) wrap.innerHTML = `<canvas id="${canvasId}"></canvas>`;
+  destroyChart(chartKey);
+  try{
+    if (typeof Chart === 'undefined') throw new Error('La librería de gráficas no se pudo cargar.');
+    state.charts[chartKey] = new Chart(document.getElementById(canvasId), buildConfig());
+  }catch(err){
+    console.error('No se pudo dibujar '+canvasId, err);
+    wrap.innerHTML = `<div class="placeholder-note">No se pudo dibujar esta gráfica.<br>${esc(err.message)}</div>`;
+  }
+}
+function tjBarConfig(labels, data, horizontal){
+  return { type:'bar',
+    data:{ labels, datasets:[{ label:'Talento Joven', data, backgroundColor:'#27ae60', borderRadius:4 }] },
+    options:{ indexAxis: horizontal ? 'y' : 'x', responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{display:false} },
+      scales: horizontal ? { x:{beginAtZero:true, ticks:{precision:0}}, y:{grid:{display:false}} }
+                         : { x:{grid:{display:false}}, y:{beginAtZero:true, ticks:{precision:0}} } } };
+}
+function renderTalentoJoven(){
+  const notice = document.getElementById('tj_notice');
+  const setText = (id, v) => { document.getElementById(id).textContent = v; };
+  if (state.tjStatus !== 'ok'){
+    notice.style.display = '';
+    notice.textContent = state.tjStatus==='nosheet' ? 'No se encontró la hoja "TALENTO JOVEN" en el Excel cargado.'
+      : state.tjStatus==='nocol' ? 'La hoja "TALENTO JOVEN" no tiene la columna "CLASIFICACIÓN".'
+      : 'Carga el Excel para ver el análisis de Talento Joven.';
+    ['tj_total','tj_edad','tj_pct'].forEach(id=>setText(id,'—'));
+    ['tj_totalSub','tj_edadSub','tj_pctSub'].forEach(id=>setText(id,''));
+    ['tjRegion','tjMes','tjDireccion'].forEach(k=>destroyChart(k));
+    document.getElementById('tj_table').innerHTML = '';
+    return;
+  }
+  notice.style.display = 'none';
+  const base = tjApplyFilters(state.tjRows);
+  const tj = base.filter(r=>r.esTalentoJoven);
+
+  setText('tj_total', tj.length);
+  setText('tj_totalSub', 'clasificadas como Talento Joven');
+  const edadProm = avg(tj.map(r=>r.edad));
+  setText('tj_edad', edadProm===null ? '—' : round0(edadProm));
+  setText('tj_edadSub', edadProm===null ? '' : 'años');
+  setText('tj_pct', base.length ? round0(100*tj.length/base.length)+'%' : '—');
+  setText('tj_pctSub', base.length ? tj.length+' de '+base.length+' ingresos' : '');
+
+  const countBy = key => { const m = new Map(); tj.forEach(r=>{ const v = r[key] || 'Sin dato'; m.set(v,(m.get(v)||0)+1); }); return m; };
+  const regiones = [...countBy('region').entries()].sort((a,b)=>String(a[0]).localeCompare(String(b[0]),'es',{numeric:true}));
+  tjRenderChart('chartTjRegion','tjRegion','tj_wrapRegion', tj, ()=>tjBarConfig(regiones.map(e=>e[0]), regiones.map(e=>e[1]), false));
+  const porMes = new Array(12).fill(0); tj.forEach(r=>{ if (r.mes) porMes[r.mes-1]++; });
+  tjRenderChart('chartTjMes','tjMes','tj_wrapMes', tj, ()=>tjBarConfig(MESES_ES, porMes, false));
+  const dirs = [...countBy('direccion').entries()].sort((a,b)=>b[1]-a[1]);
+  tjRenderChart('chartTjDireccion','tjDireccion','tj_wrapDireccion', tj, ()=>tjBarConfig(dirs.map(e=>e[0]), dirs.map(e=>e[1]), true));
+
+  const wrap = document.getElementById('tj_table');
+  if (!tj.length){ wrap.innerHTML = '<div class="placeholder-note">No hay personas de Talento Joven con los filtros actuales.</div>'; return; }
+  const filas = [...tj].sort((a,b)=>(a.fechaIngreso?a.fechaIngreso.getTime():0)-(b.fechaIngreso?b.fechaIngreso.getTime():0));
+  let html = '<table><thead><tr><th>Nombre</th><th>Edad</th><th>Fecha Ingreso</th><th>Cargo</th><th>Dirección Comité</th><th>Dirección Área</th><th>Gerencia</th><th>Mes</th><th>Región</th></tr></thead><tbody>';
+  filas.forEach(r=>{
+    html += `<tr><td>${esc(r.nombre)}</td><td>${r.edad===null?'':esc(r.edad)}</td><td>${esc(fmtDate(r.fechaIngreso))}</td><td>${esc(r.cargo)}</td><td>${esc(r.direccion)}</td><td>${esc(r.direccionArea)}</td><td>${esc(r.gerencia)}</td><td>${esc(r.mes?MESES_ES[r.mes-1]:'')}</td><td>${esc(r.region)}</td></tr>`;
+  });
+  html += `<tr class="ind-total-row"><td><strong>Total</strong></td><td colspan="8"><strong>${tj.length}</strong></td></tr></tbody></table>`;
+  wrap.innerHTML = html;
 }
 
 /* ============================================================
