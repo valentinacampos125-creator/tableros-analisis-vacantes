@@ -1,5 +1,5 @@
 <!doctype html>
-<!-- Tablero Vacantes - build 2026-09-25 v45 (uso interno para control de versión, no visible en el tablero) -->
+<!-- Tablero Vacantes - build 2026-09-25 v46 (uso interno para control de versión, no visible en el tablero) -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -276,9 +276,9 @@ loadScriptWithFallbacks([
       <select id="fDireccion"><option value="">Dirección Comité (Todas)</option></select>
       <select id="fAnio"><option value="">Año (Todos)</option></select>
       <select id="fMes"><option value="">Mes (Todos)</option></select>
-      <select id="fFuncionCargo" title="Según la columna 'Función-Nivel Cargo' del Excel."><option value="">Función-Nivel Cargo (Todos)</option></select>
+      <select id="fFuncionCargo" title="Según la columna 'Función-Nivel Cargo' del Excel."><option value="">Cargo (Todos)</option></select>
       <select id="fCargoSegmentado" title="Según la columna 'Nivel de Contribución' del Excel: Líderes Estratégicos, Líderes Operacionales, Contribuidores Individuales u Otro.">
-        <option value="">Cargo Segmentado (Todos)</option>
+        <option value="">Dirección Corporativa (Todas)</option>
         <option value="estrategico">Líderes Estratégicos</option>
         <option value="operacional">Líderes Operacionales</option>
         <option value="base">Contribuidores Individuales</option>
@@ -350,8 +350,8 @@ loadScriptWithFallbacks([
 
     <div class="charts" id="chartsSeguimiento">
       <div class="chart-card" id="cardAntiguedad"><h3><svg class="ic-title" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h12"></path><path d="M6 22h12"></path><path d="M6 2c0 6 6 6 6 10s-6 4-6 10"></path><path d="M18 2c0 6-6 6-6 10s6 4 6 10"></path></svg>Vacantes por Antigüedad<select class="chart-filter-select" id="cfAntiguedad" title="Filtrar solo esta gráfica por Dirección"><option value="">Dirección (Todas)</option></select></h3><div class="canvas-wrap" id="wrapAntiguedad"><canvas id="chartAntiguedad"></canvas></div></div>
-      <div class="chart-card" id="cardProfesional"><h3><svg class="ic-title" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>Vacantes por Profesional<select class="chart-filter-select" id="cfProfesional" title="Filtrar solo esta gráfica por Función-Nivel Cargo"><option value="">Función-Nivel Cargo (Todos)</option></select></h3><div class="canvas-wrap" id="wrapProfesional"><canvas id="chartProfesional"></canvas></div></div>
-      <div class="chart-card" id="cardCriticas"><h3><svg class="ic-title" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>Vacantes Críticas por Profesional<select class="chart-filter-select" id="cfCriticas" title="Filtrar solo esta gráfica por Función-Nivel Cargo"><option value="">Función-Nivel Cargo (Todos)</option></select></h3><div class="canvas-wrap" id="wrapCriticasProf"><canvas id="chartCriticasProf"></canvas></div></div>
+      <div class="chart-card" id="cardProfesional"><h3><svg class="ic-title" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>Vacantes por Profesional<select class="chart-filter-select" id="cfProfesional" title="Filtrar solo esta gráfica por Función-Nivel Cargo"><option value="">Cargo (Todos)</option></select></h3><div class="canvas-wrap" id="wrapProfesional"><canvas id="chartProfesional"></canvas></div></div>
+      <div class="chart-card" id="cardCriticas"><h3><svg class="ic-title" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>Vacantes Críticas por Profesional<select class="chart-filter-select" id="cfCriticas" title="Filtrar solo esta gráfica por Función-Nivel Cargo"><option value="">Cargo (Todos)</option></select></h3><div class="canvas-wrap" id="wrapCriticasProf"><canvas id="chartCriticasProf"></canvas></div></div>
     </div>
 
     <div class="table-card">
@@ -632,6 +632,11 @@ function cargoInclusivo(label){
   const ultima = t.split(/\s+/).pop();
   if (!/(o|or)$/i.test(normalize(ultima))) return t;
   return t + (t===t.toUpperCase() ? '(A)' : '(a)');
+}
+// Opciones de los filtros de Cargo (Función-Nivel Cargo): el valor sigue siendo el del Excel, solo
+// la etiqueta que se ve lleva el lenguaje inclusivo "(A)".
+function cargoOptions(){
+  return uniqueSorted(state.rows,'funcionNivelCargo').map(v => ({ value: v, label: cargoInclusivo(v) }));
 }
 function esc(s){ return (s===null||s===undefined?'':String(s)).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
 // El Excel trae la misma Dirección escrita con y sin tilde (p. ej. "Direccion Auditoria" y
@@ -981,7 +986,7 @@ function populateFilterOptions(){
   const anios = new Set(); state.rows.forEach(r=>{ const d = mesFiltroDate(r); if (d instanceof Date && !isNaN(d)) anios.add(d.getFullYear()); });
   fillSelect('fAnio', [...anios].sort().map(a=>({value:String(a),label:String(a)})), 'Año (Todos)', true);
   fillSelect('fMes', MESES_ES.map((nombre,i)=>({value:String(i+1),label:nombre})), 'Mes (Todos)', true);
-  fillSelect('fFuncionCargo', uniqueSorted(state.rows,'funcionNivelCargo'), 'Función-Nivel Cargo (Todos)');
+  fillSelect('fFuncionCargo', cargoOptions(), 'Cargo (Todos)', true);
 
   fillSelect('iProfesional', uniqueSorted(state.rows,'profesional'), 'Profesional (Todas)');
   fillSelect('iDireccion', uniqueSorted(state.rows,'direccion'), 'Dirección Comité (Todas)');
@@ -1025,8 +1030,8 @@ function populateFilterOptions(){
   }), 'Semana (Todas)', true);
 
   fillSelect('cfAntiguedad', uniqueSorted(state.rows,'direccion'), 'Dirección (Todas)');
-  fillSelect('cfProfesional', uniqueSorted(state.rows,'funcionNivelCargo'), 'Función-Nivel Cargo (Todos)');
-  fillSelect('cfCriticas', uniqueSorted(state.rows,'funcionNivelCargo'), 'Función-Nivel Cargo (Todos)');
+  fillSelect('cfProfesional', cargoOptions(), 'Cargo (Todos)', true);
+  fillSelect('cfCriticas', cargoOptions(), 'Cargo (Todos)', true);
 }
 function fillSelect(id, items, placeholder, isObj){
   const sel = document.getElementById(id);
@@ -1988,19 +1993,25 @@ const TJ_COLUMN_RULES = [
 // el mes). Solo cuentan como Talento Joven las filas cuya CLASIFICACIÓN dice "TALENTO JOVEN"
 // ("NO APLICA" y cualquier otro valor se ignoran). El Mes sale de la columna BASE (nombre del mes)
 // y, si está vacía, del mes de la Fecha Ingreso; el Año y la Semana salen de la Fecha Ingreso.
-// "Region 1" / "Región 1" / "R1" -> "R1"; "Transversal" y cualquier otro valor quedan tal cual.
+// "Region 1" / "Región 1" / "R1" / 1 -> "Región 1"; "Transversal" y cualquier otro valor quedan tal cual.
 function tjRegionLabel(v){
-  const t = cleanText(v);
-  if (typeof t !== 'string' || !t) return t;
-  const m = normalize(t).match(/^R(?:EGION)?\s*(\d+)$/);
-  return m ? 'R'+m[1] : t;
+  if (v===null || v===undefined) return null;
+  if (typeof v === 'number') return (Number.isInteger(v) && v>=1) ? 'Región '+v : null;
+  const t = cleanText(String(v));
+  if (!t) return null;
+  const n = normalize(t);
+  if (n.includes('TRANSVERSAL')) return 'Transversal';
+  const m = n.match(/^R(?:EG(?:ION(?:AL)?)?)?\.?\s*[-:#]?\s*0*(\d+)$/) || n.match(/REGION\D*0*(\d+)/) || n.match(/^0*(\d+)$/);
+  return m ? 'Región '+m[1] : t;
 }
 function loadTalentoJovenSheet(wb){
   state.tjRows = []; state.tjStatus = 'nosheet';
   const name = wb.SheetNames.find(n => { const t = normalize(n); return t.includes('TALENTO') && t.includes('JOVEN'); });
   if (!name) return;
-  const raw = XLSX.utils.sheet_to_json(wb.Sheets[name], {header:1, defval:null, raw:true});
+  const wsTJ = wb.Sheets[name];
+  const raw = XLSX.utils.sheet_to_json(wsTJ, {header:1, defval:null, raw:true});
   if (!raw.length) return;
+  const rangeTJ = XLSX.utils.decode_range(wsTJ['!ref'] || 'A1');
   const cols = detectColumns(raw[0].map(h => h===null ? '' : String(h)), TJ_COLUMN_RULES);
   if (cols.clasificacion === undefined){ state.tjStatus = 'nocol'; return; }
   const mesIdx = {}; MESES_ES.forEach((m,i)=>{ mesIdx[normalize(m)] = i+1; });
@@ -2012,13 +2023,24 @@ function loadTalentoJovenSheet(wb){
     const fechaIngreso = toDate(get('fechaIngreso'));
     const edadNum = Number(get('edad'));
     const clas = normalize(get('clasificacion'));
+    // La Región se lee directo de la celda (no de "raw"): así se distingue una celda vacía de una
+    // celda con error de fórmula (#N/A, #REF!...), que sheet_to_json descarta sin avisar.
+    let regionRaw = null, regionEstado = 'vacio';
+    if (cols.region !== undefined){
+      const cell = wsTJ[XLSX.utils.encode_cell({ r: rangeTJ.s.r + i, c: rangeTJ.s.c + cols.region })];
+      if (cell){
+        if (cell.t === 'e'){ regionEstado = 'error'; }
+        else if (cell.v !== undefined && cell.v !== null && String(cell.v).trim() !== ''){ regionRaw = cell.v; regionEstado = 'ok'; }
+      }
+    }
     rows.push({
+      regionEstado,
       expediente: cleanText(get('expediente')), nombre: cleanText(get('nombre')),
       edad: (get('edad')!==null && get('edad')!=='' && !isNaN(edadNum)) ? edadNum : null,
       fechaIngreso, cargo: cleanText(get('cargo')),
       direccion: cleanText(get('direccionComite')), direccionArea: cleanText(get('direccionArea')),
       gerencia: cleanText(get('gerencia')), base: cleanText(get('base')),
-      region: tjRegionLabel(get('region')),
+      region: tjRegionLabel(regionRaw),
       mes: mesIdx[normalize(get('base'))] || (fechaIngreso ? fechaIngreso.getMonth()+1 : null),
       anio: fechaIngreso ? fechaIngreso.getFullYear() : null,
       esTalentoJoven: clas.includes('TALENTO JOVEN') && !clas.includes('NO APLICA'),
@@ -2032,7 +2054,7 @@ function populateTalentoJovenFilters(){
   const tj = state.tjRows.filter(r=>r.esTalentoJoven);
   // El filtro de Región lista TODOS los valores de la columna REGION de la hoja (no solo los de
   // las filas Talento Joven), para que siempre aparezcan R1..R5 y Transversal.
-  const regiones = [...new Set(['R1','R2','R3','R4','R5','Transversal', ...state.tjRows.map(r=>r.region).filter(Boolean)])].sort((a,b)=>String(a).localeCompare(String(b),'es',{numeric:true}));
+  const regiones = [...new Set(['Región 1','Región 2','Región 3','Región 4','Región 5','Transversal', ...state.tjRows.map(r=>r.region).filter(Boolean)])].sort((a,b)=>String(a).localeCompare(String(b),'es',{numeric:true}));
   fillSelect('tjRegion', regiones, 'Región (Todas)');
   fillSelect('tjDireccion', uniqueSorted(tj,'direccion'), 'Dirección Comité (Todas)');
   const anios = [...new Set(tj.map(r=>r.anio).filter(a=>a!==null))].sort();
@@ -2108,10 +2130,13 @@ function renderTalentoJoven(){
   notice.style.display = 'none';
   const base = tjApplyFilters(state.tjRows);
   const tj = base.filter(r=>r.esTalentoJoven);
-  const sinRegion = tj.filter(r=>!r.region).length;
+  const sinRegion = tj.filter(r=>!r.region);
+  const conError = sinRegion.filter(r=>r.regionEstado==='error').length;
   const regNote = document.getElementById('tj_regionNote');
-  regNote.style.display = sinRegion ? '' : 'none';
-  regNote.textContent = sinRegion ? sinRegion+' de '+tj.length+' personas Talento Joven no tienen valor en la columna REGION del Excel (celda vacía o sin resultado), por eso no aparecen en ninguna región.' : '';
+  regNote.style.display = sinRegion.length ? '' : 'none';
+  regNote.textContent = sinRegion.length
+    ? sinRegion.length+' de '+tj.length+' personas Talento Joven no tienen Región en el Excel ('+(conError ? conError+' con error de fórmula tipo #N/A en la columna REGION, ' : '')+(sinRegion.length-conError)+' con la celda vacía), por eso no cuentan en ninguna región.'
+    : '';
 
   setText('tj_total', tj.length);
   setText('tj_totalSub', 'clasificadas como Talento Joven');
