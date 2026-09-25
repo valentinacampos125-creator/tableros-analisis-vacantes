@@ -1,5 +1,5 @@
 <!doctype html>
-<!-- Tablero Vacantes - build 2026-09-25 v43 (uso interno para control de versión, no visible en el tablero) -->
+<!-- Tablero Vacantes - build 2026-09-25 v44 (uso interno para control de versión, no visible en el tablero) -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -1987,6 +1987,13 @@ const TJ_COLUMN_RULES = [
 // el mes). Solo cuentan como Talento Joven las filas cuya CLASIFICACIÓN dice "TALENTO JOVEN"
 // ("NO APLICA" y cualquier otro valor se ignoran). El Mes sale de la columna BASE (nombre del mes)
 // y, si está vacía, del mes de la Fecha Ingreso; el Año y la Semana salen de la Fecha Ingreso.
+// "Region 1" / "Región 1" / "R1" -> "R1"; "Transversal" y cualquier otro valor quedan tal cual.
+function tjRegionLabel(v){
+  const t = cleanText(v);
+  if (typeof t !== 'string' || !t) return t;
+  const m = normalize(t).match(/^R(?:EGION)?\s*(\d+)$/);
+  return m ? 'R'+m[1] : t;
+}
 function loadTalentoJovenSheet(wb){
   state.tjRows = []; state.tjStatus = 'nosheet';
   const name = wb.SheetNames.find(n => { const t = normalize(n); return t.includes('TALENTO') && t.includes('JOVEN'); });
@@ -2010,7 +2017,7 @@ function loadTalentoJovenSheet(wb){
       fechaIngreso, cargo: cleanText(get('cargo')),
       direccion: cleanText(get('direccionComite')), direccionArea: cleanText(get('direccionArea')),
       gerencia: cleanText(get('gerencia')), base: cleanText(get('base')),
-      region: cleanText(get('region')),
+      region: tjRegionLabel(get('region')),
       mes: mesIdx[normalize(get('base'))] || (fechaIngreso ? fechaIngreso.getMonth()+1 : null),
       anio: fechaIngreso ? fechaIngreso.getFullYear() : null,
       esTalentoJoven: clas.includes('TALENTO JOVEN') && !clas.includes('NO APLICA'),
@@ -2022,7 +2029,9 @@ function loadTalentoJovenSheet(wb){
 }
 function populateTalentoJovenFilters(){
   const tj = state.tjRows.filter(r=>r.esTalentoJoven);
-  const regiones = [...new Set(tj.map(r=>r.region).filter(Boolean))].sort((a,b)=>String(a).localeCompare(String(b),'es',{numeric:true}));
+  // El filtro de Región lista TODOS los valores de la columna REGION de la hoja (no solo los de
+  // las filas Talento Joven), para que siempre aparezcan R1..R5 y Transversal.
+  const regiones = [...new Set(state.tjRows.map(r=>r.region).filter(Boolean))].sort((a,b)=>String(a).localeCompare(String(b),'es',{numeric:true}));
   fillSelect('tjRegion', regiones, 'Región (Todas)');
   fillSelect('tjDireccion', uniqueSorted(tj,'direccion'), 'Dirección Comité (Todas)');
   const anios = [...new Set(tj.map(r=>r.anio).filter(a=>a!==null))].sort();
