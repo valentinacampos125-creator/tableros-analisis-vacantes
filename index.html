@@ -1,5 +1,5 @@
 <!doctype html>
-<!-- Tablero Vacantes - build 2026-09-25 v47 (uso interno para control de versión, no visible en el tablero) -->
+<!-- Tablero Vacantes - build 2026-09-25 v48 (uso interno para control de versión, no visible en el tablero) -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -2039,6 +2039,8 @@ function loadTalentoJovenSheet(wb){
         if (cell.t === 'e'){ regionEstado = 'error'; }
         else if (cell.v !== undefined && cell.v !== null && String(cell.v).trim() !== ''){ regionRaw = cell.v; regionEstado = 'ok'; }
       }
+      const valorRaw = get('region');
+      if (regionRaw === null && valorRaw !== null && valorRaw !== undefined && String(valorRaw).trim() !== ''){ regionRaw = valorRaw; regionEstado = 'ok'; }
     }
     rows.push({
       regionEstado,
@@ -2062,7 +2064,11 @@ function populateTalentoJovenFilters(){
   // El filtro de Región lista TODOS los valores de la columna REGION de la hoja (no solo los de
   // las filas Talento Joven), para que siempre aparezcan R1..R5 y Transversal.
   const regiones = [...new Set(['Región 1','Región 2','Región 3','Región 4','Región 5','Transversal', ...state.tjRows.map(r=>r.region).filter(Boolean)])].sort((a,b)=>String(a).localeCompare(String(b),'es',{numeric:true}));
-  fillSelect('tjRegion', regiones, 'Región (Todas)');
+  // Cada opción muestra entre paréntesis cuántas filas Talento Joven (columna CLASIFICACIÓN) hay en
+  // esa Región según la columna REGION del Excel, sin aplicar otros filtros.
+  const conteoRegion = new Map();
+  tj.forEach(r=>{ if (r.region) conteoRegion.set(r.region, (conteoRegion.get(r.region)||0)+1); });
+  fillSelect('tjRegion', regiones.map(rg=>({ value: rg, label: rg+' ('+(conteoRegion.get(rg)||0)+')' })), 'Región (Todas)', true);
   fillSelect('tjDireccion', uniqueSorted(tj,'direccion'), 'Dirección Comité (Todas)');
   const anios = [...new Set(tj.map(r=>r.anio).filter(a=>a!==null))].sort();
   fillSelect('tjAnio', anios.map(a=>({value:String(a),label:String(a)})), 'Año Ingreso (Todos)', true);
