@@ -1,5 +1,5 @@
 <!doctype html>
-<!-- Tablero Vacantes - build 2026-09-23 v40 (uso interno para control de versión, no visible en el tablero) -->
+<!-- Tablero Vacantes - build 2026-09-25 v41 (uso interno para control de versión, no visible en el tablero) -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -1547,20 +1547,18 @@ function renderIndicadores(){
   const haveJovenInfo = haveTalentoJovenCol || haveGeneracionCol || haveEdadInfo;
   const haveNivel = state.cols.nivelContribucion!==undefined;
   const haveFuncion = state.cols.funcionNivelCargo!==undefined;
-  // Talento Joven / Generación Z: se prioriza la clasificación que ya trae el Excel -- columna
-  // "Talento Joven" (Sí/No) y, en su defecto, "Generación" (conteniendo "Z") -- porque son las
-  // que Recursos Humanos diligencia directamente y son más confiables que calcularlo nosotros.
-  // Solo si ninguna de las dos existe (o la celda está vacía para esa fila) se recurre a la edad
-  // -- numérica si existe, o calculada a partir de la Fecha de Nacimiento -- al momento de la
-  // Fecha Ingreso de esa vacante (la misma fecha de referencia que usa rowsJoven arriba).
+  // Talento Joven: si el Excel trae la columna "Talento Joven", se cuenta exactamente lo que dice
+  // esa columna -- una vacante cuenta como Talento Joven solo si la celda está marcada "Sí"; "No"
+  // o vacío no cuentan (a pedido de Valentina). Solo si el Excel no trae esa columna se usa el
+  // respaldo anterior: columna "Generación" (con "Z") o la edad al momento de la Fecha Ingreso.
   const esJoven = r => {
-    if (typeof r.talentoJoven === 'boolean') return r.talentoJoven;
+    if (haveTalentoJovenCol) return r.talentoJoven === true;
     if (r.generacion) return normalize(r.generacion).includes('Z');
     const e = (typeof r.edad==='number') ? r.edad : ageFromBirth(r.fechaNacimiento, r.fechaIngreso);
     return typeof e==='number' && e<29;
   };
   const tieneEdad = r => {
-    if (typeof r.talentoJoven === 'boolean') return true;
+    if (haveTalentoJovenCol) return true;
     if (r.generacion) return true;
     const e = (typeof r.edad==='number') ? r.edad : ageFromBirth(r.fechaNacimiento, r.fechaIngreso);
     return typeof e==='number';
@@ -1582,7 +1580,7 @@ function renderIndicadores(){
     const conEdad = rowsJoven.filter(tieneEdad);
     const joven = conEdad.filter(esJoven).length;
     document.getElementById('ind_pctJoven').textContent = conEdad.length? round0(100*joven/conEdad.length)+'%':'—';
-    document.getElementById('ind_countJoven').textContent = conEdad.length? joven+' contratados (Generación Z)':'';
+    document.getElementById('ind_countJoven').textContent = conEdad.length? joven+(haveTalentoJovenCol ? ' contratados (Talento Joven = Sí)' : ' contratados (Generación Z)'):'';
   } else {
     document.getElementById('ind_pctJoven').textContent='—';
     document.getElementById('ind_countJoven').textContent='';
