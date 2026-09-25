@@ -1,5 +1,5 @@
 <!doctype html>
-<!-- Tablero Vacantes - build 2026-09-25 v49 (uso interno para control de versión, no visible en el tablero) -->
+<!-- Tablero Vacantes - build 2026-09-25 v50 (uso interno para control de versión, no visible en el tablero) -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -1589,6 +1589,19 @@ function ageFromBirth(d, ref){
   const diff = reference.getTime()-d.getTime();
   return Math.floor(diff/(365.25*24*3600*1000));
 }
+// Agrupa direcciones para la tabla "Resumen por Dirección Corporativa" (solo esa tabla; los
+// filtros siguen usando la dirección original del Excel): Planeación Estratégica e Innovación +
+// Planeación Estratégica y Experiencia + Producto e Innovación se suman bajo un solo nombre, y
+// Unidad Mercado Corporativo + Unidad Mercado Masivo (incluida "Dirección Unidad Mercado
+// Corporativo") bajo "Unidad Mercado Corporativo".
+function direccionResumen(direccion){
+  const n = normalize(direccion);
+  if (n.includes('PLANEACION ESTRATEGICA E INNOVACION') || n.includes('PLANEACION ESTRATEGICA Y EXPERIENCIA') || n.includes('PRODUCTO E INNOVACION')){
+    return 'Dirección Corporativa Planeación Estratégica e Innovación';
+  }
+  if (n.includes('UNIDAD MERCADO CORPORATIVO') || n.includes('UNIDAD MERCADO MASIVO')) return 'Unidad Mercado Corporativo';
+  return direccion;
+}
 function renderIndicadores(){
   if (!state.rows.length) return;
   const cerradas0 = state.rows.filter(r=>r.cerrada); // "contratadas" = vacantes realmente cerradas (se excluyen canceladas/anuladas)
@@ -1706,12 +1719,12 @@ function renderIndicadores(){
   renderChartLiberadasCerradasMes();
 
   // tabla por dirección
-  const direcciones = uniqueSorted(rows,'direccion');
+  const direcciones = [...new Set(rows.map(r=>direccionResumen(r.direccion)).filter(v=>v!==null && v!==undefined && v!==''))].sort((a,b)=>String(a).localeCompare(String(b),'es'));
   let html = '<table><thead><tr><th>Dirección</th><th>Total Vacantes</th><th>Prom. Edad</th><th>% Mujeres</th><th>% Hombres</th></tr></thead><tbody>';
   if (!direcciones.length){ html = '<div class="placeholder-note">No hay columna de Dirección / datos suficientes en el Excel cargado.</div>'; }
   else{
     direcciones.forEach(d=>{
-      const sub = rows.filter(r=>r.direccion===d);
+      const sub = rows.filter(r=>direccionResumen(r.direccion)===d);
       const edades = sub.map(r => (typeof r.edad==='number')?r.edad:ageFromBirth(r.fechaNacimiento, r.fechaCierre)).filter(v=>typeof v==='number');
       const promE = edades.length? round0(avg(edades)) : '—';
       let pctM='—', pctH='—';
