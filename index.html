@@ -1,5 +1,5 @@
 <!doctype html>
-<!-- Tablero Vacantes - build 2026-09-25 v48 (uso interno para control de versión, no visible en el tablero) -->
+<!-- Tablero Vacantes - build 2026-09-25 v49 (uso interno para control de versión, no visible en el tablero) -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -2037,6 +2037,7 @@ function loadTalentoJovenSheet(wb){
       const cell = wsTJ[XLSX.utils.encode_cell({ r: rangeTJ.s.r + i, c: rangeTJ.s.c + cols.region })];
       if (cell){
         if (cell.t === 'e'){ regionEstado = 'error'; }
+        else if (cell.f && (cell.v === undefined || cell.v === null || String(cell.v).trim() === '')){ regionEstado = 'formula'; }
         else if (cell.v !== undefined && cell.v !== null && String(cell.v).trim() !== ''){ regionRaw = cell.v; regionEstado = 'ok'; }
       }
       const valorRaw = get('region');
@@ -2150,11 +2151,20 @@ function renderTalentoJoven(){
   tjTodos.forEach(r=>{ if (r.region) porRegion.set(r.region, (porRegion.get(r.region)||0)+1); });
   const sinRegion = tjTodos.filter(r=>!r.region);
   const conError = sinRegion.filter(r=>r.regionEstado==='error').length;
+  const conFormula = sinRegion.filter(r=>r.regionEstado==='formula').length;
+  const vacias = sinRegion.length - conError - conFormula;
   const regNote = document.getElementById('tj_regionNote');
   regNote.style.display = '';
+  regNote.style.cssText = sinRegion.length
+    ? 'font-size:13px;margin:-4px 0 12px;padding:10px 12px;border:1px solid #e5493d;border-radius:8px;background:rgba(229,73,61,.08);color:var(--ink);'
+    : 'font-size:12px;color:var(--muted);margin:-4px 0 12px;';
   regNote.textContent = 'Leído del Excel (sin filtros): '+tjTodos.length+' personas Talento Joven — '
     + [...porRegion.entries()].sort((a,b)=>String(a[0]).localeCompare(String(b[0]),'es',{numeric:true})).map(([k,v])=>k+': '+v).join(' · ')
-    + (sinRegion.length ? ' · Sin región: '+sinRegion.length+' ('+conError+' con error de fórmula #N/A, '+(sinRegion.length-conError)+' con celda vacía)' : '');
+    + (sinRegion.length
+      ? '. ATENCIÓN: '+sinRegion.length+' personas no traen Región en el archivo cargado ('
+        + [conFormula ? conFormula+' con la fórmula de REGION sin resultado guardado' : '', conError ? conError+' con error de fórmula (#N/A, #REF!...)' : '', vacias ? vacias+' con la celda vacía' : ''].filter(Boolean).join(', ')
+        + '). La columna REGION es una fórmula que consulta otro libro de Excel: ábrelo en Excel, actualiza los vínculos / calcula (F9), guarda y pulsa "Actualizar ahora" en el tablero.'
+      : '');
 
   setText('tj_total', tj.length);
   setText('tj_totalSub', 'clasificadas como Talento Joven');
