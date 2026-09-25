@@ -1,5 +1,5 @@
 <!doctype html>
-<!-- Tablero Vacantes - build 2026-09-25 v42 (uso interno para control de versión, no visible en el tablero) -->
+<!-- Tablero Vacantes - build 2026-09-25 v43 (uso interno para control de versión, no visible en el tablero) -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -73,7 +73,7 @@ loadScriptWithFallbacks([
   .app-header{position:sticky;top:0;z-index:50;background:linear-gradient(135deg,#c0392b,#e5493d 55%,#b71c1c);color:#fff;padding:12px 20px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;box-shadow:var(--shadow);}
   .btn-indicadores{background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.5);color:#fff;padding:9px 16px;border-radius:8px;font-weight:600;font-size:13px;cursor:pointer;display:flex;align-items:center;gap:8px;white-space:nowrap;transition:background .15s;}
   .btn-indicadores:hover{background:rgba(255,255,255,.3);}
-  .nav-left{display:flex;flex-direction:column;gap:6px;align-items:stretch;}
+  .nav-left{display:flex;flex-direction:row;gap:8px;align-items:center;}
   .app-title{font-size:19px;font-weight:700;letter-spacing:.3px;flex:1;text-align:center;min-width:200px;}
   .header-right{display:flex;align-items:center;gap:10px;font-size:12px;}
   .pill{background:rgba(255,255,255,.16);border-radius:20px;padding:6px 12px;font-weight:600;display:flex;align-items:center;gap:6px;}
@@ -620,6 +620,17 @@ function stripNivelSuffix(v){
   const t = cleanText(v);
   if (typeof t !== 'string' || !t) return t;
   return t.replace(/\s*\(\s*a\s*\)\s*$/i, '').trim();
+}
+// Lenguaje inclusivo para las etiquetas de las gráficas por Función-Nivel de Cargo: los cargos
+// con forma masculina/femenina (terminan en O u OR: Abogado, Consultor, Ingeniero...) se muestran
+// con "(A)" -- Abogado(a), Consultor(a) --; los neutros (Analista, Gerente, Jefe, Líder...) quedan
+// igual. Solo cambia lo que se ve en la gráfica, no el valor del dato ni los filtros.
+function cargoInclusivo(label){
+  const t = String(label===null||label===undefined ? '' : label).trim();
+  if (!t) return t;
+  const ultima = t.split(/\s+/).pop();
+  if (!/(o|or)$/i.test(normalize(ultima))) return t;
+  return t + (t===t.toUpperCase() ? '(A)' : '(a)');
 }
 function esc(s){ return (s===null||s===undefined?'':String(s)).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
 // El Excel trae la misma Dirección escrita con y sin tilde (p. ej. "Direccion Auditoria" y
@@ -1644,7 +1655,7 @@ function renderIndicadores(){
     const palette = ['#2f6fed','#d6336c','#8b5cf6','#27ae60'];
     const datasets = generos.map((g,i)=>({ label:g, backgroundColor:palette[i%palette.length], stack:'s',
       data: funciones.map(fn => rows.filter(r=>r.funcionNivelCargo===fn && (!haveGenero || r.genero===g)).length) }));
-    return { type:'bar', data:{labels:funciones, datasets}, options:{ responsive:true, maintainAspectRatio:false,
+    return { type:'bar', data:{labels:funciones.map(cargoInclusivo), datasets}, options:{ responsive:true, maintainAspectRatio:false,
       plugins:{legend:{position:'bottom',labels:{boxWidth:10,font:{size:10}}}},
       scales:{x:{stacked:true,grid:{display:false}}, y:{stacked:true, beginAtZero:true, ticks:{precision:0}}} } };
   });
@@ -1661,7 +1672,7 @@ function renderIndicadores(){
     ];
     const datasets = categorias.map(c=>({ label:c.label, backgroundColor:c.color, stack:'s',
       data: funciones.map(fn => conEdad.filter(r=>r.funcionNivelCargo===fn && c.test(r)).length) }));
-    return { type:'bar', data:{labels:funciones, datasets}, options:{ responsive:true, maintainAspectRatio:false,
+    return { type:'bar', data:{labels:funciones.map(cargoInclusivo), datasets}, options:{ responsive:true, maintainAspectRatio:false,
       plugins:{legend:{position:'bottom',labels:{boxWidth:10,font:{size:10}}}},
       scales:{x:{stacked:true,grid:{display:false}}, y:{stacked:true, beginAtZero:true, ticks:{precision:0}}} } };
   });
