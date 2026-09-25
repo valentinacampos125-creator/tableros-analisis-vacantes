@@ -1,5 +1,5 @@
 <!doctype html>
-<!-- Tablero Vacantes - build 2026-09-25 v46 (uso interno para control de versión, no visible en el tablero) -->
+<!-- Tablero Vacantes - build 2026-09-25 v47 (uso interno para control de versión, no visible en el tablero) -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -2013,6 +2013,13 @@ function loadTalentoJovenSheet(wb){
   if (!raw.length) return;
   const rangeTJ = XLSX.utils.decode_range(wsTJ['!ref'] || 'A1');
   const cols = detectColumns(raw[0].map(h => h===null ? '' : String(h)), TJ_COLUMN_RULES);
+  // Si existe una columna cuyo encabezado sea exactamente "REGION" / "CLASIFICACIÓN", tiene
+  // prioridad sobre otras que solo contengan esa palabra (p. ej. "GERENCIA REGIONAL").
+  raw[0].forEach((h, idx) => {
+    const n = normalize(h);
+    if (n === 'REGION') cols.region = idx;
+    if (n === 'CLASIFICACION') cols.clasificacion = idx;
+  });
   if (cols.clasificacion === undefined){ state.tjStatus = 'nocol'; return; }
   const mesIdx = {}; MESES_ES.forEach((m,i)=>{ mesIdx[normalize(m)] = i+1; });
   const rows = [];
@@ -2107,7 +2114,7 @@ function tjRenderChart(canvasId, chartKey, wrapId, rows, buildConfig){
 }
 function tjBarConfig(labels, data, horizontal){
   return { type:'bar',
-    data:{ labels, datasets:[{ label:'Talento Joven', data, backgroundColor:'#27ae60', borderRadius:4 }] },
+    data:{ labels, datasets:[{ label:'Talento Joven', data, backgroundColor:'#e5493d', borderRadius:4 }] },
     options:{ indexAxis: horizontal ? 'y' : 'x', responsive:true, maintainAspectRatio:false,
       plugins:{ legend:{display:false} },
       scales: horizontal ? { x:{beginAtZero:true, ticks:{precision:0}}, y:{grid:{display:false}} }
@@ -2130,13 +2137,18 @@ function renderTalentoJoven(){
   notice.style.display = 'none';
   const base = tjApplyFilters(state.tjRows);
   const tj = base.filter(r=>r.esTalentoJoven);
-  const sinRegion = tj.filter(r=>!r.region);
+  // Resumen de lo que se LEYÓ del Excel (sin aplicar filtros): cuántas personas Talento Joven hay
+  // por Región y cuántas no tienen Región (celda vacía o con error de fórmula tipo #N/A).
+  const tjTodos = state.tjRows.filter(r=>r.esTalentoJoven);
+  const porRegion = new Map();
+  tjTodos.forEach(r=>{ if (r.region) porRegion.set(r.region, (porRegion.get(r.region)||0)+1); });
+  const sinRegion = tjTodos.filter(r=>!r.region);
   const conError = sinRegion.filter(r=>r.regionEstado==='error').length;
   const regNote = document.getElementById('tj_regionNote');
-  regNote.style.display = sinRegion.length ? '' : 'none';
-  regNote.textContent = sinRegion.length
-    ? sinRegion.length+' de '+tj.length+' personas Talento Joven no tienen Región en el Excel ('+(conError ? conError+' con error de fórmula tipo #N/A en la columna REGION, ' : '')+(sinRegion.length-conError)+' con la celda vacía), por eso no cuentan en ninguna región.'
-    : '';
+  regNote.style.display = '';
+  regNote.textContent = 'Leído del Excel (sin filtros): '+tjTodos.length+' personas Talento Joven — '
+    + [...porRegion.entries()].sort((a,b)=>String(a[0]).localeCompare(String(b[0]),'es',{numeric:true})).map(([k,v])=>k+': '+v).join(' · ')
+    + (sinRegion.length ? ' · Sin región: '+sinRegion.length+' ('+conError+' con error de fórmula #N/A, '+(sinRegion.length-conError)+' con celda vacía)' : '');
 
   setText('tj_total', tj.length);
   setText('tj_totalSub', 'clasificadas como Talento Joven');
