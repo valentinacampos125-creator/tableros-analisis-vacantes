@@ -1,5 +1,5 @@
 <!doctype html>
-<!-- Tablero Vacantes - build 2026-09-28 v66 (uso interno para control de versión, no visible en el tablero) -->
+<!-- Tablero Vacantes - build 2026-09-28 v67 (uso interno para control de versión, no visible en el tablero) -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -231,14 +231,14 @@ loadScriptWithFallbacks([
   tbody tr:last-child td{border-bottom:none;}
   .ind-total-row td{background:var(--th-bg);border-top:2px solid var(--table-line);}
   th.filterable{position:relative;padding-right:22px;}
-  .th-filter-btn{position:absolute;right:2px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--muted);cursor:pointer;font-size:11px;padding:2px 5px;border-radius:4px;}
-  .th-filter-btn:hover{background:var(--th-filter-hover);color:var(--ink);}
-  .th-filter-btn.active{color:var(--blue);}
-  .th-filter-popup{position:absolute;top:100%;left:0;margin-top:2px;background:var(--popup-bg);border:1px solid var(--border);border-radius:8px;box-shadow:var(--popup-shadow);padding:8px;z-index:200;min-width:180px;max-width:260px;text-transform:none;font-weight:400;font-size:12px;color:var(--ink);cursor:default;}
-  .th-filter-popup[hidden]{display:none;}
+  .th-filter-btn, .mini-filter-btn{position:absolute;right:2px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--muted);cursor:pointer;font-size:11px;padding:2px 5px;border-radius:4px;}
+  .th-filter-btn:hover, .mini-filter-btn:hover{background:var(--th-filter-hover);color:var(--ink);}
+  .th-filter-btn.active, .mini-filter-btn.active{color:var(--blue);}
+  .th-filter-popup, .mini-filter-popup{position:absolute;top:100%;left:0;margin-top:2px;background:var(--popup-bg);border:1px solid var(--border);border-radius:8px;box-shadow:var(--popup-shadow);padding:8px;z-index:200;min-width:180px;max-width:260px;text-transform:none;font-weight:400;font-size:12px;color:var(--ink);cursor:default;}
+  .th-filter-popup[hidden], .mini-filter-popup[hidden]{display:none;}
   .th-filter-list{max-height:200px;overflow:auto;}
-  .th-filter-popup label{display:flex;align-items:center;gap:7px;padding:4px 2px;cursor:pointer;white-space:nowrap;}
-  .th-filter-popup label:hover{background:var(--th-bg);border-radius:4px;}
+  .th-filter-popup label, .mini-filter-popup label{display:flex;align-items:center;gap:7px;padding:4px 2px;cursor:pointer;white-space:nowrap;}
+  .th-filter-popup label:hover, .mini-filter-popup label:hover{background:var(--th-bg);border-radius:4px;}
   .th-filter-actions{display:flex;justify-content:space-between;gap:6px;margin-top:6px;padding-top:6px;border-top:1px solid var(--border);}
   .th-filter-actions button{font-size:11px;padding:5px 10px;border-radius:6px;border:1px solid var(--border);background:var(--th-bg);color:var(--ink);cursor:pointer;font-weight:600;}
   .th-filter-actions button.primary{background:var(--blue);color:#fff;border-color:var(--blue);}
@@ -457,7 +457,21 @@ loadScriptWithFallbacks([
     </div>
     <div class="charts" style="grid-template-columns:1fr 1.4fr;margin-top:12px;">
       <div class="chart-card"><h3><svg class="ic-title" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M12 2a15.3 15.3 0 0 1 0 20"></path><path d="M12 2a15.3 15.3 0 0 0 0 20"></path><line x1="2" y1="12" x2="22" y2="12"></line></svg>Vacantes cerradas por Dirección (participación)</h3><div class="canvas-wrap" id="ind_wrapDirTotal" style="height:360px;"><canvas id="chartDirTotal"></canvas></div></div>
-      <div class="chart-card"><h3><svg class="ic-title" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>Edad Promedio de Mujeres y Hombres por Dirección</h3><div class="canvas-wrap" id="ind_wrapDirGenero" style="height:360px;"><canvas id="chartDirGenero"></canvas></div></div>
+      <div class="chart-card">
+        <h3 style="position:relative;">
+          <svg class="ic-title" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+          <span style="flex:1;">Edad Promedio de Mujeres y Hombres por Dirección</span>
+          <button type="button" class="mini-filter-btn" id="btnDirGeneroFilter" title="Filtrar por Dirección (solo esta gráfica)" style="position:static;">Dirección ▾</button>
+          <div class="mini-filter-popup" id="dirGeneroFilterPopup" hidden style="left:auto;right:0;text-transform:none;">
+            <div class="th-filter-list" id="dirGeneroFilterList"></div>
+            <div class="th-filter-actions">
+              <button type="button" id="dirGeneroFilterClear">Todas</button>
+              <button type="button" class="primary" id="dirGeneroFilterApply">Aplicar</button>
+            </div>
+          </div>
+        </h3>
+        <div class="canvas-wrap" id="ind_wrapDirGenero" style="height:360px;"><canvas id="chartDirGenero"></canvas></div>
+      </div>
     </div>
 
     <div class="charts" style="grid-template-columns:1fr 1fr;margin-top:12px;">
@@ -537,6 +551,9 @@ const state = {
   granularidad: 'mes',      // 'mes' | 'semana' -- para el KPI "Prom. Vacantes Cerradas"
   // Filtros tipo Excel en los encabezados de la tabla: un Set vacío = "todas" (sin filtrar).
   headerFilters: { tipoVacante: new Set(), profesional: new Set(), estado: new Set() },
+  // Filtro propio de la gráfica "Edad Promedio de Mujeres y Hombres por Dirección" (Análisis de
+  // Indicadores) -- Set vacío = todas las Direcciones; no afecta ninguna otra gráfica ni tabla.
+  dirGeneroFilter: new Set(),
   // "anio"/"mes" = año/mes de contratación (según Fecha Envío a Compensación de las vacantes
   // cerradas), aplican a toda la página de Análisis de Indicadores.
   indFilters: { profesional:'', direccion:'', tipoVacante:'', anio:'', mes:'', semana:'' },
@@ -1734,6 +1751,37 @@ function direccionResumen(direccion){
   if (n.includes('UNIDAD MERCADO CORPORATIVO') || n.includes('UNIDAD MERCADO MASIVO')) return 'Unidad Mercado Corporativo';
   return direccion;
 }
+// Reconstruye la lista de checkboxes del filtro propio de "Edad Promedio de Mujeres y Hombres por
+// Dirección" (sin tocar si el popup está abierto o cerrado, eso lo maneja solo el clic del botón).
+function populateDirGeneroFilterPopup(direcciones){
+  const list = document.getElementById('dirGeneroFilterList');
+  if (!list) return;
+  const selected = state.dirGeneroFilter;
+  const allChecked = selected.size===0;
+  list.innerHTML = direcciones.map(d => {
+    const checked = allChecked || selected.has(d);
+    return `<label><input type="checkbox" value="${esc(d)}" ${checked?'checked':''}> ${esc(d)}</label>`;
+  }).join('') || '<div style="color:var(--muted);padding:4px 2px;">Sin direcciones</div>';
+  document.getElementById('btnDirGeneroFilter').classList.toggle('active', selected.size>0);
+}
+document.getElementById('btnDirGeneroFilter').addEventListener('click', e=>{
+  e.stopPropagation();
+  document.getElementById('dirGeneroFilterPopup').hidden = !document.getElementById('dirGeneroFilterPopup').hidden;
+});
+document.getElementById('dirGeneroFilterPopup').addEventListener('click', e=>e.stopPropagation());
+document.getElementById('dirGeneroFilterApply').addEventListener('click', ()=>{
+  const boxes = [...document.querySelectorAll('#dirGeneroFilterList input:checked')].map(i=>i.value);
+  const total = document.querySelectorAll('#dirGeneroFilterList input').length;
+  state.dirGeneroFilter = (boxes.length===0 || boxes.length===total) ? new Set() : new Set(boxes);
+  document.getElementById('dirGeneroFilterPopup').hidden = true;
+  render();
+});
+document.getElementById('dirGeneroFilterClear').addEventListener('click', ()=>{
+  state.dirGeneroFilter = new Set();
+  document.getElementById('dirGeneroFilterPopup').hidden = true;
+  render();
+});
+document.addEventListener('click', ()=>{ const p = document.getElementById('dirGeneroFilterPopup'); if (p) p.hidden = true; });
 function renderIndicadores(){
   if (!state.rows.length) return;
   const cerradas0 = state.rows.filter(r=>r.cerrada); // "contratadas" = vacantes realmente cerradas (se excluyen canceladas/anuladas)
@@ -1893,21 +1941,25 @@ function renderIndicadores(){
       plugins:{ legend:{position:'right', labels:{boxWidth:10, font:{size:10}}},
         tooltip:{ callbacks:{ label: c => ' '+c.label+': '+c.parsed+' vacantes ('+round0(100*c.parsed/totalDir)+'%)' } } } }
   }));
+  // Filtro propio de esta gráfica (state.dirGeneroFilter): elige una o varias Direcciones para
+  // mostrar solo esas barras, sin afectar el pastel de al lado ni el resto de la página.
+  populateDirGeneroFilterPopup(dirOrden.map(x=>x.d));
+  const dirGeneroData = state.dirGeneroFilter.size ? dirOrden.filter(x=>state.dirGeneroFilter.has(x.d)) : dirOrden;
   // Barras bidireccionales (tipo pirámide poblacional): eje X = Edad Promedio, eje Y = Dirección --
   // la barra de Mujeres se dibuja hacia la izquierda (valor negativo) y la de Hombres hacia la
   // derecha (valor positivo), desde un mismo cero central. Los ticks y el tooltip del eje X
   // muestran el valor absoluto (años), nunca el negativo interno que solo sirve para el dibujo.
-  renderIndPlaceholderOrChart('chartDirGenero','dirGenero','ind_wrapDirGenero', haveGenero, dirOrden.filter(x=>typeof x.promEdadM==='number'||typeof x.promEdadH==='number'), ()=>({
+  renderIndPlaceholderOrChart('chartDirGenero','dirGenero','ind_wrapDirGenero', haveGenero, dirGeneroData.filter(x=>typeof x.promEdadM==='number'||typeof x.promEdadH==='number'), ()=>({
     type:'bar',
-    data:{ labels: dirOrden.map(x=>x.d),
+    data:{ labels: dirGeneroData.map(x=>x.d),
       datasets:[
-        { label:'Mujeres', data: dirOrden.map(x=>typeof x.promEdadM==='number' ? -x.promEdadM : null), backgroundColor:'#d6336c', stack:'edad', barPercentage:0.7, categoryPercentage:0.7 },
-        { label:'Hombres', data: dirOrden.map(x=>typeof x.promEdadH==='number' ? x.promEdadH : null), backgroundColor:'#2f6fed', stack:'edad', barPercentage:0.7, categoryPercentage:0.7 } ] },
+        { label:'Mujeres', data: dirGeneroData.map(x=>typeof x.promEdadM==='number' ? -x.promEdadM : null), backgroundColor:'#d6336c', stack:'edad', barPercentage:0.7, categoryPercentage:0.7 },
+        { label:'Hombres', data: dirGeneroData.map(x=>typeof x.promEdadH==='number' ? x.promEdadH : null), backgroundColor:'#2f6fed', stack:'edad', barPercentage:0.7, categoryPercentage:0.7 } ] },
     options:{ indexAxis:'y', responsive:true, maintainAspectRatio:false,
       plugins:{ legend:{position:'bottom', labels:{boxWidth:10, font:{size:10}}},
         tooltip:{ callbacks:{
           label: c => ' '+c.dataset.label+' -- edad prom.: '+round0(Math.abs(c.parsed.x))+' años',
-          footer: items => { const s = dirOrden[items[0].dataIndex];
+          footer: items => { const s = dirGeneroData[items[0].dataIndex];
             return ['Total vacantes: '+s.total, '% Mujeres: '+s.pctM, '% Hombres: '+s.pctH]; } } } },
       scales:{
         x:{ stacked:true, ticks:{ precision:0, callback:v=>Math.abs(v) }, title:{display:true,text:'Edad promedio (años)',font:{size:10}} },
