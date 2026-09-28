@@ -1,5 +1,5 @@
 <!doctype html>
-<!-- Tablero Vacantes - build 2026-09-25 v51 (uso interno para control de versión, no visible en el tablero) -->
+<!-- Tablero Vacantes - build 2026-09-25 v52 (uso interno para control de versión, no visible en el tablero) -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -133,12 +133,10 @@ loadScriptWithFallbacks([
   .kpis .kpi-sub{font-size:9px;margin-top:2px;}
   .kpis .kpi .ic-title{width:12px;height:12px;}
   .kpis .kpi-check{font-size:11px;top:6px;right:7px;}
-  .kpi-stack{display:flex;flex-direction:column;gap:6px;width:130px;}
-  .kpi-stack .kpi{flex:1;}
-  .kpi-mini{background:var(--card);border:1px solid var(--border);border-radius:10px;box-shadow:var(--shadow);padding:6px 10px;display:flex;align-items:center;justify-content:space-between;gap:6px;font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.3px;cursor:pointer;transition:.15s;}
-  .kpi-mini:hover{transform:translateY(-2px);box-shadow:0 4px 14px rgba(20,30,60,.14);}
-  .kpi-mini .kpi-mini-value{font-size:16px;font-weight:800;color:#8b8f99;letter-spacing:0;}
-  .kpi-mini.active{border-color:var(--blue);box-shadow:0 0 0 2px var(--blue) inset,var(--shadow);}
+  .kpi-stack{display:flex;flex-direction:column;gap:12px;width:130px;}
+  .kpi.v-cancelada .kpi-value{color:#8b8f99;}
+  .kpis{align-items:flex-start;}
+  .kpis .kpi, .kpis .tipo-square{min-height:119px;}
 
   .charts.single-chart{grid-template-columns:1fr;}
 
@@ -322,8 +320,11 @@ loadScriptWithFallbacks([
         <div class="kpi-sub">clic para filtrar</div>
         <div class="kpi-check">✓</div>
       </div>
-      <div class="kpi-mini" id="kpiCanceladas" title="Clic para filtrar por vacantes canceladas (usa el filtro de Estado)">
-        <span>Cancelada</span><span class="kpi-mini-value" id="kpiCanceladasValue">0</span>
+      <div class="kpi v-cancelada clickable" id="kpiCanceladas" title="Clic para filtrar por vacantes canceladas (usa el filtro de Estado)">
+        <div class="kpi-label"><svg class="ic-title" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>Cancelada</div>
+        <div class="kpi-value" id="kpiCanceladasValue">0</div>
+        <div class="kpi-sub">clic para filtrar</div>
+        <div class="kpi-check">✓</div>
       </div>
       </div>
       <div class="kpi v-diascierre" title="Toma la columna 'Días de Cierre de Vacantes' del Excel cuando existe; si no, calcula días hábiles entre Fecha Liberación y Fecha Envío a Compensación.">
