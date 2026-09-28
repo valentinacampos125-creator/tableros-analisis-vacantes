@@ -1,5 +1,5 @@
 <!doctype html>
-<!-- Tablero Vacantes - build 2026-09-28 v65 (uso interno para control de versión, no visible en el tablero) -->
+<!-- Tablero Vacantes - build 2026-09-28 v66 (uso interno para control de versión, no visible en el tablero) -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -444,7 +444,7 @@ loadScriptWithFallbacks([
       <div class="kpi v-total" title="Cuenta las filas que traen un nombre en la columna &quot;Candidato Seleccionado&quot; del Excel (no el Estado); excluye las que la columna Fecha Ingreso marca como &quot;NO INGRESO&quot;, con los mismos filtros de esta página."><div class="kpi-label"><svg class="ic-title" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>Total Contratados</div><div class="kpi-value" id="ind_totalContratados" style="color:var(--ink);">—</div><div class="kpi-sub" id="ind_totalContratadosSub"></div></div>
       <div class="kpi v-mujeres"><div class="kpi-label"><svg class="ic-title" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="9" r="6"></circle><line x1="12" y1="15" x2="12" y2="22"></line><line x1="9" y1="19" x2="15" y2="19"></line></svg>% Mujeres Contratadas</div><div class="kpi-value" id="ind_pctMujeres" style="color:#d6336c;">—</div><div class="kpi-sub" id="ind_countMujeres"></div></div>
       <div class="kpi v-hombres"><div class="kpi-label"><svg class="ic-title" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="14" r="6"></circle><line x1="14.5" y1="9.5" x2="21" y2="3"></line><polyline points="15 3 21 3 21 9"></polyline></svg>% Hombres Contratados</div><div class="kpi-value" id="ind_pctHombres" style="color:#2f6fed;">—</div><div class="kpi-sub" id="ind_countHombres"></div></div>
-      <div class="kpi v-topdir" title="Sobre el mismo grupo de vacantes contratadas y filtros de esta página; coincide con la tabla Resumen por Dirección Corporativa."><div class="kpi-label"><svg class="ic-title" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="1"></rect><line x1="9" y1="7" x2="9" y2="7.01"></line><line x1="15" y1="7" x2="15" y2="7.01"></line><line x1="9" y1="12" x2="9" y2="12.01"></line><line x1="15" y1="12" x2="15" y2="12.01"></line><line x1="9" y1="17" x2="15" y2="17"></line></svg>Dirección con Más Vacantes</div><div class="kpi-value" id="ind_topDireccion" style="color:#f2994a;font-size:16px;line-height:1.2;">—</div><div class="kpi-sub" id="ind_topDireccionSub"></div></div>
+      <div class="kpi v-topdir" title="Sobre el mismo grupo de vacantes contratadas y filtros de esta página; coincide con las gráficas de Resumen por Dirección Corporativa de abajo."><div class="kpi-label"><svg class="ic-title" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="1"></rect><line x1="9" y1="7" x2="9" y2="7.01"></line><line x1="15" y1="7" x2="15" y2="7.01"></line><line x1="9" y1="12" x2="9" y2="12.01"></line><line x1="15" y1="12" x2="15" y2="12.01"></line><line x1="9" y1="17" x2="15" y2="17"></line></svg>Dirección con Más Vacantes</div><div class="kpi-value" id="ind_topDireccion" style="color:#f2994a;font-size:16px;line-height:1.2;">—</div><div class="kpi-sub" id="ind_topDireccionSub"></div></div>
       <div class="kpi v-topcargo"><div class="kpi-label"><svg class="ic-title" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 7h-9"></path><path d="M14 17H5"></path><circle cx="17" cy="17" r="3"></circle><circle cx="7" cy="7" r="3"></circle></svg>Cargo con Más Vacantes</div><div class="kpi-value" id="ind_topCargo" style="color:#16b5a1;font-size:18px;line-height:1.2;">—</div><div class="kpi-sub" id="ind_topCargoSub"></div></div>
     </div>
 
@@ -454,13 +454,6 @@ loadScriptWithFallbacks([
 
     <div class="charts" style="grid-template-columns:1fr;">
       <div class="chart-card"><h3><svg class="ic-title" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg>Vacantes Liberadas vs. Cerradas por Mes <span style="font-weight:400;color:var(--muted);font-size:11px;">(Liberadas: todas, según Fecha Liberación · Cerradas: según Fecha Envío a Compensación)</span></h3><div class="canvas-wrap" id="ind_wrapLiberadasCerradas"><canvas id="chartLiberadasCerradasMes"></canvas></div></div>
-    </div>
-
-    <div class="ind-tables" style="grid-template-columns:1fr;">
-      <div class="table-card">
-        <h3><svg class="ic-title" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="1"></rect><line x1="9" y1="7" x2="9" y2="7.01"></line><line x1="15" y1="7" x2="15" y2="7.01"></line><line x1="9" y1="12" x2="9" y2="12.01"></line><line x1="15" y1="12" x2="15" y2="12.01"></line><line x1="9" y1="17" x2="15" y2="17"></line></svg>Resumen por Dirección Corporativa</h3>
-        <div id="ind_tableDireccion"></div>
-      </div>
     </div>
     <div class="charts" style="grid-template-columns:1fr 1.4fr;margin-top:12px;">
       <div class="chart-card"><h3><svg class="ic-title" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M12 2a15.3 15.3 0 0 1 0 20"></path><path d="M12 2a15.3 15.3 0 0 0 0 20"></path><line x1="2" y1="12" x2="22" y2="12"></line></svg>Vacantes cerradas por Dirección (participación)</h3><div class="canvas-wrap" id="ind_wrapDirTotal" style="height:360px;"><canvas id="chartDirTotal"></canvas></div></div>
@@ -1864,43 +1857,29 @@ function renderIndicadores(){
   renderChartLiberadasCerradasMes();
 
   // tabla por dirección
+  // Direcciones (agrupadas con direccionResumen) para las dos gráficas de "Resumen por Dirección
+  // Corporativa" -- antes también alimentaba una tabla con las mismas cifras, pero se quitó porque
+  // duplicaba exactamente lo que ya muestran estas gráficas.
   const direcciones = [...new Set(rows.map(r=>direccionResumen(r.direccion)).filter(v=>v!==null && v!==undefined && v!==''))].sort((a,b)=>String(a).localeCompare(String(b),'es'));
-  let html = '<table><thead><tr><th>Dirección</th><th>Total Vacantes</th><th>Prom. Edad</th><th>% Mujeres</th><th>% Hombres</th></tr></thead><tbody>';
-  const dirStats = []; // una entrada por fila de la tabla, para las gráficas de abajo
-  if (!direcciones.length){ html = '<div class="placeholder-note">No hay columna de Dirección / datos suficientes en el Excel cargado.</div>'; }
-  else{
-    direcciones.forEach(d=>{
-      const sub = rows.filter(r=>direccionResumen(r.direccion)===d);
-      const edadDe = r => (typeof r.edad==='number')?r.edad:ageFromBirth(r.fechaNacimiento, r.fechaCierre);
-      const edades = sub.map(edadDe).filter(v=>typeof v==='number');
-      const promE = edades.length? round0(avg(edades)) : '—';
-      let pctM='—', pctH='—', m=0, h=0, promEdadM=null, promEdadH=null;
-      if (haveGenero && sub.length){
-        const mujeresRows = sub.filter(r=>normalize(r.genero).startsWith('F')||normalize(r.genero).includes('MUJER'));
-        const hombresRows = sub.filter(r=>normalize(r.genero).startsWith('M')&&!normalize(r.genero).includes('MUJER')||normalize(r.genero).includes('HOMBRE'));
-        m = mujeresRows.length; h = hombresRows.length;
-        pctM = round0(100*m/sub.length)+'%'; pctH = round0(100*h/sub.length)+'%';
-        promEdadM = avg(mujeresRows.map(edadDe).filter(v=>typeof v==='number'));
-        promEdadH = avg(hombresRows.map(edadDe).filter(v=>typeof v==='number'));
-      }
-      dirStats.push({ d, total: sub.length, promE, m, h, pctM, pctH, promEdadM, promEdadH });
-      html += `<tr><td>${esc(d)}</td><td>${sub.length}</td><td>${promE}</td><td>${pctM}</td><td>${pctH}</td></tr>`;
-    });
-    // Fila de totales: suma de vacantes (contratadas) de todas las direcciones, con los filtros
-    // actuales de Indicadores (Profesional/Dirección/Tipo Vacante/Año/Mes/Semana) -- coincide con
-    // "rows.length" (todas las contratadas ya filtradas), no solo la suma de las direcciones
-    // listadas arriba, por si alguna vacante no tiene Dirección asignada.
-    html += `<tr class="ind-total-row"><td><strong>Total</strong></td><td><strong>${rows.length}</strong></td><td></td><td></td><td></td></tr>`;
-    html += '</tbody></table>';
-  }
-  document.getElementById('ind_tableDireccion').innerHTML = html;
+  const dirStats = [];
+  direcciones.forEach(d=>{
+    const sub = rows.filter(r=>direccionResumen(r.direccion)===d);
+    const edadDe = r => (typeof r.edad==='number')?r.edad:ageFromBirth(r.fechaNacimiento, r.fechaCierre);
+    const edades = sub.map(edadDe).filter(v=>typeof v==='number');
+    const promE = edades.length? round0(avg(edades)) : '—';
+    let pctM='—', pctH='—', m=0, h=0, promEdadM=null, promEdadH=null;
+    if (haveGenero && sub.length){
+      const mujeresRows = sub.filter(r=>normalize(r.genero).startsWith('F')||normalize(r.genero).includes('MUJER'));
+      const hombresRows = sub.filter(r=>normalize(r.genero).startsWith('M')&&!normalize(r.genero).includes('MUJER')||normalize(r.genero).includes('HOMBRE'));
+      m = mujeresRows.length; h = hombresRows.length;
+      pctM = round0(100*m/sub.length)+'%'; pctH = round0(100*h/sub.length)+'%';
+      promEdadM = avg(mujeresRows.map(edadDe).filter(v=>typeof v==='number'));
+      promEdadH = avg(hombresRows.map(edadDe).filter(v=>typeof v==='number'));
+    }
+    dirStats.push({ d, total: sub.length, promE, m, h, pctM, pctH, promEdadM, promEdadH });
+  });
 
-  if (!rows.length){
-    document.getElementById('ind_tableDireccion').innerHTML = '<div class="placeholder-note">No hay vacantes cerradas (contratadas) con los filtros actuales.</div>';
-  }
-
-  // Gráficas del "Resumen por Dirección Corporativa": mismas filas y mismos datos que la tabla
-  // (Total, Prom. Edad, % Mujeres, % Hombres) para que no se pierda ninguna información.
+  // Gráficas del "Resumen por Dirección Corporativa" (Total, Prom. Edad, % Mujeres, % Hombres).
   // - Pastel: participación de cada dirección en el total de vacantes cerradas.
   // - Barras apiladas: mujeres y hombres por dirección; bajo el nombre va la edad promedio y el
   //   tooltip repite Total, Prom. Edad, % Mujeres y % Hombres.
