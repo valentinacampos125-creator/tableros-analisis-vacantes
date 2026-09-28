@@ -1,5 +1,5 @@
 <!doctype html>
-<!-- Tablero Vacantes - build 2026-09-28 v53 (uso interno para control de versión, no visible en el tablero) -->
+<!-- Tablero Vacantes - build 2026-09-28 v54 (uso interno para control de versión, no visible en el tablero) -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -688,18 +688,38 @@ function esc(s){ return (s===null||s===undefined?'':String(s)).replace(/[&<>"]/g
 // Dirección. Se agrupan por su forma sin tildes (normalize) y se unifica cada grupo bajo una sola
 // forma -- la variante con tilde más frecuente si existe alguna, o si no, la más frecuente.
 function stripDiacritics(v){ return v.normalize('NFD').replace(/[̀-ͯ]/g,'').normalize('NFC'); }
+// Además de las variantes con/sin tilde, el Excel trae algunas Direcciones que son la MISMA
+// dirección escrita de formas distintas -- se agrupan bajo un solo nombre fijo (a pedido de
+// Valentina), en vez de dejar que gane la variante más frecuente: "Planeación Estratégica e
+// Innovación" / "Planeación Estratégica y Experiencia" / "Producto e Innovación" son la misma
+// dirección, y "Dirección Unidad Mercado Corporativo" es la misma que "Unidad Mercado
+// Corporativo". Esto corrige el filtro "Dirección Comité", el de la gráfica "Vacantes por
+// Antigüedad" y cualquier otro lugar que use la Dirección de cada vacante.
+const DIRECCION_ALIASES = [
+  { key:'PLANEACION_INNOVACION', label:'Dirección Corporativa Planeación Estratégica e Innovación',
+    test:n => n.includes('PLANEACION ESTRATEGICA E INNOVACION') || n.includes('PLANEACION ESTRATEGICA Y EXPERIENCIA') || n.includes('PRODUCTO E INNOVACION') },
+  { key:'MERCADO_CORPORATIVO', label:'Unidad Mercado Corporativo',
+    test:n => n.includes('UNIDAD MERCADO CORPORATIVO') },
+];
+function direccionGroupKey(v){
+  const n = normalize(v);
+  const alias = DIRECCION_ALIASES.find(a=>a.test(n));
+  return alias ? alias.key : n;
+}
 function canonicalizeDireccion(rows){
   const groups = new Map();
   rows.forEach(r=>{
     const v = r.direccion;
     if (typeof v !== 'string' || !v) return;
-    const nk = normalize(v);
-    if (!groups.has(nk)) groups.set(nk, new Map());
-    const m = groups.get(nk);
+    const gk = direccionGroupKey(v);
+    if (!groups.has(gk)) groups.set(gk, new Map());
+    const m = groups.get(gk);
     m.set(v, (m.get(v)||0)+1);
   });
   const canon = new Map();
-  groups.forEach((variants, nk)=>{
+  groups.forEach((variants, gk)=>{
+    const alias = DIRECCION_ALIASES.find(a=>a.key===gk);
+    if (alias){ canon.set(gk, alias.label); return; }
     let best = null, bestScore = -1;
     variants.forEach((count, val)=>{
       const score = (val !== stripDiacritics(val) ? 1000 : 0) + count;
@@ -707,10 +727,10 @@ function canonicalizeDireccion(rows){
         best = val; bestScore = score;
       }
     });
-    canon.set(nk, best);
+    canon.set(gk, best);
   });
   rows.forEach(r=>{
-    if (typeof r.direccion === 'string' && r.direccion) r.direccion = canon.get(normalize(r.direccion));
+    if (typeof r.direccion === 'string' && r.direccion) r.direccion = canon.get(direccionGroupKey(r.direccion));
   });
 }
 // Convierte el valor crudo de una columna Sí/No a booleano -- null cuando la celda está vacía o
