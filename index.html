@@ -1,5 +1,5 @@
 <!doctype html>
-<!-- Tablero Vacantes - build 2026-09-28 v62 (uso interno para control de versión, no visible en el tablero) -->
+<!-- Tablero Vacantes - build 2026-09-28 v63 (uso interno para control de versión, no visible en el tablero) -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -430,7 +430,7 @@ loadScriptWithFallbacks([
     </div>
 
     <div class="ind-grid" style="grid-template-columns:repeat(5,1fr);">
-      <div class="kpi" title="Cuenta las filas que traen un nombre en la columna &quot;Candidato Seleccionado&quot; del Excel (no el Estado), con los mismos filtros de esta página."><div class="kpi-label"><svg class="ic-title" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>Total Contratados</div><div class="kpi-value" id="ind_totalContratados" style="color:var(--ink);">—</div><div class="kpi-sub" id="ind_totalContratadosSub"></div></div>
+      <div class="kpi" title="Cuenta las filas que traen un nombre en la columna &quot;Candidato Seleccionado&quot; del Excel (no el Estado); excluye las que la columna Fecha Ingreso marca como &quot;NO INGRESO&quot;, con los mismos filtros de esta página."><div class="kpi-label"><svg class="ic-title" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>Total Contratados</div><div class="kpi-value" id="ind_totalContratados" style="color:var(--ink);">—</div><div class="kpi-sub" id="ind_totalContratadosSub"></div></div>
       <div class="kpi"><div class="kpi-label"><svg class="ic-title" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="9" r="6"></circle><line x1="12" y1="15" x2="12" y2="22"></line><line x1="9" y1="19" x2="15" y2="19"></line></svg>% Mujeres Contratadas</div><div class="kpi-value" id="ind_pctMujeres" style="color:#d6336c;">—</div><div class="kpi-sub" id="ind_countMujeres"></div></div>
       <div class="kpi"><div class="kpi-label"><svg class="ic-title" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="14" r="6"></circle><line x1="14.5" y1="9.5" x2="21" y2="3"></line><polyline points="15 3 21 3 21 9"></polyline></svg>% Hombres Contratados</div><div class="kpi-value" id="ind_pctHombres" style="color:#2f6fed;">—</div><div class="kpi-sub" id="ind_countHombres"></div></div>
       <div class="kpi" title="Sobre el mismo grupo de vacantes contratadas y filtros de esta página; coincide con la tabla Resumen por Dirección Corporativa."><div class="kpi-label"><svg class="ic-title" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="1"></rect><line x1="9" y1="7" x2="9" y2="7.01"></line><line x1="15" y1="7" x2="15" y2="7.01"></line><line x1="9" y1="12" x2="9" y2="12.01"></line><line x1="15" y1="12" x2="15" y2="12.01"></line><line x1="9" y1="17" x2="15" y2="17"></line></svg>Dirección con Más Vacantes</div><div class="kpi-value" id="ind_topDireccion" style="color:#f2994a;font-size:16px;line-height:1.2;">—</div><div class="kpi-sub" id="ind_topDireccionSub"></div></div>
@@ -832,6 +832,12 @@ function loadWorkbook(data, sourceLabel){
       const fechaLib = toDate(get('fechaLiberacion'));
       const estado = titleCase(get('estado'));
       const fechaIngreso = toDate(get('fechaIngreso'));
+      // Algunas filas traen literalmente el texto "NO INGRESO" en la celda de Fecha Ingreso -- es
+      // la señal de que, aunque hubo Candidato Seleccionado y la vacante quedó "Cerrada", esa
+      // persona finalmente NO llegó a ingresar a la compañía (desistió, no aceptó la oferta,
+      // etc.). Sirve para que "Total Contratados" no cuente a esa persona como una contratación
+      // real, aunque su nombre siga en la columna Candidato Seleccionado.
+      const noIngreso = normalize(get('fechaIngreso')).includes('NO INGRESO');
       // Fecha de envío a compensación (columna aparte de Fecha Ingreso): a partir de este cambio
       // es la fecha REAL de cierre de la vacante -- ver fechaCierre más abajo. Antes solo se usaba
       // para el gráfico de "Vacantes Liberadas vs. Cerradas por Mes" en Análisis de Indicadores;
@@ -880,7 +886,7 @@ function loadWorkbook(data, sourceLabel){
         fechaNacimiento: toDate(get('fechaNacimiento')), nivelContribucion: cleanText(get('nivelContribucion')),
         funcionNivelCargo: stripNivelSuffix(get('funcionNivelCargo')),
         talentoJoven: parseSiNo(get('talentoJoven')), generacion: cleanText(get('generacion')),
-        candidatoSeleccionado: cleanText(get('candidatoSeleccionado')),
+        candidatoSeleccionado: cleanText(get('candidatoSeleccionado')), noIngreso,
         stageDates: extractStageDates(get('comentarios')),
       });
     }
@@ -1781,14 +1787,16 @@ function renderIndicadores(){
   // Seleccionado" del Excel -- una vacante solo cuenta si esa celda trae un nombre (a pedido de
   // Valentina, porque el Estado puede quedar desactualizado). Mismo universo/filtros que "rows".
   const haveCandidato = state.cols.candidatoSeleccionado !== undefined;
-  const contratadosReales = haveCandidato ? rows.filter(r=>r.candidatoSeleccionado) : rows;
+  const contratadosReales = haveCandidato ? rows.filter(r=>r.candidatoSeleccionado && !r.noIngreso) : rows;
+  const seleccionadosQueNoIngresaron = haveCandidato ? rows.filter(r=>r.candidatoSeleccionado && r.noIngreso).length : 0;
   if (contratadosReales.length){
     const mujeresReales = contratadosReales.filter(r=>normalize(r.genero).startsWith('F') || normalize(r.genero).includes('MUJER'));
     const hombresReales = contratadosReales.filter(r=>normalize(r.genero).startsWith('M') && !normalize(r.genero).includes('MUJER') || normalize(r.genero).includes('HOMBRE'));
     document.getElementById('ind_totalContratados').textContent = contratadosReales.length;
-    document.getElementById('ind_totalContratadosSub').textContent = haveGenero
+    const pctSub = haveGenero
       ? round0(100*mujeresReales.length/contratadosReales.length)+'% mujeres · '+round0(100*hombresReales.length/contratadosReales.length)+'% hombres'
       : (haveCandidato ? 'según Candidato Seleccionado' : '');
+    document.getElementById('ind_totalContratadosSub').textContent = pctSub + (seleccionadosQueNoIngresaron ? ' · '+seleccionadosQueNoIngresaron+' no contados por "NO INGRESO"' : '');
   } else {
     document.getElementById('ind_totalContratados').textContent = '—';
     document.getElementById('ind_totalContratadosSub').textContent = '';
