@@ -1,5 +1,5 @@
 <!doctype html>
-<!-- Tablero Vacantes - build 2026-09-28 v55 (uso interno para control de versión, no visible en el tablero) -->
+<!-- Tablero Vacantes - build 2026-09-28 v56 (uso interno para control de versión, no visible en el tablero) -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -95,12 +95,18 @@ loadScriptWithFallbacks([
   .theme-toggle:hover{background:rgba(255,255,255,.3);}
 
   .toolbar{max-width:1500px;margin:14px auto 0;padding:0 16px;}
-  .source-panel{background:var(--card);border:1px solid var(--border);border-radius:12px;box-shadow:var(--shadow);padding:14px 16px;margin-bottom:14px;transition:background-color .2s,border-color .2s,box-shadow .2s;}
-  .source-panel[open]{box-shadow:var(--shadow-lg);}
-  .source-panel summary{cursor:pointer;font-weight:700;font-size:13.5px;color:var(--blue-dark);list-style:none;display:flex;align-items:center;gap:8px;}
-  .source-panel summary::-webkit-details-marker{display:none;}
-  .source-panel summary:before{content:"⛁";font-size:15px;}
+  /* El panel de "Origen de datos" ya no vive en el flujo normal de la página -- se abre como un
+     panel flotante bajo el botón "Base" del header, con un fondo oscuro detrás que lo cierra al
+     hacer clic fuera, y desaparece solo apenas se carga un Excel con éxito. */
+  .source-panel{position:fixed;top:70px;right:16px;z-index:120;width:min(820px, calc(100vw - 32px));max-height:calc(100vh - 90px);overflow:auto;background:var(--card);border:1px solid var(--border);border-radius:12px;box-shadow:var(--shadow-lg);padding:14px 16px;display:none;transition:background-color .2s,border-color .2s;}
+  .source-panel.open{display:block;}
+  .source-panel-backdrop{position:fixed;inset:0;background:rgba(10,14,22,.35);z-index:110;}
+  .source-panel-backdrop[hidden]{display:none;}
+  .source-panel-head{display:flex;align-items:center;justify-content:space-between;gap:8px;font-weight:700;font-size:13.5px;color:var(--blue-dark);padding-bottom:10px;margin-bottom:2px;border-bottom:1px solid var(--border);}
+  .source-panel-close{background:none;border:none;color:var(--muted);font-size:15px;cursor:pointer;padding:2px 6px;border-radius:6px;line-height:1;}
+  .source-panel-close:hover{background:var(--th-bg);color:var(--ink);}
   .source-body{margin-top:12px;display:flex;flex-wrap:wrap;gap:20px;}
+  @media (max-width:640px){ .source-panel{top:0;right:0;left:0;bottom:0;width:100%;max-height:100vh;border-radius:0;} }
   .drop-zone{flex:1;min-width:260px;border:2px dashed var(--dropzone-border);border-radius:10px;padding:18px;text-align:center;font-size:13px;color:var(--muted);cursor:pointer;transition:.15s;background:var(--dropzone-bg);}
   .drop-zone.drag{border-color:var(--blue);background:var(--drag-bg);color:var(--blue-dark);}
   .drop-zone input{display:none;}
@@ -255,6 +261,7 @@ loadScriptWithFallbacks([
   </div>
   <div class="app-title">SEGUIMIENTO DE VACANTES</div>
   <div class="header-right">
+    <button class="theme-toggle" id="btnToggleSource" title="Mostrar u ocultar el origen de datos (Excel)">📁 <span id="sourceToggleLabel">Base</span></button>
     <button class="theme-toggle" id="btnThemeToggle" title="Cambiar entre modo claro y oscuro" aria-label="Cambiar entre modo claro y oscuro">🌙</button>
     <span class="pill" id="pillExcluidas" style="display:none;" title="Estados como Cancelada/Anulada/Desierta: no se cuentan como abiertas, críticas ni cerradas">⛔ <span id="excluidasCount">0</span> excluidas</span>
     <span class="pill alert" id="pillAlert" style="display:none;">⚠️ <span id="alertCount">0</span> &ge; 29 días</span>
@@ -263,8 +270,12 @@ loadScriptWithFallbacks([
 
 <div class="toolbar">
 
-  <details class="source-panel" id="sourcePanel" open>
-    <summary>Origen de datos (Excel de OneDrive)</summary>
+  <div class="source-panel-backdrop" id="sourcePanelBackdrop" hidden></div>
+  <div class="source-panel" id="sourcePanel">
+    <div class="source-panel-head">
+      <span>⛁ Origen de datos (Excel de OneDrive)</span>
+      <button type="button" class="source-panel-close" id="btnCloseSource" aria-label="Cerrar">✕</button>
+    </div>
     <div class="source-body">
 
       <div class="source-actions" id="localFilePanel" style="flex-basis:100%;border:1px solid #cfe0ff;background:#f5f9ff;border-radius:10px;padding:12px;">
@@ -299,7 +310,7 @@ loadScriptWithFallbacks([
         <div style="font-size:11px;color:var(--muted);">Última actualización de datos: <strong id="lastUpdatedText">—</strong></div>
       </div>
     </div>
-  </details>
+  </div>
 
   <!-- ===================== PÁGINA 1: SEGUIMIENTO ===================== -->
   <div id="pageSeguimiento">
@@ -699,7 +710,7 @@ const DIRECCION_ALIASES = [
   { key:'PLANEACION_INNOVACION', label:'Dirección Corporativa Planeación Estratégica e Innovación',
     test:n => n.includes('PLANEACION ESTRATEGICA E INNOVACION') || n.includes('PLANEACION ESTRATEGICA Y EXPERIENCIA') || n.includes('PRODUCTO E INNOVACION') },
   { key:'MERCADO_CORPORATIVO', label:'Unidad Mercado Corporativo',
-    test:n => n.includes('UNIDAD MERCADO CORPORATIVO') },
+    test:n => n.includes('UNIDAD MERCADO CORPORATIVO') || n.includes('OPERACIONES TECNICAS DE CAMPO') },
   { key:'FINANCIERA', label:'Dirección Corporativa Financiera',
     test:n => n.includes('FINANCIERA') },
 ];
@@ -869,7 +880,7 @@ function loadWorkbook(data, sourceLabel){
     populateFilterOptions();
     render();
     setStatus('fetchStatus', `Cargado correctamente desde ${sourceLabel}: ${rows.length} filas (${sheetName}).`, 'ok');
-    document.getElementById('sourcePanel').open = false;
+    setSourcePanelOpen(false);
     try{ localStorage.setItem('vacantes_last_source', sourceLabel); }catch(e){}
   }catch(err){
     console.error(err);
@@ -880,6 +891,17 @@ function setStatus(id,msg,cls){
   const el = document.getElementById(id);
   el.textContent = msg; el.className = 'status-msg'+(cls? ' '+cls:'');
 }
+/* --- Panel flotante "Base" (Origen de datos): se abre desde el botón del header, con un fondo
+   que lo cierra al hacer clic fuera, y se cierra solo apenas se carga un Excel con éxito. --- */
+function setSourcePanelOpen(v){
+  document.getElementById('sourcePanel').classList.toggle('open', v);
+  document.getElementById('sourcePanelBackdrop').hidden = !v;
+}
+document.getElementById('btnToggleSource').addEventListener('click', ()=>{
+  setSourcePanelOpen(!document.getElementById('sourcePanel').classList.contains('open'));
+});
+document.getElementById('btnCloseSource').addEventListener('click', ()=>setSourcePanelOpen(false));
+document.getElementById('sourcePanelBackdrop').addEventListener('click', ()=>setSourcePanelOpen(false));
 
 /* --- Carga manual: input / drag&drop --- */
 const dropZone = document.getElementById('dropZone');
@@ -2354,6 +2376,10 @@ try{
   const last = localStorage.getItem('vacantes_last_source');
   if (last) setStatus('fetchStatus', 'La última vez cargaste datos desde: '+last+'. Vuelve a cargar el Excel para refrescarlos (por seguridad, los datos no se guardan entre sesiones).', null);
 }catch(e){}
+// Mientras no haya datos cargados, el panel "Base" arranca abierto para que sea fácil de
+// encontrar la primera vez -- se cierra solo apenas carga un Excel (ver setSourcePanelOpen en
+// loadWorkbook), incluida la restauración automática del archivo vinculado (tryRestoreLocalFile).
+if (!state.rows.length) setSourcePanelOpen(true);
 </script>
 </body>
 </html>
