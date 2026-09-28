@@ -1,5 +1,5 @@
 <!doctype html>
-<!-- Tablero Vacantes - build 2026-09-28 v59 (uso interno para control de versión, no visible en el tablero) -->
+<!-- Tablero Vacantes - build 2026-09-28 v60 (uso interno para control de versión, no visible en el tablero) -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -429,9 +429,7 @@ loadScriptWithFallbacks([
       <select id="iSemana" title="Semana de contratación (según Fecha Envío a Compensación)"><option value="">Semana (Todas)</option></select>
     </div>
 
-    <div class="ind-grid" style="grid-template-columns:repeat(4,1fr);">
-      <div class="kpi" title="Base: todas las vacantes con Fecha Liberación en el periodo filtrado, sin importar su estado actual."><div class="kpi-label"><svg class="ic-title" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4v6h6"></path><path d="M4.5 15a8 8 0 1 0 2-8.5L4 10"></path></svg>Vacantes Liberadas</div><div class="kpi-value" id="ind_pctLiberadas" style="color:#2f6fed;">—</div><div class="kpi-sub" id="ind_countLiberadas"></div></div>
-      <div class="kpi" title="Porcentaje de esas mismas Vacantes Liberadas que ya se cerraron (tasa de conversión) -- no es una categoría aparte, es sobre el mismo total de Liberadas."><div class="kpi-label"><svg class="ic-title" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>Vacantes Cerradas</div><div class="kpi-value" id="ind_pctCerradas" style="color:#27ae60;">—</div><div class="kpi-sub" id="ind_countCerradas"></div></div>
+    <div class="ind-grid" style="grid-template-columns:repeat(2,1fr);max-width:420px;">
       <div class="kpi"><div class="kpi-label"><svg class="ic-title" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="9" r="6"></circle><line x1="12" y1="15" x2="12" y2="22"></line><line x1="9" y1="19" x2="15" y2="19"></line></svg>% Mujeres Contratadas</div><div class="kpi-value" id="ind_pctMujeres" style="color:#d6336c;">—</div><div class="kpi-sub" id="ind_countMujeres"></div></div>
       <div class="kpi"><div class="kpi-label"><svg class="ic-title" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="14" r="6"></circle><line x1="14.5" y1="9.5" x2="21" y2="3"></line><polyline points="15 3 21 3 21 9"></polyline></svg>% Hombres Contratados</div><div class="kpi-value" id="ind_pctHombres" style="color:#2f6fed;">—</div><div class="kpi-sub" id="ind_countHombres"></div></div>
     </div>
@@ -452,7 +450,7 @@ loadScriptWithFallbacks([
     </div>
     <div class="charts" style="grid-template-columns:1fr 1.4fr;margin-top:12px;">
       <div class="chart-card"><h3>Vacantes cerradas por Dirección (participación)</h3><div class="canvas-wrap" id="ind_wrapDirTotal" style="height:360px;"><canvas id="chartDirTotal"></canvas></div></div>
-      <div class="chart-card"><h3>Mujeres y Hombres por Dirección <span style="font-weight:400;color:var(--muted);font-size:11px;">(bajo cada nombre: edad promedio)</span></h3><div class="canvas-wrap" id="ind_wrapDirGenero" style="height:360px;"><canvas id="chartDirGenero"></canvas></div></div>
+      <div class="chart-card"><h3>Edad Promedio de Mujeres y Hombres por Dirección</h3><div class="canvas-wrap" id="ind_wrapDirGenero" style="height:360px;"><canvas id="chartDirGenero"></canvas></div></div>
     </div>
 
     <div class="charts" style="grid-template-columns:1fr 1fr;margin-top:12px;">
@@ -1798,27 +1796,6 @@ function renderIndicadores(){
       scales:{x:{stacked:true,grid:{display:false}}, y:{stacked:true, beginAtZero:true, ticks:{precision:0}}} } };
   });
 
-  // Botones-KPI "Vacantes Liberadas" / "Vacantes Cerradas": mismo alcance de filtros que la
-  // gráfica de Liberadas vs. Cerradas por Mes (Profesional/Dirección/Tipo de Vacante + Año/Mes/
-  // Semana), pero ahora es un embudo, no dos categorías independientes: "Liberadas" es la base
-  // (100%, todas las vacantes con Fecha Liberación en el periodo, sin importar su estado actual)
-  // y "Cerradas" es qué porcentaje de esas MISMAS liberadas ya se cerró -- una tasa de conversión,
-  // por eso "Cerradas" cuenta sobre el total de Liberadas, no sobre la suma de ambas.
-  {
-    const rowsBaseLC = state.rows.filter(r => (!f.profesional||r.profesional===f.profesional) && (!f.direccion||r.direccion===f.direccion) && (!f.tipoVacante||r.tipoVacante===f.tipoVacante));
-    const haveEnvioComp = state.cols.fechaEnvioCompensacion !== undefined;
-    if (haveEnvioComp && rowsBaseLC.length){
-      const { liberadas } = computeLiberadasCerradas(rowsBaseLC, f);
-      const cerradasDeEsasLiberadas = liberadas.filter(r=>r.cerrada);
-      document.getElementById('ind_countLiberadas').textContent = liberadas.length+' liberadas (base)';
-      document.getElementById('ind_countCerradas').textContent = cerradasDeEsasLiberadas.length+' de '+liberadas.length+' liberadas ya cerraron';
-      document.getElementById('ind_pctLiberadas').textContent = liberadas.length? '100%' : '—';
-      document.getElementById('ind_pctCerradas').textContent = liberadas.length? round0(100*cerradasDeEsasLiberadas.length/liberadas.length)+'%' : '—';
-    } else {
-      document.getElementById('ind_pctLiberadas').textContent='—'; document.getElementById('ind_countLiberadas').textContent='';
-      document.getElementById('ind_pctCerradas').textContent='—'; document.getElementById('ind_countCerradas').textContent='';
-    }
-  }
 
   renderChartLiberadasCerradasMes();
 
@@ -1830,15 +1807,19 @@ function renderIndicadores(){
   else{
     direcciones.forEach(d=>{
       const sub = rows.filter(r=>direccionResumen(r.direccion)===d);
-      const edades = sub.map(r => (typeof r.edad==='number')?r.edad:ageFromBirth(r.fechaNacimiento, r.fechaCierre)).filter(v=>typeof v==='number');
+      const edadDe = r => (typeof r.edad==='number')?r.edad:ageFromBirth(r.fechaNacimiento, r.fechaCierre);
+      const edades = sub.map(edadDe).filter(v=>typeof v==='number');
       const promE = edades.length? round0(avg(edades)) : '—';
-      let pctM='—', pctH='—', m=0, h=0;
+      let pctM='—', pctH='—', m=0, h=0, promEdadM=null, promEdadH=null;
       if (haveGenero && sub.length){
-        m = sub.filter(r=>normalize(r.genero).startsWith('F')||normalize(r.genero).includes('MUJER')).length;
-        h = sub.filter(r=>normalize(r.genero).startsWith('M')&&!normalize(r.genero).includes('MUJER')||normalize(r.genero).includes('HOMBRE')).length;
+        const mujeresRows = sub.filter(r=>normalize(r.genero).startsWith('F')||normalize(r.genero).includes('MUJER'));
+        const hombresRows = sub.filter(r=>normalize(r.genero).startsWith('M')&&!normalize(r.genero).includes('MUJER')||normalize(r.genero).includes('HOMBRE'));
+        m = mujeresRows.length; h = hombresRows.length;
         pctM = round0(100*m/sub.length)+'%'; pctH = round0(100*h/sub.length)+'%';
+        promEdadM = avg(mujeresRows.map(edadDe).filter(v=>typeof v==='number'));
+        promEdadH = avg(hombresRows.map(edadDe).filter(v=>typeof v==='number'));
       }
-      dirStats.push({ d, total: sub.length, promE, m, h, pctM, pctH });
+      dirStats.push({ d, total: sub.length, promE, m, h, pctM, pctH, promEdadM, promEdadH });
       html += `<tr><td>${esc(d)}</td><td>${sub.length}</td><td>${promE}</td><td>${pctM}</td><td>${pctH}</td></tr>`;
     });
     // Fila de totales: suma de vacantes (contratadas) de todas las direcciones, con los filtros
@@ -1869,17 +1850,25 @@ function renderIndicadores(){
       plugins:{ legend:{position:'right', labels:{boxWidth:10, font:{size:10}}},
         tooltip:{ callbacks:{ label: c => ' '+c.label+': '+c.parsed+' vacantes ('+round0(100*c.parsed/totalDir)+'%)' } } } }
   }));
-  renderIndPlaceholderOrChart('chartDirGenero','dirGenero','ind_wrapDirGenero', haveGenero, dirOrden, ()=>({
+  // Barras bidireccionales (tipo pirámide poblacional): eje X = Edad Promedio, eje Y = Dirección --
+  // la barra de Mujeres se dibuja hacia la izquierda (valor negativo) y la de Hombres hacia la
+  // derecha (valor positivo), desde un mismo cero central. Los ticks y el tooltip del eje X
+  // muestran el valor absoluto (años), nunca el negativo interno que solo sirve para el dibujo.
+  renderIndPlaceholderOrChart('chartDirGenero','dirGenero','ind_wrapDirGenero', haveGenero, dirOrden.filter(x=>typeof x.promEdadM==='number'||typeof x.promEdadH==='number'), ()=>({
     type:'bar',
-    data:{ labels: dirOrden.map(x=>[x.d, 'Prom. edad: '+x.promE]),
+    data:{ labels: dirOrden.map(x=>x.d),
       datasets:[
-        { label:'Mujeres', data: dirOrden.map(x=>x.m), backgroundColor:'#d6336c', stack:'g' },
-        { label:'Hombres', data: dirOrden.map(x=>x.h), backgroundColor:'#2f6fed', stack:'g' } ] },
+        { label:'Mujeres', data: dirOrden.map(x=>typeof x.promEdadM==='number' ? -x.promEdadM : null), backgroundColor:'#d6336c' },
+        { label:'Hombres', data: dirOrden.map(x=>typeof x.promEdadH==='number' ? x.promEdadH : null), backgroundColor:'#2f6fed' } ] },
     options:{ indexAxis:'y', responsive:true, maintainAspectRatio:false,
       plugins:{ legend:{position:'bottom', labels:{boxWidth:10, font:{size:10}}},
-        tooltip:{ callbacks:{ footer: items => { const s = dirOrden[items[0].dataIndex];
-          return ['Total: '+s.total, 'Prom. edad: '+s.promE, '% Mujeres: '+s.pctM, '% Hombres: '+s.pctH]; } } } },
-      scales:{ x:{stacked:true, beginAtZero:true, ticks:{precision:0}}, y:{stacked:true, grid:{display:false}, ticks:{font:{size:10}}} } }
+        tooltip:{ callbacks:{
+          label: c => ' '+c.dataset.label+' -- edad prom.: '+round0(Math.abs(c.parsed.x))+' años',
+          footer: items => { const s = dirOrden[items[0].dataIndex];
+            return ['Total vacantes: '+s.total, '% Mujeres: '+s.pctM, '% Hombres: '+s.pctH]; } } } },
+      scales:{
+        x:{ ticks:{ precision:0, callback:v=>Math.abs(v) }, title:{display:true,text:'Edad promedio (años)',font:{size:10}} },
+        y:{ grid:{display:false}, ticks:{font:{size:10}} } } }
   }));
 
   // Tiempo por etapa: se calcula sobre TODAS las vacantes con los filtros actuales (abiertas y
