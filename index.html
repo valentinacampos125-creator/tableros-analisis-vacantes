@@ -1,5 +1,5 @@
 <!doctype html>
-<!-- Tablero Vacantes - build 2026-09-28 v60 (uso interno para control de versión, no visible en el tablero) -->
+<!-- Tablero Vacantes - build 2026-09-28 v61 (uso interno para control de versión, no visible en el tablero) -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -429,9 +429,12 @@ loadScriptWithFallbacks([
       <select id="iSemana" title="Semana de contratación (según Fecha Envío a Compensación)"><option value="">Semana (Todas)</option></select>
     </div>
 
-    <div class="ind-grid" style="grid-template-columns:repeat(2,1fr);max-width:420px;">
+    <div class="ind-grid" style="grid-template-columns:repeat(5,1fr);">
+      <div class="kpi"><div class="kpi-label"><svg class="ic-title" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>Total Contratados</div><div class="kpi-value" id="ind_totalContratados" style="color:var(--ink);">—</div><div class="kpi-sub" id="ind_totalContratadosSub"></div></div>
       <div class="kpi"><div class="kpi-label"><svg class="ic-title" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="9" r="6"></circle><line x1="12" y1="15" x2="12" y2="22"></line><line x1="9" y1="19" x2="15" y2="19"></line></svg>% Mujeres Contratadas</div><div class="kpi-value" id="ind_pctMujeres" style="color:#d6336c;">—</div><div class="kpi-sub" id="ind_countMujeres"></div></div>
       <div class="kpi"><div class="kpi-label"><svg class="ic-title" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="14" r="6"></circle><line x1="14.5" y1="9.5" x2="21" y2="3"></line><polyline points="15 3 21 3 21 9"></polyline></svg>% Hombres Contratados</div><div class="kpi-value" id="ind_pctHombres" style="color:#2f6fed;">—</div><div class="kpi-sub" id="ind_countHombres"></div></div>
+      <div class="kpi" title="Sobre el mismo grupo de vacantes contratadas y filtros de esta página; coincide con la tabla Resumen por Dirección Corporativa."><div class="kpi-label"><svg class="ic-title" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="1"></rect><line x1="9" y1="7" x2="9" y2="7.01"></line><line x1="15" y1="7" x2="15" y2="7.01"></line><line x1="9" y1="12" x2="9" y2="12.01"></line><line x1="15" y1="12" x2="15" y2="12.01"></line><line x1="9" y1="17" x2="15" y2="17"></line></svg>Dirección con Más Vacantes</div><div class="kpi-value" id="ind_topDireccion" style="color:#f2994a;font-size:16px;line-height:1.2;">—</div><div class="kpi-sub" id="ind_topDireccionSub"></div></div>
+      <div class="kpi"><div class="kpi-label"><svg class="ic-title" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 7h-9"></path><path d="M14 17H5"></path><circle cx="17" cy="17" r="3"></circle><circle cx="7" cy="7" r="3"></circle></svg>Cargo con Más Vacantes</div><div class="kpi-value" id="ind_topCargo" style="color:#16b5a1;font-size:18px;line-height:1.2;">—</div><div class="kpi-sub" id="ind_topCargoSub"></div></div>
     </div>
 
     <div class="charts" style="grid-template-columns:1fr;">
@@ -1767,9 +1770,36 @@ function renderIndicadores(){
     document.getElementById('ind_pctHombres').textContent = round0(100*hombres.length/rows.length)+'%';
     document.getElementById('ind_countMujeres').textContent = mujeres.length+' contratadas';
     document.getElementById('ind_countHombres').textContent = hombres.length+' contratados';
+    document.getElementById('ind_totalContratados').textContent = rows.length;
+    document.getElementById('ind_totalContratadosSub').textContent = round0(100*mujeres.length/rows.length)+'% mujeres · '+round0(100*hombres.length/rows.length)+'% hombres';
   } else {
     document.getElementById('ind_pctMujeres').textContent='—'; document.getElementById('ind_pctHombres').textContent='—';
     document.getElementById('ind_countMujeres').textContent=''; document.getElementById('ind_countHombres').textContent='';
+    document.getElementById('ind_totalContratados').textContent = rows.length || '—';
+    document.getElementById('ind_totalContratadosSub').textContent = '';
+  }
+
+  // "Dirección con Más Vacantes" / "Cargo con Más Vacantes": sobre el mismo universo "rows"
+  // (contratadas con los filtros de Indicadores) que usan el resto de tarjetas de esta página y la
+  // tabla "Resumen por Dirección Corporativa" -- la Dirección usa el mismo agrupado de esa tabla
+  // (direccionResumen), para que ambas coincidan.
+  const topPorConteo = (items, keyFn) => {
+    const conteo = new Map();
+    items.forEach(r=>{ const k = keyFn(r); if (k) conteo.set(k, (conteo.get(k)||0)+1); });
+    let top = null, topN = 0;
+    conteo.forEach((n,k)=>{ if (n>topN){ top=k; topN=n; } });
+    return { top, topN, total: items.length };
+  };
+  if (rows.length){
+    const dirTop = topPorConteo(rows, r=>direccionResumen(r.direccion));
+    document.getElementById('ind_topDireccion').textContent = dirTop.top || '—';
+    document.getElementById('ind_topDireccionSub').textContent = dirTop.top ? dirTop.topN+' de '+dirTop.total+' vacantes ('+round0(100*dirTop.topN/dirTop.total)+'%)' : '';
+    const cargoTop = topPorConteo(rows, r=>r.funcionNivelCargo);
+    document.getElementById('ind_topCargo').textContent = cargoTop.top ? cargoInclusivo(cargoTop.top) : '—';
+    document.getElementById('ind_topCargoSub').textContent = cargoTop.top ? cargoTop.topN+' de '+cargoTop.total+' vacantes ('+round0(100*cargoTop.topN/cargoTop.total)+'%)' : '';
+  } else {
+    document.getElementById('ind_topDireccion').textContent='—'; document.getElementById('ind_topDireccionSub').textContent='';
+    document.getElementById('ind_topCargo').textContent='—'; document.getElementById('ind_topCargoSub').textContent='';
   }
 
   if (haveJovenInfo && rowsJoven.length){
