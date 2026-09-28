@@ -1,5 +1,5 @@
 <!doctype html>
-<!-- Tablero Vacantes - build 2026-09-28 v63 (uso interno para control de versión, no visible en el tablero) -->
+<!-- Tablero Vacantes - build 2026-09-28 v64 (uso interno para control de versión, no visible en el tablero) -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -2308,9 +2308,9 @@ function tjRenderChart(canvasId, chartKey, wrapId, rows, buildConfig){
     wrap.innerHTML = `<div class="placeholder-note">No se pudo dibujar esta gráfica.<br>${esc(err.message)}</div>`;
   }
 }
-function tjBarConfig(labels, data, horizontal){
+function tjBarConfig(labels, data, horizontal, color){
   return { type:'bar',
-    data:{ labels, datasets:[{ label:'Talento Joven', data, backgroundColor:'#e5493d', borderRadius:4 }] },
+    data:{ labels, datasets:[{ label:'Talento Joven', data, backgroundColor: color || '#e5493d', borderRadius:4 }] },
     options:{ indexAxis: horizontal ? 'y' : 'x', responsive:true, maintainAspectRatio:false,
       plugins:{ legend:{display:false} },
       scales: horizontal ? { x:{beginAtZero:true, ticks:{precision:0}}, y:{grid:{display:false}} }
@@ -2412,11 +2412,11 @@ function renderTalentoJoven(){
 
   const countBy = key => { const m = new Map(); tj.forEach(r=>{ const v = r[key] || 'Sin dato'; m.set(v,(m.get(v)||0)+1); }); return m; };
   const regiones = [...countBy('region').entries()].sort((a,b)=>String(a[0]).localeCompare(String(b[0]),'es',{numeric:true}));
-  tjRenderChart('chartTjRegion','tjRegion','tj_wrapRegion', tj, ()=>tjBarConfig(regiones.map(e=>e[0]), regiones.map(e=>e[1]), false));
+  tjRenderChart('chartTjRegion','tjRegion','tj_wrapRegion', tj, ()=>tjBarConfig(regiones.map(e=>e[0]), regiones.map(e=>e[1]), false, '#2f6fed'));
   const porMes = new Array(12).fill(0); tj.forEach(r=>{ if (r.mes) porMes[r.mes-1]++; });
-  tjRenderChart('chartTjMes','tjMes','tj_wrapMes', tj, ()=>tjBarConfig(MESES_ES, porMes, false));
+  tjRenderChart('chartTjMes','tjMes','tj_wrapMes', tj, ()=>tjBarConfig(MESES_ES, porMes, false, '#f2994a'));
   const dirs = [...countBy('direccion').entries()].sort((a,b)=>b[1]-a[1]);
-  tjRenderChart('chartTjDireccion','tjDireccion','tj_wrapDireccion', tj, ()=>tjBarConfig(dirs.map(e=>e[0]), dirs.map(e=>e[1]), true));
+  tjRenderChart('chartTjDireccion','tjDireccion','tj_wrapDireccion', tj, ()=>tjBarConfig(dirs.map(e=>e[0]), dirs.map(e=>e[1]), true, '#8b5cf6'));
 
   const wrap = document.getElementById('tj_table');
   if (!tj.length){ wrap.innerHTML = '<div class="placeholder-note">No hay personas de Talento Joven con los filtros actuales.</div>'; return; }
