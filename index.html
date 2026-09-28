@@ -1,10 +1,13 @@
 <!doctype html>
-<!-- Tablero Vacantes - build 2026-09-28 v57 (uso interno para control de versión, no visible en el tablero) -->
+<!-- Tablero Vacantes - build 2026-09-28 v58 (uso interno para control de versión, no visible en el tablero) -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Seguimiento de Vacantes - Claro</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <!-- Cada librería intenta 3 orígenes distintos por si tu red bloquea alguno (común en redes corporativas). -->
 <script>
 function loadScriptWithFallbacks(urls, globalName, onFinalFailure){
@@ -72,7 +75,8 @@ loadScriptWithFallbacks([
     --th-filter-hover:#2a3244; --dot-grey:#4b5568; --table-line:#2c3444;
   }
   *{box-sizing:border-box;}
-  body{margin:0;font-family:"Segoe UI",Arial,Helvetica,sans-serif;color:var(--ink);padding-bottom:40px;transition:background-color .2s,color .2s;
+  body{margin:0;font-family:'Inter',"Segoe UI",Arial,Helvetica,sans-serif;color:var(--ink);padding-bottom:40px;transition:background-color .2s,color .2s;
+    -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;
     background-color:var(--bg);
     background-image:
       radial-gradient(900px 480px at 8% -10%, var(--bg-glow-1), transparent 60%),
@@ -83,11 +87,13 @@ loadScriptWithFallbacks([
   ::-webkit-scrollbar-track{background:transparent;}
   ::-webkit-scrollbar-thumb{background:var(--border);border-radius:8px;}
   ::-webkit-scrollbar-thumb:hover{background:var(--muted);}
-  .app-header{position:sticky;top:0;z-index:50;background:linear-gradient(135deg,#c0392b,#e5493d 55%,#b71c1c);color:#fff;padding:12px 20px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;box-shadow:0 6px 18px rgba(150,30,20,.28), 0 2px 6px rgba(0,0,0,.12);}
+  .app-header{position:sticky;top:0;z-index:50;background:linear-gradient(135deg,#c0392b,#e5493d 55%,#b71c1c);color:#fff;padding:14px 22px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;box-shadow:0 6px 18px rgba(150,30,20,.28), 0 2px 6px rgba(0,0,0,.12);overflow:hidden;}
+  .app-header::before{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(255,255,255,.14),rgba(255,255,255,0) 55%);pointer-events:none;}
+  .app-header > *{position:relative;}
   .btn-indicadores{background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.5);color:#fff;padding:9px 16px;border-radius:8px;font-weight:600;font-size:13px;cursor:pointer;display:flex;align-items:center;gap:8px;white-space:nowrap;transition:background .15s;}
   .btn-indicadores:hover{background:rgba(255,255,255,.3);}
   .nav-left{display:flex;flex-direction:row;gap:8px;align-items:center;}
-  .app-title{font-size:19px;font-weight:700;letter-spacing:.3px;flex:1;text-align:center;min-width:200px;}
+  .app-title{font-size:20px;font-weight:800;letter-spacing:.6px;flex:1;text-align:center;min-width:200px;text-shadow:0 1px 2px rgba(0,0,0,.15);}
   .header-right{display:flex;align-items:center;gap:10px;font-size:12px;}
   .pill{background:rgba(255,255,255,.16);border-radius:20px;padding:6px 12px;font-weight:600;display:flex;align-items:center;gap:6px;}
   .pill.alert{background:#fff3cd;color:#7a4d00;}
@@ -113,8 +119,8 @@ loadScriptWithFallbacks([
   .source-actions{flex:1;min-width:260px;display:flex;flex-direction:column;gap:8px;font-size:13px;}
   .source-actions .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
   .btn{border:none;border-radius:7px;padding:8px 13px;font-size:12.5px;font-weight:600;cursor:pointer;transition:.15s;}
-  .btn-primary{background:linear-gradient(135deg,var(--blue),var(--blue-dark));color:#fff;box-shadow:0 2px 8px rgba(47,111,237,.35);}
-  .btn-primary:hover{box-shadow:0 4px 14px rgba(47,111,237,.45);transform:translateY(-1px);}
+  .btn-primary{background:linear-gradient(135deg,var(--blue),var(--blue-dark));color:#fff;box-shadow:0 2px 8px rgba(47,111,237,.35), inset 0 1px 0 rgba(255,255,255,.28);}
+  .btn-primary:hover{box-shadow:0 4px 14px rgba(47,111,237,.45), inset 0 1px 0 rgba(255,255,255,.28);transform:translateY(-1px);}
   .btn-outline{background:var(--btn-outline-bg);border:1px solid var(--input-border);color:var(--ink);}
   .btn-outline:hover{background:var(--btn-outline-hover);border-color:var(--blue);transform:translateY(-1px);}
   .btn{transition:.15s;}
@@ -124,7 +130,7 @@ loadScriptWithFallbacks([
   .field-hint{font-size:11.5px;color:var(--muted);line-height:1.5;}
   .cfg-url{width:100%;font-size:12px;padding:6px 8px;border:1px solid var(--input-border);border-radius:6px;background:var(--card);color:var(--ink);}
 
-  .filters{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:14px;}
+  .filters{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:14px;background:var(--card);border:1px solid var(--border);border-radius:14px;box-shadow:var(--shadow);padding:12px;}
   .filters select{padding:9px 12px;border-radius:8px;border:1px solid var(--border);background:var(--card);font-size:13px;min-width:170px;box-shadow:var(--shadow);color:var(--ink);transition:.15s;}
   .filters select:hover{border-color:var(--blue);}
   .filters select:focus, .chart-filter-select:focus, .cfg-url:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px rgba(47,111,237,.16);}
@@ -132,7 +138,7 @@ loadScriptWithFallbacks([
   .filters .clear-filters:hover{border-color:var(--red);color:var(--red);transform:translateY(-1px);}
 
   .kpis{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:14px;}
-  .kpi{background:var(--card);border:1px solid var(--border);border-radius:12px;box-shadow:var(--shadow);padding:14px 12px 14px;text-align:center;position:relative;overflow:hidden;transition:background-color .2s,border-color .2s,box-shadow .15s,transform .15s;}
+  .kpi{background:var(--card);border:1px solid var(--border);border-radius:14px;box-shadow:var(--shadow);padding:14px 12px 14px;text-align:center;position:relative;overflow:hidden;transition:background-color .2s,border-color .2s,box-shadow .15s,transform .15s;}
   .kpi::before{content:"";position:absolute;top:0;left:0;right:0;height:4px;background:var(--muted);opacity:.3;}
   .kpi.clickable{cursor:pointer;}
   .kpi.clickable:hover{transform:translateY(-3px);box-shadow:var(--shadow-lg);}
@@ -174,7 +180,7 @@ loadScriptWithFallbacks([
   .charts.single-chart{grid-template-columns:1fr;}
 
 
-  .tipo-square{width:230px;background:var(--card);border:1px solid var(--border);border-radius:12px;box-shadow:var(--shadow);overflow:hidden;display:flex;flex-direction:column;transition:background-color .2s,border-color .2s,box-shadow .2s,transform .2s;}
+  .tipo-square{width:230px;background:var(--card);border:1px solid var(--border);border-radius:14px;box-shadow:var(--shadow);overflow:hidden;display:flex;flex-direction:column;transition:background-color .2s,border-color .2s,box-shadow .2s,transform .2s;}
   .tipo-square:hover{box-shadow:var(--shadow-lg);transform:translateY(-2px);}
   .tipo-square-title{font-size:10.5px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.3px;text-align:center;padding:5px 0;border-bottom:1px solid var(--border);}
   .tipo-square-band{flex:1;display:flex;align-items:center;justify-content:center;gap:8px;padding:6px 12px;font-size:12.5px;font-weight:700;border-bottom:1px solid var(--border);transition:filter .15s,box-shadow .15s;}
@@ -193,19 +199,19 @@ loadScriptWithFallbacks([
 
   .ic-title{width:15px;height:15px;flex:none;vertical-align:-3px;}
   .kpi-label .ic-title{vertical-align:-2px;opacity:.85;}
-  .chart-card h3, .table-card h3{display:flex;align-items:center;gap:7px;}
-  .chart-card h3 .ic-title, .table-card h3 .ic-title{opacity:.8;}
+  .chart-card h3, .table-card h3{display:flex;align-items:center;gap:9px;}
+  .chart-card h3 .ic-title, .table-card h3 .ic-title{opacity:.95;color:var(--blue-dark);background:rgba(47,111,237,.12);border-radius:8px;padding:4px;width:23px;height:23px;box-sizing:border-box;}
 
   .charts{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:14px;}
-  .chart-card{background:var(--card);border:1px solid var(--border);border-radius:12px;box-shadow:var(--shadow);padding:12px;transition:background-color .2s,border-color .2s,box-shadow .2s,transform .2s;}
+  .chart-card{background:var(--card);border:1px solid var(--border);border-radius:14px;box-shadow:var(--shadow);padding:12px;transition:background-color .2s,border-color .2s,box-shadow .2s,transform .2s;}
   .chart-card:hover{box-shadow:var(--shadow-lg);transform:translateY(-2px);}
-  .chart-card h3{margin:0 0 8px;font-size:13px;font-weight:700;color:var(--ink);}
+  .chart-card h3{margin:0 0 10px;padding-bottom:9px;border-bottom:1px solid var(--border);font-size:13px;font-weight:700;color:var(--ink);letter-spacing:.1px;}
   .chart-filter-select{margin-left:auto;font-size:11px;font-weight:400;padding:3px 6px;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--ink);max-width:150px;}
   .chart-card .canvas-wrap{position:relative;height:230px;}
 
-  .table-card{background:var(--card);border:1px solid var(--border);border-radius:12px;box-shadow:var(--shadow);padding:14px;overflow:auto;transition:background-color .2s,border-color .2s,box-shadow .2s;}
+  .table-card{background:var(--card);border:1px solid var(--border);border-radius:14px;box-shadow:var(--shadow);padding:14px;overflow:auto;transition:background-color .2s,border-color .2s,box-shadow .2s;}
   .table-card:hover{box-shadow:var(--shadow-lg);}
-  .table-card h3{margin:0 0 10px;font-size:13px;font-weight:700;}
+  .table-card h3{margin:0 0 10px;padding-bottom:9px;border-bottom:1px solid var(--border);font-size:13px;font-weight:700;letter-spacing:.1px;}
   table{width:100%;border-collapse:collapse;font-size:12.5px;border:1px solid var(--table-line);}
   th,td{padding:8px 10px;border:1px solid var(--table-line);text-align:left;white-space:nowrap;}
   th{background:var(--th-bg);font-weight:700;color:var(--muted);text-transform:uppercase;font-size:10.5px;letter-spacing:.3px;cursor:pointer;position:sticky;top:0;border-top:none;}
@@ -430,9 +436,8 @@ loadScriptWithFallbacks([
       <div class="kpi"><div class="kpi-label"><svg class="ic-title" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="14" r="6"></circle><line x1="14.5" y1="9.5" x2="21" y2="3"></line><polyline points="15 3 21 3 21 9"></polyline></svg>% Hombres Contratados</div><div class="kpi-value" id="ind_pctHombres" style="color:#2f6fed;">—</div><div class="kpi-sub" id="ind_countHombres"></div></div>
     </div>
 
-    <div class="charts" style="grid-template-columns:1fr 1fr;">
+    <div class="charts" style="grid-template-columns:1fr;">
       <div class="chart-card"><h3><svg class="ic-title" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>Vacantes cerradas por Función-Nivel de Cargo (por Género)</h3><div class="canvas-wrap" id="ind_wrapFuncion"><canvas id="chartFuncionGenero"></canvas></div></div>
-      <div class="chart-card"><h3><svg class="ic-title" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>Vacantes cerradas por Función-Nivel de Cargo (Talento Joven)</h3><div class="canvas-wrap" id="ind_wrapTalentoJoven"><canvas id="chartTalentoJoven"></canvas></div></div>
     </div>
 
     <div class="charts" style="grid-template-columns:1fr;">
@@ -495,7 +500,7 @@ loadScriptWithFallbacks([
       <div class="chart-card"><h3>Talento Joven por Dirección Comité</h3><div class="canvas-wrap" id="tj_wrapDireccion"><canvas id="chartTjDireccion"></canvas></div></div>
     </div>
     <div class="charts" style="grid-template-columns:1fr;">
-      <div class="chart-card"><h3>Vacantes cerradas por Función-Nivel de Cargo (Talento Joven) <span style="font-weight:400;color:var(--muted);font-size:11px;">(igual a la de Análisis de Indicadores -- Consolidado + filtros de esa página)</span></h3><div class="canvas-wrap" id="ind_wrapTalentoJovenDup"><canvas id="chartTalentoJovenDup"></canvas></div></div>
+      <div class="chart-card"><h3>Vacantes cerradas por Función-Nivel de Cargo (Talento Joven) <span style="font-weight:400;color:var(--muted);font-size:11px;">(según la columna "Talento Joven" del Consolidado, con los filtros de Análisis de Indicadores)</span></h3><div class="canvas-wrap" id="ind_wrapTalentoJoven"><canvas id="chartTalentoJoven"></canvas></div></div>
     </div>
 
     <div class="table-card" style="margin-top:12px;">
@@ -1793,38 +1798,6 @@ function renderIndicadores(){
       scales:{x:{stacked:true,grid:{display:false}}, y:{stacked:true, beginAtZero:true, ticks:{precision:0}}} } };
   });
 
-  // Misma idea que la gráfica anterior, pero por Talento Joven (Generación Z, <29 años) en vez de
-  // género -- vacantes sin ningún dato de edad no entran en ninguna de las dos franjas (igual que
-  // el % de Talento Joven de arriba, que tampoco las cuenta).
-  renderIndPlaceholderOrChart('chartTalentoJoven','talentoJoven','ind_wrapTalentoJoven', haveFuncion && haveJovenInfo, rowsJoven.filter(tieneEdad), ()=>{
-    const conEdad = rowsJoven.filter(tieneEdad);
-    const funciones = uniqueSorted(conEdad,'funcionNivelCargo');
-    const categorias = [
-      { label:'Generación Z (<29)', color:'#27ae60', test:esJoven },
-      { label:'29 años o más', color:'#8b8f99', test:r=>!esJoven(r) },
-    ];
-    const datasets = categorias.map(c=>({ label:c.label, backgroundColor:c.color, stack:'s',
-      data: funciones.map(fn => conEdad.filter(r=>r.funcionNivelCargo===fn && c.test(r)).length) }));
-    return { type:'bar', data:{labels:funciones.map(cargoInclusivo), datasets}, options:{ responsive:true, maintainAspectRatio:false,
-      plugins:{legend:{position:'bottom',labels:{boxWidth:10,font:{size:10}}}},
-      scales:{x:{stacked:true,grid:{display:false}}, y:{stacked:true, beginAtZero:true, ticks:{precision:0}}} } };
-  });
-  // Misma gráfica, duplicada en la ventana Talento Joven (a pedido de Valentina) -- mismos datos y
-  // filtros (Consolidado + Análisis de Indicadores), solo en un canvas distinto.
-  renderIndPlaceholderOrChart('chartTalentoJovenDup','talentoJovenDup','ind_wrapTalentoJovenDup', haveFuncion && haveJovenInfo, rowsJoven.filter(tieneEdad), ()=>{
-    const conEdad = rowsJoven.filter(tieneEdad);
-    const funciones = uniqueSorted(conEdad,'funcionNivelCargo');
-    const categorias = [
-      { label:'Generación Z (<29)', color:'#27ae60', test:esJoven },
-      { label:'29 años o más', color:'#8b8f99', test:r=>!esJoven(r) },
-    ];
-    const datasets = categorias.map(c=>({ label:c.label, backgroundColor:c.color, stack:'s',
-      data: funciones.map(fn => conEdad.filter(r=>r.funcionNivelCargo===fn && c.test(r)).length) }));
-    return { type:'bar', data:{labels:funciones.map(cargoInclusivo), datasets}, options:{ responsive:true, maintainAspectRatio:false,
-      plugins:{legend:{position:'bottom',labels:{boxWidth:10,font:{size:10}}}},
-      scales:{x:{stacked:true,grid:{display:false}}, y:{stacked:true, beginAtZero:true, ticks:{precision:0}}} } };
-  });
-
   // Botones-KPI "Vacantes Liberadas" / "Vacantes Cerradas": mismo alcance que la gráfica de
   // Liberadas vs. Cerradas por Mes (Profesional/Dirección/Tipo de Vacante + Año/Mes/Semana), y el
   // % de cada uno es su parte del total combinado de ambas categorías (igual que Internas/
@@ -2299,9 +2272,56 @@ function tjBarConfig(labels, data, horizontal){
       scales: horizontal ? { x:{beginAtZero:true, ticks:{precision:0}}, y:{grid:{display:false}} }
                          : { x:{grid:{display:false}}, y:{beginAtZero:true, ticks:{precision:0}} } } };
 }
+// Datos para la gráfica "Vacantes cerradas por Función-Nivel de Cargo (Talento Joven)" de la
+// ventana Talento Joven: viene del Consolidado (columna "Talento Joven" o su respaldo), con los
+// mismos filtros de Análisis de Indicadores (Profesional/Dirección/Tipo Vacante + Año/Mes/Semana
+// Contratación, cruzados contra Fecha Ingreso) -- ver la lógica igual en renderIndicadores().
+function computeTalentoJovenPorFuncionData(){
+  const cerradas0 = state.rows.filter(r=>r.cerrada);
+  const f = state.indFilters;
+  const commonIndFilter = r => (!f.profesional||r.profesional===f.profesional) && (!f.direccion||r.direccion===f.direccion) && (!f.tipoVacante||r.tipoVacante===f.tipoVacante);
+  const rowsJoven = cerradas0.filter(r => commonIndFilter(r) && matchesFiltrosFecha(r.fechaIngreso, f));
+  const haveTalentoJovenCol = state.cols.talentoJoven!==undefined;
+  const haveGeneracionCol = state.cols.generacion!==undefined;
+  const haveEdadInfo = state.cols.edad!==undefined || state.cols.fechaNacimiento!==undefined;
+  const haveJovenInfo = haveTalentoJovenCol || haveGeneracionCol || haveEdadInfo;
+  const haveFuncion = state.cols.funcionNivelCargo!==undefined;
+  const esJoven = r => {
+    if (haveTalentoJovenCol) return r.talentoJoven === true;
+    if (r.generacion) return normalize(r.generacion).includes('Z');
+    const e = (typeof r.edad==='number') ? r.edad : ageFromBirth(r.fechaNacimiento, r.fechaIngreso);
+    return typeof e==='number' && e<29;
+  };
+  const tieneEdad = r => {
+    if (haveTalentoJovenCol) return true;
+    if (r.generacion) return true;
+    const e = (typeof r.edad==='number') ? r.edad : ageFromBirth(r.fechaNacimiento, r.fechaIngreso);
+    return typeof e==='number';
+  };
+  return { haveFuncion, haveJovenInfo, rowsJoven, esJoven, tieneEdad };
+}
+function renderChartTalentoJovenPorFuncion(){
+  const { haveFuncion, haveJovenInfo, rowsJoven, esJoven, tieneEdad } = computeTalentoJovenPorFuncionData();
+  renderIndPlaceholderOrChart('chartTalentoJoven','talentoJoven','ind_wrapTalentoJoven', haveFuncion && haveJovenInfo, rowsJoven.filter(tieneEdad), ()=>{
+    const conEdad = rowsJoven.filter(tieneEdad);
+    const funciones = uniqueSorted(conEdad,'funcionNivelCargo');
+    const categorias = [
+      { label:'Generación Z (<29)', color:'#27ae60', test:esJoven },
+      { label:'29 años o más', color:'#8b8f99', test:r=>!esJoven(r) },
+    ];
+    const datasets = categorias.map(c=>({ label:c.label, backgroundColor:c.color, stack:'s',
+      data: funciones.map(fn => conEdad.filter(r=>r.funcionNivelCargo===fn && c.test(r)).length) }));
+    return { type:'bar', data:{labels:funciones.map(cargoInclusivo), datasets}, options:{ responsive:true, maintainAspectRatio:false,
+      plugins:{legend:{position:'bottom',labels:{boxWidth:10,font:{size:10}}}},
+      scales:{x:{stacked:true,grid:{display:false}}, y:{stacked:true, beginAtZero:true, ticks:{precision:0}}} } };
+  });
+}
 function renderTalentoJoven(){
   const notice = document.getElementById('tj_notice');
   const setText = (id, v) => { document.getElementById(id).textContent = v; };
+  // Se dibuja siempre, sin importar si hay hoja "TALENTO JOVEN" -- sus datos vienen del
+  // Consolidado, no de esa hoja (ver computeTalentoJovenPorFuncionData).
+  try{ renderChartTalentoJovenPorFuncion(); }catch(err){ console.error('Error en renderChartTalentoJovenPorFuncion', err); }
   if (state.tjStatus !== 'ok'){
     notice.style.display = '';
     notice.textContent = state.tjStatus==='nosheet' ? 'No se encontró la hoja "TALENTO JOVEN" en el Excel cargado.'
