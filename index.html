@@ -1,5 +1,5 @@
 <!doctype html>
-<!-- Tablero Vacantes - build 2026-09-28 v56 (uso interno para control de versión, no visible en el tablero) -->
+<!-- Tablero Vacantes - build 2026-09-28 v57 (uso interno para control de versión, no visible en el tablero) -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -423,12 +423,11 @@ loadScriptWithFallbacks([
       <select id="iSemana" title="Semana de contratación (según Fecha Envío a Compensación)"><option value="">Semana (Todas)</option></select>
     </div>
 
-    <div class="ind-grid">
+    <div class="ind-grid" style="grid-template-columns:repeat(4,1fr);">
       <div class="kpi"><div class="kpi-label"><svg class="ic-title" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4v6h6"></path><path d="M4.5 15a8 8 0 1 0 2-8.5L4 10"></path></svg>Vacantes Liberadas</div><div class="kpi-value" id="ind_pctLiberadas" style="color:#2f6fed;">—</div><div class="kpi-sub" id="ind_countLiberadas"></div></div>
       <div class="kpi"><div class="kpi-label"><svg class="ic-title" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>Vacantes Cerradas</div><div class="kpi-value" id="ind_pctCerradas" style="color:#27ae60;">—</div><div class="kpi-sub" id="ind_countCerradas"></div></div>
       <div class="kpi"><div class="kpi-label"><svg class="ic-title" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="9" r="6"></circle><line x1="12" y1="15" x2="12" y2="22"></line><line x1="9" y1="19" x2="15" y2="19"></line></svg>% Mujeres Contratadas</div><div class="kpi-value" id="ind_pctMujeres" style="color:#d6336c;">—</div><div class="kpi-sub" id="ind_countMujeres"></div></div>
       <div class="kpi"><div class="kpi-label"><svg class="ic-title" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="14" r="6"></circle><line x1="14.5" y1="9.5" x2="21" y2="3"></line><polyline points="15 3 21 3 21 9"></polyline></svg>% Hombres Contratados</div><div class="kpi-value" id="ind_pctHombres" style="color:#2f6fed;">—</div><div class="kpi-sub" id="ind_countHombres"></div></div>
-      <div class="kpi"><div class="kpi-label"><svg class="ic-title" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>% Talento Joven (&lt;29)</div><div class="kpi-value" id="ind_pctJoven" style="color:#27ae60;">—</div><div class="kpi-sub" id="ind_countJoven"></div></div>
     </div>
 
     <div class="charts" style="grid-template-columns:1fr 1fr;">
@@ -478,10 +477,14 @@ loadScriptWithFallbacks([
     <div id="tj_regionNote" style="display:none;font-size:12px;color:var(--muted);margin:-4px 0 12px;"></div>
     <div class="placeholder-note" id="tj_notice" style="margin-bottom:14px;">Carga el Excel para ver el análisis de Talento Joven.</div>
 
-    <div class="ind-grid" style="grid-template-columns:repeat(3,1fr);">
+    <div class="ind-grid" style="grid-template-columns:repeat(4,1fr);">
       <div class="kpi"><div class="kpi-label">Personas Talento Joven</div><div class="kpi-value" id="tj_total" style="color:#27ae60;">—</div><div class="kpi-sub" id="tj_totalSub"></div></div>
       <div class="kpi"><div class="kpi-label">Edad Promedio</div><div class="kpi-value" id="tj_edad" style="color:#2f6fed;">—</div><div class="kpi-sub" id="tj_edadSub"></div></div>
       <div class="kpi"><div class="kpi-label">% sobre el Total de Ingresos</div><div class="kpi-value" id="tj_pct" style="color:#8b5cf6;">—</div><div class="kpi-sub" id="tj_pctSub"></div></div>
+      <div class="kpi" title="Según la columna 'Talento Joven' del Consolidado (Sí/No), con los filtros de Profesional/Dirección/Tipo Vacante y Año/Mes/Semana Contratación de Análisis de Indicadores -- distinto de las tarjetas de arriba, que usan la hoja TALENTO JOVEN y sus propios filtros.">
+        <div class="kpi-label"><svg class="ic-title" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>% Talento Joven (Consolidado)</div>
+        <div class="kpi-value" id="ind_pctJoven" style="color:#27ae60;">—</div><div class="kpi-sub" id="ind_countJoven"></div>
+      </div>
     </div>
 
     <div class="charts" style="grid-template-columns:1fr 1fr;">
@@ -490,6 +493,9 @@ loadScriptWithFallbacks([
     </div>
     <div class="charts" style="grid-template-columns:1fr;">
       <div class="chart-card"><h3>Talento Joven por Dirección Comité</h3><div class="canvas-wrap" id="tj_wrapDireccion"><canvas id="chartTjDireccion"></canvas></div></div>
+    </div>
+    <div class="charts" style="grid-template-columns:1fr;">
+      <div class="chart-card"><h3>Vacantes cerradas por Función-Nivel de Cargo (Talento Joven) <span style="font-weight:400;color:var(--muted);font-size:11px;">(igual a la de Análisis de Indicadores -- Consolidado + filtros de esa página)</span></h3><div class="canvas-wrap" id="ind_wrapTalentoJovenDup"><canvas id="chartTalentoJovenDup"></canvas></div></div>
     </div>
 
     <div class="table-card" style="margin-top:12px;">
@@ -1791,6 +1797,21 @@ function renderIndicadores(){
   // género -- vacantes sin ningún dato de edad no entran en ninguna de las dos franjas (igual que
   // el % de Talento Joven de arriba, que tampoco las cuenta).
   renderIndPlaceholderOrChart('chartTalentoJoven','talentoJoven','ind_wrapTalentoJoven', haveFuncion && haveJovenInfo, rowsJoven.filter(tieneEdad), ()=>{
+    const conEdad = rowsJoven.filter(tieneEdad);
+    const funciones = uniqueSorted(conEdad,'funcionNivelCargo');
+    const categorias = [
+      { label:'Generación Z (<29)', color:'#27ae60', test:esJoven },
+      { label:'29 años o más', color:'#8b8f99', test:r=>!esJoven(r) },
+    ];
+    const datasets = categorias.map(c=>({ label:c.label, backgroundColor:c.color, stack:'s',
+      data: funciones.map(fn => conEdad.filter(r=>r.funcionNivelCargo===fn && c.test(r)).length) }));
+    return { type:'bar', data:{labels:funciones.map(cargoInclusivo), datasets}, options:{ responsive:true, maintainAspectRatio:false,
+      plugins:{legend:{position:'bottom',labels:{boxWidth:10,font:{size:10}}}},
+      scales:{x:{stacked:true,grid:{display:false}}, y:{stacked:true, beginAtZero:true, ticks:{precision:0}}} } };
+  });
+  // Misma gráfica, duplicada en la ventana Talento Joven (a pedido de Valentina) -- mismos datos y
+  // filtros (Consolidado + Análisis de Indicadores), solo en un canvas distinto.
+  renderIndPlaceholderOrChart('chartTalentoJovenDup','talentoJovenDup','ind_wrapTalentoJovenDup', haveFuncion && haveJovenInfo, rowsJoven.filter(tieneEdad), ()=>{
     const conEdad = rowsJoven.filter(tieneEdad);
     const funciones = uniqueSorted(conEdad,'funcionNivelCargo');
     const categorias = [
