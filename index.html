@@ -1,5 +1,5 @@
 <!doctype html>
-<!-- Tablero Vacantes - build 2026-09-28 v54 (uso interno para control de versión, no visible en el tablero) -->
+<!-- Tablero Vacantes - build 2026-09-28 v55 (uso interno para control de versión, no visible en el tablero) -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -700,6 +700,8 @@ const DIRECCION_ALIASES = [
     test:n => n.includes('PLANEACION ESTRATEGICA E INNOVACION') || n.includes('PLANEACION ESTRATEGICA Y EXPERIENCIA') || n.includes('PRODUCTO E INNOVACION') },
   { key:'MERCADO_CORPORATIVO', label:'Unidad Mercado Corporativo',
     test:n => n.includes('UNIDAD MERCADO CORPORATIVO') },
+  { key:'FINANCIERA', label:'Dirección Corporativa Financiera',
+    test:n => n.includes('FINANCIERA') },
 ];
 function direccionGroupKey(v){
   const n = normalize(v);
