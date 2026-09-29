@@ -215,6 +215,18 @@ loadScriptWithFallbacks([
       <div class="chart-box"><canvas id="chCiudad" aria-label="Vacantes por ciudad y temporal"></canvas><div class="nodata">Sin datos para los filtros</div></div>
     </div>
 
+    <div class="card full">
+      <div class="card-head">
+        <div>
+          <h2>Vacantes por género</h2>
+          <div class="desc">Columna GENERO (o SEXO) del Excel. El filtro de esta tarjeta también filtra todo el tablero.</div>
+        </div>
+        <div class="fgroup"><label class="flabel" for="selGenero">Género</label><select class="fsel" id="selGenero"></select></div>
+      </div>
+      <div class="legend" data-legend></div>
+      <div class="chart-box"><canvas id="chGenero" aria-label="Vacantes por género y temporal"></canvas><div class="nodata" id="generoNoData">Sin datos para los filtros</div></div>
+    </div>
+
     <div class="card">
       <h2>Carga por regional</h2>
       <div class="desc">Número de vacantes por regional (columna REGIONAL)</div>
@@ -270,7 +282,9 @@ const REGIONES_BASE = ['R1','R2','R3','R4','R5'];
 const TIPOS_BASE = ['Nuevo Recurso','Temporada Alta'];
 
 let rows = [], temporales = [], regiones = [], tipos = [], ciudades = [], years = [];
-const F = { temporal:null, estado:null, tipo:null, region:null, ciudad:null, mes:null, year:null };
+const F = { temporal:null, estado:null, tipo:null, region:null, ciudad:null, genero:null, mes:null, year:null };
+const GENEROS_BASE = ['Mujer','Hombre'];
+let generos = [...GENEROS_BASE], hasGenero = false;
 let sortKey = 'dias', sortDir = -1;
 let fileHandle = null, lastModified = 0, autoTimer = null;
 
@@ -329,6 +343,14 @@ function normCity(raw){
   if (!k) return 'Sin ciudad';
   return CITY_NAME[k] || k.replace(/\b\w/g, c => c.toUpperCase());
 }
+// Género: solo se toma de la columna GENERO/SEXO del Excel (nunca se deduce del nombre)
+function normGenero(raw){
+  const k = norm(raw);
+  if (!k) return 'Sin dato';
+  if (k.startsWith('mujer') || k.startsWith('femen') || k === 'f') return 'Mujer';
+  if (k.startsWith('hombre') || k.startsWith('mascul') || k === 'm') return 'Hombre';
+  return String(raw).trim().replace(/\b\w/g, c => c.toUpperCase());
+}
 function normTipo(raw){
   const k = norm(raw);
   if (!k) return 'Sin tipo';
@@ -340,10 +362,10 @@ function normTipo(raw){
 function buildRows(list){
   const out = [];
   for (const r of list){
-    const [id, lib, est, tipo, temp, reg, ciu, cie] = r;
+    const [id, lib, est, tipo, temp, reg, ciu, cie, gen] = r;
     if ([id, lib, est].every(v => v == null || String(v).trim() === '')) continue;
     const o = { id: String(id ?? '').trim(), lib: toSerial(lib), con: toSerial(cie),
-      tipo: normTipo(tipo), temporal: normTemporal(temp), region: normRegion(reg), ciudad: normCity(ciu) };
+      tipo: normTipo(tipo), temporal: normTemporal(temp), region: normRegion(reg), ciudad: normCity(ciu), genero: normGenero(gen) };
     o.estado = normEstado(est, o.con);
     o.diasCierre = (o.estado === 'Cerrada' && o.lib != null && o.con != null && o.con >= o.lib) ? o.con - o.lib : null;
     o.diasAbierta = (o.estado === 'Abierta' && o.lib != null) ? Math.max(0, TODAY - o.lib) : null;
@@ -361,7 +383,8 @@ const COLS = {
   id:['id'], lib:['fecha de liberacion','fecha liberacion'], estado:['estado'], tipo:['tipo de liberacion','tipo liberacion'],
   temporal:['temporal'], region:['regional','region'], ciudad:['cuidad','ciudad'], cierre:['cierre de la vacante','fecha de cierre','cierre']
 };
-const ORDER = ['id','lib','estado','tipo','temporal','region','ciudad','cierre'];
+const ORDER = ['id','lib','estado','tipo','temporal','region','ciudad','cierre','genero'];
+COLS.genero = ['genero','sexo','genero seleccionado','sexo seleccionado'];   // sin letra de respaldo: si no existe, no hay datos de género
 const LETTER = { id:0, lib:1, estado:2, tipo:3, temporal:4, region:8, ciudad:14, cierre:17 };
 function parseWorkbook(wb){
   let best = null;
@@ -380,7 +403,9 @@ function parseWorkbook(wb){
     if (j < 0) j = best.h.findIndex(x => COLS[k].some(c => x.startsWith(c)));
     idx[k] = j >= 0 ? j : LETTER[k];
   }
-  const list = best.aoa.slice(best.hi + 1).map(r => ORDER.map(k => r[idx[k]]));
+  if (idx.genero == null){ const j = best.h.findIndex(x => x.includes('genero') || x.startsWith('sexo')); if (j >= 0) idx.genero = j; }
+  hasGenero = idx.genero != null;
+  const list = best.aoa.slice(best.hi + 1).map(r => ORDER.map(k => idx[k] == null ? '' : r[idx[k]]));
   return { rows: buildRows(list), sheet: best.name };
 }
 async function loadFromFile(file, origin){
@@ -455,6 +480,9 @@ function setData(r){
   ciudades = Object.keys(cc).sort((a, b) => cc[b] - cc[a] || a.localeCompare(b, 'es'));
   if (F.tipo && !tipos.includes(F.tipo)) F.tipo = null;
   if (F.ciudad && !ciudades.includes(F.ciudad)) F.ciudad = null;
+  const gp = [...new Set(rows.map(x => x.genero))];
+  generos = [...GENEROS_BASE, ...gp.filter(g => !GENEROS_BASE.includes(g) && g !== 'Sin dato').sort(), ...(gp.includes('Sin dato') ? ['Sin dato'] : [])];
+  if (!hasGenero || (F.genero && !generos.includes(F.genero))) F.genero = null;
   if (F.temporal && !temporales.includes(F.temporal)) F.temporal = null;
   if (F.year != null && !years.includes(F.year)) F.year = null;
   render();
@@ -466,6 +494,7 @@ function pass(r, skip){
   if (skip !== 'tipo' && F.tipo && r.tipo !== F.tipo) return false;
   if (skip !== 'region' && F.region && r.region !== F.region) return false;
   if (skip !== 'ciudad' && F.ciudad && r.ciudad !== F.ciudad) return false;
+  if (skip !== 'genero' && F.genero && r.genero !== F.genero) return false;
   if (skip !== 'mes' && F.mes != null && r.mes !== F.mes) return false;
   if (skip !== 'year' && F.year != null && r.year !== F.year) return false;
   return true;
@@ -484,6 +513,8 @@ function renderFilters(){
   fillSelect('selTipo', 'tipo', 'Todos', tipos);
   fillSelect('selRegion', 'region', 'Todas', regiones);
   fillSelect('selCiudad', 'ciudad', 'Todas', ciudades);
+  if (hasGenero){ $('selGenero').disabled = false; fillSelect('selGenero', 'genero', 'Todos', generos); }
+  else { const s = $('selGenero'); s.disabled = true; s.classList.remove('on'); s.innerHTML = '<option>Sin datos de género</option>'; }
   fillSelect('selMes', 'mes', 'Todos los meses', MESES_L.map((_, i) => i), i => MESES_L[i]);
   fillSelect('selYear', 'year', 'Todos los años', years);
 }
@@ -545,6 +576,7 @@ function describeFilters(sinEstado){
   if (F.tipo) p.push(F.tipo);
   if (F.region) p.push(F.region);
   if (F.ciudad) p.push(F.ciudad);
+  if (F.genero) p.push(F.genero);
   if (F.mes != null || F.year != null) p.push([F.mes != null ? MESES_L[F.mes] : '', F.year ?? ''].join(' ').trim());
   return p.length ? p.join(' · ') : 'Sin filtros';
 }
@@ -707,6 +739,18 @@ function renderCharts(list){
     datasets: ts.map(t => { const c = countBy(byCity(t), r => r.ciudad), col = tColor(t);
       return barSet(t, cities.map(x => c[x] || 0), { backgroundColor: cities.map(x => !F.ciudad || F.ciudad === x ? col : alpha(col, .3)), borderRadius:0, borderWidth:{ top:1 }, maxBarThickness:70 }); }) }, oCi);
   renderCityTiles();
+
+  // Género: barras por género (Mujer, Hombre y "Sin dato" si hay filas vacías), un color por temporal
+  const genBase = rows.filter(r => pass(r, 'genero'));
+  const oG = baseOpts(c => `${c.raw} vacantes (${pct(c.raw, genBase.length)}%)`);
+  oG.plugins.tooltip.callbacks.footer = items => { const n = items.reduce((s, i) => s + i.raw, 0); return `Total ${n} · ${pct(n, genBase.length)}%`; };
+  const gens = generos.filter(g => GENEROS_BASE.includes(g) || genBase.some(r => r.genero === g));
+  upsert('genero', 'chGenero', { labels: hasGenero ? gens : [],
+    datasets: ts.map(t => { const c = countBy(genBase.filter(r => r.temporal === t), r => r.genero);
+      return barSet(t, hasGenero ? gens.map(g => c[g] || 0) : [], { backgroundColor: gens.map(g => !F.genero || F.genero === g ? tColor(t) : alpha(tColor(t), .3)) }); }) }, oG);
+  if (!hasGenero) $('chGenero').closest('.card').querySelector('[data-legend]').innerHTML = '';
+  $('generoNoData').textContent = hasGenero ? 'Sin datos para los filtros'
+    : 'El Excel vinculado no tiene una columna GENERO (o SEXO). Cuando la agregues, esta gráfica y su filtro se llenan solos.';
 
   // Región (gráfica de área: un área semitransparente por temporal, superpuestas)
   const regs = regiones.filter(x => REGIONES_BASE.includes(x) || list.some(r => r.region === x));
