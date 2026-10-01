@@ -1,5 +1,5 @@
 <!doctype html>
-<!-- Tablero Vacantes - build 2026-10-01 v71 (uso interno para control de versión, no visible en el tablero) -->
+<!-- Tablero Vacantes - build 2026-10-01 v72 (uso interno para control de versión, no visible en el tablero) -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -189,6 +189,7 @@ loadScriptWithFallbacks([
   .kpis .kpi, .kpis .tipo-square{min-height:119px;}
 
   .charts.single-chart{grid-template-columns:1fr;}
+  .charts.two-charts{grid-template-columns:1fr 1fr;}
 
 
   .tipo-square{width:230px;background:var(--card);border:1px solid var(--border);border-radius:14px;box-shadow:var(--shadow);overflow:hidden;display:flex;flex-direction:column;transition:background-color .2s,border-color .2s,box-shadow .2s,transform .2s;}
@@ -431,18 +432,19 @@ loadScriptWithFallbacks([
       </div>
     </div>
 
+    <!-- Aparece solo cuando se filtra por un Estado específico arriba (Abierta/Cancelada/Cerrada/
+         En Pausa) -- muestra ese grupo de vacantes por Dirección y por Profesional, para ver dónde
+         están concentradas y la carga de cada profesional en ese estado puntual. Va primero y a dos
+         columnas parejas para que quede centrada, en vez de angosta dentro de una grilla de 3. -->
+    <div class="charts" id="chartsPorEstado" style="display:none;grid-template-columns:1fr 1fr;">
+      <div class="chart-card"><h3><svg class="ic-title" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="1"></rect><line x1="9" y1="7" x2="9" y2="7.01"></line><line x1="15" y1="7" x2="15" y2="7.01"></line><line x1="9" y1="12" x2="9" y2="12.01"></line><line x1="15" y1="12" x2="15" y2="12.01"></line><line x1="9" y1="17" x2="15" y2="17"></line></svg><span id="tituloEstadoDireccionTexto"></span></h3><div class="canvas-wrap" id="wrapEstadoDireccion"><canvas id="chartEstadoDireccion"></canvas></div></div>
+      <div class="chart-card"><h3><svg class="ic-title" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg><span id="tituloEstadoProfesionalTexto"></span></h3><div class="canvas-wrap" id="wrapEstadoProfesional"><canvas id="chartEstadoProfesional"></canvas></div></div>
+    </div>
+
     <div class="charts" id="chartsSeguimiento">
       <div class="chart-card" id="cardAntiguedad"><h3><svg class="ic-title" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h12"></path><path d="M6 22h12"></path><path d="M6 2c0 6 6 6 6 10s-6 4-6 10"></path><path d="M18 2c0 6-6 6-6 10s6 4 6 10"></path></svg>Vacantes por Antigüedad<select class="chart-filter-select" id="cfAntiguedad" title="Filtrar solo esta gráfica por Dirección"><option value="">Dirección (Todas)</option></select></h3><div class="canvas-wrap" id="wrapAntiguedad"><canvas id="chartAntiguedad"></canvas></div></div>
       <div class="chart-card" id="cardProfesional"><h3><svg class="ic-title" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>Vacantes por Profesional<select class="chart-filter-select" id="cfProfesional" title="Filtrar solo esta gráfica por Función-Nivel Cargo"><option value="">Cargo (Todos)</option></select></h3><div class="canvas-wrap" id="wrapProfesional"><canvas id="chartProfesional"></canvas></div></div>
       <div class="chart-card" id="cardCriticas"><h3><svg class="ic-title" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>Vacantes Críticas por Profesional<select class="chart-filter-select" id="cfCriticas" title="Filtrar solo esta gráfica por Función-Nivel Cargo"><option value="">Cargo (Todos)</option></select></h3><div class="canvas-wrap" id="wrapCriticasProf"><canvas id="chartCriticasProf"></canvas></div></div>
-    </div>
-
-    <!-- Aparece solo cuando se filtra por un Estado específico arriba (Abierta/Cancelada/Cerrada/
-         En Pausa) -- muestra ese grupo de vacantes por Dirección y por Profesional, para ver dónde
-         están concentradas y la carga de cada profesional en ese estado puntual. -->
-    <div class="charts" id="chartsPorEstado" style="display:none;">
-      <div class="chart-card"><h3><svg class="ic-title" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="1"></rect><line x1="9" y1="7" x2="9" y2="7.01"></line><line x1="15" y1="7" x2="15" y2="7.01"></line><line x1="9" y1="12" x2="9" y2="12.01"></line><line x1="15" y1="12" x2="15" y2="12.01"></line><line x1="9" y1="17" x2="15" y2="17"></line></svg><span id="tituloEstadoDireccionTexto"></span></h3><div class="canvas-wrap" id="wrapEstadoDireccion"><canvas id="chartEstadoDireccion"></canvas></div></div>
-      <div class="chart-card"><h3><svg class="ic-title" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg><span id="tituloEstadoProfesionalTexto"></span></h3><div class="canvas-wrap" id="wrapEstadoProfesional"><canvas id="chartEstadoProfesional"></canvas></div></div>
     </div>
 
     <div class="table-card">
@@ -1452,12 +1454,13 @@ function render(){
   // y ocupa el ancho completo.
   const hideCerradasCharts = (state.filters.estado === 'Cerrada') || (state.quickFilter === 'cerradas');
   // "Vacantes por Antigüedad" se oculta tanto al ver Cerradas como al ver En Pausa/Cancelada;
-  // "Vacantes por Profesional" solo se oculta al ver Cerradas (en En Pausa/Cancelada se
-  // reaprovecha, como se explica arriba); "Críticas por Profesional" solo se oculta al ver En
-  // Pausa/Cancelada. En cualquiera de los dos casos queda exactamente una gráfica visible, a
-  // todo el ancho (misma clase "single-chart" para ambos).
+  // "Vacantes por Profesional" se oculta con CUALQUIER Estado elegido en el filtro de arriba (ya
+  // sea Abierta/Cancelada/Cerrada/En Pausa) -- ese caso ahora lo cubren mejor las dos gráficas "por
+  // Estado" de arriba, así que aquí ya no tiene sentido dejarla con un placeholder vacío;
+  // "Críticas por Profesional" solo se oculta al ver En Pausa/Cancelada. Según cuántas de estas
+  // tres queden visibles, la fila pasa a 1, 2 o 3 columnas (ver clases single-chart/two-charts).
   const hideAntiguedad = hideCerradasCharts || !!chartMode;
-  const hideProfesional = hideCerradasCharts;
+  const hideProfesional = !!state.filters.estado || state.quickFilter === 'cerradas';
   const hideCriticas = chartMode && !hideCerradasCharts;
   const cardAntig = document.getElementById('cardAntiguedad');
   const cardProf = document.getElementById('cardProfesional');
@@ -1465,7 +1468,11 @@ function render(){
   if (cardAntig) cardAntig.style.display = hideAntiguedad ? 'none' : '';
   if (cardProf) cardProf.style.display = hideProfesional ? 'none' : '';
   if (cardCrit) cardCrit.style.display = hideCriticas ? 'none' : '';
-  document.getElementById('chartsSeguimiento').classList.toggle('single-chart', hideCerradasCharts || !!chartMode);
+  const visiblesSeguimiento = [!hideAntiguedad, !hideProfesional, !hideCriticas].filter(Boolean).length;
+  const chartsSeguimientoEl = document.getElementById('chartsSeguimiento');
+  chartsSeguimientoEl.style.display = visiblesSeguimiento===0 ? 'none' : '';
+  chartsSeguimientoEl.classList.toggle('single-chart', visiblesSeguimiento===1);
+  chartsSeguimientoEl.classList.toggle('two-charts', visiblesSeguimiento===2);
   if (hideAntiguedad) destroyChart('antiguedad');
   else safeRenderChart('chartAntiguedad', ()=>{ ensureCanvas('wrapAntiguedad','chartAntiguedad'); renderChartAntiguedad(abiertasAntig); });
   if (hideProfesional) destroyChart('profesional');
