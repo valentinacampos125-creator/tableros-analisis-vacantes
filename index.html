@@ -1,5 +1,5 @@
 <!doctype html>
-<!-- Tablero Vacantes - build 2026-10-01 v74 (uso interno para control de versión, no visible en el tablero) -->
+<!-- Tablero Vacantes - build 2026-10-01 v75 (uso interno para control de versión, no visible en el tablero) -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -131,10 +131,10 @@ loadScriptWithFallbacks([
   .cfg-url{width:100%;font-size:12px;padding:6px 8px;border:1px solid var(--input-border);border-radius:6px;background:var(--card);color:var(--ink);}
 
   .filters{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:14px;background:var(--card);border:1px solid var(--border);border-radius:14px;box-shadow:var(--shadow);padding:12px;}
-  .filters select{padding:9px 12px;border-radius:8px;border:1px solid var(--border);background:var(--card);font-size:13px;width:170px;max-width:170px;box-shadow:var(--shadow);color:var(--ink);transition:.15s;text-overflow:ellipsis;white-space:nowrap;overflow:hidden;}
+  .filters select{padding:9px 16px;border-radius:999px;border:1px solid var(--border);background:var(--card);font-size:13px;width:170px;max-width:170px;box-shadow:none;color:var(--ink);transition:.15s;text-overflow:ellipsis;white-space:nowrap;overflow:hidden;}
   .filters select:hover{border-color:var(--blue);}
   .filters select:focus, .chart-filter-select:focus, .cfg-url:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px rgba(47,111,237,.16);}
-  .filters .clear-filters{padding:9px 14px;border-radius:8px;border:1px solid var(--border);background:var(--card);font-size:12.5px;font-weight:600;color:var(--muted);cursor:pointer;transition:.15s;}
+  .filters .clear-filters{padding:9px 16px;border-radius:999px;border:1px dashed var(--border);background:transparent;font-size:12.5px;font-weight:600;color:var(--muted);cursor:pointer;transition:.15s;}
   .filters .clear-filters:hover{border-color:var(--red);color:var(--red);transform:translateY(-1px);}
 
   .kpis{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:14px;}
@@ -509,14 +509,10 @@ loadScriptWithFallbacks([
     <div id="tj_regionNote" style="display:none;font-size:12px;color:var(--muted);margin:-4px 0 12px;"></div>
     <div class="placeholder-note" id="tj_notice" style="margin-bottom:14px;">Carga el Excel para ver el análisis de Talento Joven.</div>
 
-    <div class="ind-grid" style="grid-template-columns:repeat(4,1fr);">
+    <div class="ind-grid" style="grid-template-columns:repeat(3,1fr);">
       <div class="kpi v-tjtotal"><div class="kpi-label"><svg class="ic-title" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>Personas Talento Joven</div><div class="kpi-value" id="tj_total" style="color:#27ae60;">—</div><div class="kpi-sub" id="tj_totalSub"></div></div>
       <div class="kpi v-tjedad"><div class="kpi-label"><svg class="ic-title" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>Edad Promedio</div><div class="kpi-value" id="tj_edad" style="color:#2f6fed;">—</div><div class="kpi-sub" id="tj_edadSub"></div></div>
       <div class="kpi v-tjpct"><div class="kpi-label"><svg class="ic-title" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"></path><path d="M22 12A10 10 0 0 0 12 2v10z"></path></svg>% sobre el Total de Ingresos</div><div class="kpi-value" id="tj_pct" style="color:#8b5cf6;">—</div><div class="kpi-sub" id="tj_pctSub"></div></div>
-      <div class="kpi v-topdir" title="Según la columna 'Talento Joven' del Consolidado (Sí/No), con los filtros de Profesional/Dirección/Tipo Vacante y Año/Mes/Semana Contratación de Análisis de Indicadores -- distinto de las tarjetas de arriba, que usan la hoja TALENTO JOVEN y sus propios filtros.">
-        <div class="kpi-label"><svg class="ic-title" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>% Talento Joven (Consolidado)</div>
-        <div class="kpi-value" id="ind_pctJoven" style="color:#f2994a;">—</div><div class="kpi-sub" id="ind_countJoven"></div>
-      </div>
     </div>
 
     <div class="charts" style="grid-template-columns:1fr 1fr;">
@@ -1830,36 +1826,10 @@ function renderIndicadores(){
   // "fecha real de cierre" -- y aplican a los KPIs de género, la gráfica de Función-Nivel de Cargo
   // (por Género), la tabla por Dirección y la gráfica de Liberadas vs. Cerradas más abajo.
   let rows = cerradas0.filter(r => commonIndFilter(r) && matchesFiltrosFecha(r.fechaCierre, f));
-  // Talento Joven usa su PROPIA fecha de referencia -- Fecha Ingreso, no Fecha de Envío a
-  // Compensación -- porque así lo pidió el usuario tras notar que, con la fecha de cierre, se
-  // perdían contrataciones que sí caían dentro del mes/año filtrado según su Fecha Ingreso. El
-  // mismo Año/Mes/Semana elegido arriba se cruza contra esta fecha distinta, igual que ya hace
-  // cada línea de la gráfica de Liberadas vs. Cerradas con la suya propia.
-  const rowsJoven = cerradas0.filter(r => commonIndFilter(r) && matchesFiltrosFecha(r.fechaIngreso, f));
 
   const haveGenero = state.cols.genero!==undefined;
-  const haveTalentoJovenCol = state.cols.talentoJoven!==undefined;
-  const haveGeneracionCol = state.cols.generacion!==undefined;
-  const haveEdadInfo = state.cols.edad!==undefined || state.cols.fechaNacimiento!==undefined;
-  const haveJovenInfo = haveTalentoJovenCol || haveGeneracionCol || haveEdadInfo;
   const haveNivel = state.cols.nivelContribucion!==undefined;
   const haveFuncion = state.cols.funcionNivelCargo!==undefined;
-  // Talento Joven: si el Excel trae la columna "Talento Joven", se cuenta exactamente lo que dice
-  // esa columna -- una vacante cuenta como Talento Joven solo si la celda está marcada "Sí"; "No"
-  // o vacío no cuentan (a pedido de Valentina). Solo si el Excel no trae esa columna se usa el
-  // respaldo anterior: columna "Generación" (con "Z") o la edad al momento de la Fecha Ingreso.
-  const esJoven = r => {
-    if (haveTalentoJovenCol) return r.talentoJoven === true;
-    if (r.generacion) return normalize(r.generacion).includes('Z');
-    const e = (typeof r.edad==='number') ? r.edad : ageFromBirth(r.fechaNacimiento, r.fechaIngreso);
-    return typeof e==='number' && e<29;
-  };
-  const tieneEdad = r => {
-    if (haveTalentoJovenCol) return true;
-    if (r.generacion) return true;
-    const e = (typeof r.edad==='number') ? r.edad : ageFromBirth(r.fechaNacimiento, r.fechaIngreso);
-    return typeof e==='number';
-  };
 
   if (haveGenero && rows.length){
     const mujeres = rows.filter(r=>normalize(r.genero).startsWith('F') || normalize(r.genero).includes('MUJER'));
@@ -1913,16 +1883,6 @@ function renderIndicadores(){
   } else {
     document.getElementById('ind_topDireccion').textContent='—'; document.getElementById('ind_topDireccionSub').textContent='';
     document.getElementById('ind_topCargo').textContent='—'; document.getElementById('ind_topCargoSub').textContent='';
-  }
-
-  if (haveJovenInfo && rowsJoven.length){
-    const conEdad = rowsJoven.filter(tieneEdad);
-    const joven = conEdad.filter(esJoven).length;
-    document.getElementById('ind_pctJoven').textContent = conEdad.length? round0(100*joven/conEdad.length)+'%':'—';
-    document.getElementById('ind_countJoven').textContent = conEdad.length? joven+(haveTalentoJovenCol ? ' contratados (Talento Joven = Sí)' : ' contratados (Generación Z)'):'';
-  } else {
-    document.getElementById('ind_pctJoven').textContent='—';
-    document.getElementById('ind_countJoven').textContent='';
   }
 
   // Vuelve a agrupar por "Función-Nivel de Cargo" (como estaba originalmente) -- el intento de
@@ -2434,27 +2394,23 @@ function renderTalentoJoven(){
   notice.style.display = 'none';
   const base = tjApplyFilters(state.tjRows);
   const tj = base.filter(r=>r.esTalentoJoven);
-  // Resumen de lo que se LEYÓ del Excel (sin aplicar filtros): cuántas personas Talento Joven hay
-  // por Región y cuántas no tienen Región (celda vacía o con error de fórmula tipo #N/A).
+  // Detecta personas Talento Joven sin Región (celda vacía o con error de fórmula tipo #N/A) para
+  // mostrar una advertencia -- la columna REGION es una fórmula que consulta otro libro de Excel.
   const tjTodos = state.tjRows.filter(r=>r.esTalentoJoven);
-  const porRegion = new Map();
-  tjTodos.forEach(r=>{ if (r.region) porRegion.set(r.region, (porRegion.get(r.region)||0)+1); });
   const sinRegion = tjTodos.filter(r=>!r.region);
   const conError = sinRegion.filter(r=>r.regionEstado==='error').length;
   const conFormula = sinRegion.filter(r=>r.regionEstado==='formula').length;
   const vacias = sinRegion.length - conError - conFormula;
   const regNote = document.getElementById('tj_regionNote');
-  regNote.style.display = '';
+  regNote.style.display = sinRegion.length ? '' : 'none';
   regNote.style.cssText = sinRegion.length
     ? 'font-size:13px;margin:-4px 0 12px;padding:10px 12px;border:1px solid #e5493d;border-radius:8px;background:rgba(229,73,61,.08);color:var(--ink);'
-    : 'font-size:12px;color:var(--muted);margin:-4px 0 12px;';
-  regNote.textContent = 'Leído del Excel (sin filtros): '+tjTodos.length+' personas Talento Joven — '
-    + [...porRegion.entries()].sort((a,b)=>String(a[0]).localeCompare(String(b[0]),'es',{numeric:true})).map(([k,v])=>k+': '+v).join(' · ')
-    + (sinRegion.length
-      ? '. ATENCIÓN: '+sinRegion.length+' personas no traen Región en el archivo cargado ('
-        + [conFormula ? conFormula+' con la fórmula de REGION sin resultado guardado' : '', conError ? conError+' con error de fórmula (#N/A, #REF!...)' : '', vacias ? vacias+' con la celda vacía' : ''].filter(Boolean).join(', ')
-        + '). La columna REGION es una fórmula que consulta otro libro de Excel: ábrelo en Excel, actualiza los vínculos / calcula (F9), guarda y pulsa "Actualizar ahora" en el tablero.'
-      : '');
+    : '';
+  regNote.textContent = sinRegion.length
+    ? 'ATENCIÓN: '+sinRegion.length+' personas no traen Región en el archivo cargado ('
+      + [conFormula ? conFormula+' con la fórmula de REGION sin resultado guardado' : '', conError ? conError+' con error de fórmula (#N/A, #REF!...)' : '', vacias ? vacias+' con la celda vacía' : ''].filter(Boolean).join(', ')
+      + '). La columna REGION es una fórmula que consulta otro libro de Excel: ábrelo en Excel, actualiza los vínculos / calcula (F9), guarda y pulsa "Actualizar ahora" en el tablero.'
+    : '';
 
   setText('tj_total', tj.length);
   setText('tj_totalSub', 'clasificadas como Talento Joven');
