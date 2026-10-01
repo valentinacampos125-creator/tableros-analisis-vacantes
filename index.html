@@ -1,5 +1,5 @@
 <!doctype html>
-<!-- Tablero Vacantes - build 2026-10-01 v70 (uso interno para control de versión, no visible en el tablero) -->
+<!-- Tablero Vacantes - build 2026-10-01 v71 (uso interno para control de versión, no visible en el tablero) -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -350,12 +350,12 @@ loadScriptWithFallbacks([
     <div class="filters">
       <select id="fProfesional"><option value="">Profesional (Todas)</option></select>
       <select id="fEstado"><option value="">Estado (Todas)</option></select>
-      <select id="fDireccion"><option value="">Dirección Comité (Todas)</option></select>
+      <select id="fDireccion"><option value="">Dirección Corporativa (Todas)</option></select>
       <select id="fAnio"><option value="">Año (Todos)</option></select>
       <select id="fMes"><option value="">Mes (Todos)</option></select>
       <select id="fFuncionCargo" title="Según la columna 'Función-Nivel Cargo' del Excel."><option value="">Cargo (Todos)</option></select>
       <select id="fCargoSegmentado" title="Según la columna 'Nivel de Contribución' del Excel: Líderes Estratégicos, Líderes Operacionales, Contribuidores Individuales u Otro.">
-        <option value="">Dirección Corporativa (Todas)</option>
+        <option value="">Nivel de Contribución (Todos)</option>
         <option value="estrategico">Líderes Estratégicos</option>
         <option value="operacional">Líderes Operacionales</option>
         <option value="base">Contribuidores Individuales</option>
@@ -437,6 +437,14 @@ loadScriptWithFallbacks([
       <div class="chart-card" id="cardCriticas"><h3><svg class="ic-title" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>Vacantes Críticas por Profesional<select class="chart-filter-select" id="cfCriticas" title="Filtrar solo esta gráfica por Función-Nivel Cargo"><option value="">Cargo (Todos)</option></select></h3><div class="canvas-wrap" id="wrapCriticasProf"><canvas id="chartCriticasProf"></canvas></div></div>
     </div>
 
+    <!-- Aparece solo cuando se filtra por un Estado específico arriba (Abierta/Cancelada/Cerrada/
+         En Pausa) -- muestra ese grupo de vacantes por Dirección y por Profesional, para ver dónde
+         están concentradas y la carga de cada profesional en ese estado puntual. -->
+    <div class="charts" id="chartsPorEstado" style="display:none;">
+      <div class="chart-card"><h3><svg class="ic-title" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="1"></rect><line x1="9" y1="7" x2="9" y2="7.01"></line><line x1="15" y1="7" x2="15" y2="7.01"></line><line x1="9" y1="12" x2="9" y2="12.01"></line><line x1="15" y1="12" x2="15" y2="12.01"></line><line x1="9" y1="17" x2="15" y2="17"></line></svg><span id="tituloEstadoDireccionTexto"></span></h3><div class="canvas-wrap" id="wrapEstadoDireccion"><canvas id="chartEstadoDireccion"></canvas></div></div>
+      <div class="chart-card"><h3><svg class="ic-title" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg><span id="tituloEstadoProfesionalTexto"></span></h3><div class="canvas-wrap" id="wrapEstadoProfesional"><canvas id="chartEstadoProfesional"></canvas></div></div>
+    </div>
+
     <div class="table-card">
       <h3><svg class="ic-title" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>Detalle de vacantes <span id="tableFilterNote" style="font-weight:400;color:var(--muted);"></span></h3>
       <div id="tableWrap"></div>
@@ -448,7 +456,7 @@ loadScriptWithFallbacks([
   <div id="pageIndicadores" class="page-indicadores">
     <div class="filters">
       <select id="iProfesional"><option value="">Profesional (Todas)</option></select>
-      <select id="iDireccion"><option value="">Dirección Comité (Todas)</option></select>
+      <select id="iDireccion"><option value="">Dirección Corporativa (Todas)</option></select>
       <select id="iTipoVacante"><option value="">Tipo Vacante (Todas)</option></select>
       <select id="iAnio" title="Año de contratación (según Fecha Envío a Compensación)"><option value="">Año Contratación (Todos)</option></select>
       <select id="iMes" title="Mes de contratación (según Fecha Envío a Compensación)"><option value="">Mes Contratación (Todos)</option></select>
@@ -507,7 +515,7 @@ loadScriptWithFallbacks([
   <div id="pageTalentoJoven" class="page-indicadores">
     <div class="filters">
       <select id="tjRegion"><option value="">Región (Todas)</option></select>
-      <select id="tjDireccion"><option value="">Dirección Comité (Todas)</option></select>
+      <select id="tjDireccion"><option value="">Dirección Corporativa (Todas)</option></select>
       <select id="tjAnio" title="Año de la Fecha Ingreso"><option value="">Año Ingreso (Todos)</option></select>
       <select id="tjMes" title="Mes según la columna BASE de la hoja TALENTO JOVEN"><option value="">Mes (Todos)</option></select>
       <select id="tjSemana" title="Semana de la Fecha Ingreso"><option value="">Semana (Todas)</option></select>
@@ -710,6 +718,21 @@ function isExcludedStatus(estado){ const n = normalize(estado); return EXCLUDED_
 // Estados "En Pausa" (p.ej. "En Pausa", "Pausada", "Pausado por..."): tampoco cuentan como
 // "abierta" -- tienen su propio botón y quedan fuera de las gráficas de antigüedad/profesional.
 function isPausedStatus(estado){ return normalize(estado).includes('PAUSA'); }
+// El Excel a veces trae el mismo Estado escrito de formas distintas (Cerrada/Cerrado/Cerrad por
+// error de digitación, Abierta/Abierto, etc.) -- se agrupan bajo una sola forma fija para que no
+// aparezcan como opciones separadas en el filtro "Estado" ni en la tabla. La clasificación interna
+// (isClosedStatus, isPausedStatus...) ya buscaba por palabra clave, así que no cambia.
+function canonicalizeEstadoLabel(estado){
+  const n = normalize(estado);
+  if (!n) return estado;
+  if (n.includes('CERRAD')) return 'Cerrada';
+  if (n.includes('CANCELAD')) return 'Cancelada';
+  if (n.includes('ANULAD')) return 'Anulada';
+  if (n.includes('DESIERT')) return 'Desierta';
+  if (n.includes('PAUSA')) return 'En Pausa';
+  if (n.includes('ABIERT')) return 'Abierta';
+  return estado;
+}
 function cleanText(v){ return (typeof v === 'string') ? v.trim().replace(/\s+/g,' ') : v; }
 function titleCase(v){
   const t = cleanText(v);
@@ -866,7 +889,7 @@ function loadWorkbook(data, sourceLabel){
       if (!r || r.every(c=>c===null||c==='')) continue;
       const get = key => cols[key]!==undefined ? r[cols[key]] : null;
       const fechaLib = toDate(get('fechaLiberacion'));
-      const estado = titleCase(get('estado'));
+      const estado = canonicalizeEstadoLabel(titleCase(get('estado')));
       const fechaIngreso = toDate(get('fechaIngreso'));
       // Algunas filas traen literalmente el texto "NO INGRESO" en la celda de Fecha Ingreso -- es
       // la señal de que, aunque hubo Candidato Seleccionado y la vacante quedó "Cerrada", esa
@@ -1127,7 +1150,7 @@ function matchesFiltrosFecha(date, f){
 function populateFilterOptions(){
   fillSelect('fProfesional', uniqueSorted(state.rows,'profesional'), 'Profesional (Todas)');
   fillSelect('fEstado', uniqueSorted(state.rows,'estado'), 'Estado (Todas)');
-  fillSelect('fDireccion', uniqueSorted(state.rows,'direccion'), 'Dirección Comité (Todas)');
+  fillSelect('fDireccion', uniqueSorted(state.rows,'direccion'), 'Dirección Corporativa (Todas)');
   // Año y Mes ahora son dos filtros independientes -- Año se calcula a partir de los años
   // presentes en los datos (mesFiltroDate); Mes siempre lista los 12 meses del calendario, sin
   // atarlos a un año en particular, para poder combinarlos libremente con el filtro de Año.
@@ -1137,7 +1160,7 @@ function populateFilterOptions(){
   fillSelect('fFuncionCargo', cargoOptions(), 'Cargo (Todos)', true);
 
   fillSelect('iProfesional', uniqueSorted(state.rows,'profesional'), 'Profesional (Todas)');
-  fillSelect('iDireccion', uniqueSorted(state.rows,'direccion'), 'Dirección Comité (Todas)');
+  fillSelect('iDireccion', uniqueSorted(state.rows,'direccion'), 'Dirección Corporativa (Todas)');
   fillSelect('iTipoVacante', uniqueSorted(state.rows,'tipoVacante'), 'Tipo Vacante (Todas)');
   // Año/Mes/Semana de contratación (Análisis de Indicadores): estos filtros se cruzan contra DOS
   // fechas distintas según la sección de la página -- Fecha de Cierre (Envío a Compensación) para
@@ -1450,6 +1473,8 @@ function render(){
   if (hideCriticas) destroyChart('criticasProf');
   else safeRenderChart('chartCriticasProf', ()=>{ ensureCanvas('wrapCriticasProf','chartCriticasProf'); renderChartCriticasProf(criticasFiltradas); });
 
+  renderChartsPorEstado(scoped);
+
   try{ renderTable(scoped); }
   catch(err){ console.error('Error en renderTable', err); document.getElementById('tableWrap').innerHTML = '<div class="empty-state">Ocurrió un error mostrando la tabla: '+esc(err.message)+'</div>'; }
 
@@ -1570,6 +1595,37 @@ function renderChartCriticasProf(criticas){
       plugins:{ legend:{position:'bottom', labels:{boxWidth:10,font:{size:10}}}},
       scales:{ x:{stacked:true, grid:{display:false}}, y:{stacked:true, beginAtZero:true, ticks:{precision:0}} } }
   });
+}
+// Aparece solo cuando el filtro "Estado" de arriba tiene un valor elegido (Abierta/Cancelada/
+// Cerrada/En Pausa) -- "scoped" ya viene filtrado por ese Estado (entre los demás filtros
+// generales), así que estas dos gráficas muestran exactamente ese grupo de vacantes: por Dirección
+// (dónde están concentradas) y por Profesional (la carga de cada quien en ese estado puntual).
+function renderChartsPorEstado(scoped){
+  const panel = document.getElementById('chartsPorEstado');
+  const estado = state.filters.estado;
+  if (!estado){
+    panel.style.display = 'none';
+    destroyChart('estadoDireccion'); destroyChart('estadoProfesional');
+    return;
+  }
+  panel.style.display = '';
+  document.getElementById('tituloEstadoDireccionTexto').textContent = 'Vacantes "'+estado+'" por Dirección';
+  document.getElementById('tituloEstadoProfesionalTexto').textContent = 'Vacantes "'+estado+'" por Profesional';
+
+  const barra = (canvasId, chartKey, wrapId, items, color) => {
+    const conteo = new Map();
+    items.forEach(r=>{ const k = r[chartKey==='estadoDireccion'?'direccion':'profesional'] || 'Sin dato'; conteo.set(k,(conteo.get(k)||0)+1); });
+    const entradas = [...conteo.entries()].sort((a,b)=>b[1]-a[1]);
+    renderIndPlaceholderOrChart(canvasId, chartKey, wrapId, entradas.length>0, entradas, ()=>({
+      type:'bar',
+      data:{ labels: entradas.map(e=>e[0]), datasets:[{ label:'Vacantes', data: entradas.map(e=>e[1]), backgroundColor: color, borderRadius:4 }] },
+      options:{ indexAxis:'y', responsive:true, maintainAspectRatio:false,
+        plugins:{ legend:{display:false} },
+        scales:{ x:{beginAtZero:true, ticks:{precision:0}}, y:{grid:{display:false}, ticks:{font:{size:10}}} } }
+    }));
+  };
+  barra('chartEstadoDireccion','estadoDireccion','wrapEstadoDireccion', scoped, '#2f6fed');
+  barra('chartEstadoProfesional','estadoProfesional','wrapEstadoProfesional', scoped, '#8b5cf6');
 }
 
 /* --- Tabla --- */
@@ -2320,7 +2376,7 @@ function populateTalentoJovenFilters(){
   const conteoRegion = new Map();
   tj.forEach(r=>{ if (r.region) conteoRegion.set(r.region, (conteoRegion.get(r.region)||0)+1); });
   fillSelect('tjRegion', regiones.map(rg=>({ value: rg, label: rg+' ('+(conteoRegion.get(rg)||0)+')' })), 'Región (Todas)', true);
-  fillSelect('tjDireccion', uniqueSorted(tj,'direccion'), 'Dirección Comité (Todas)');
+  fillSelect('tjDireccion', uniqueSorted(tj,'direccion'), 'Dirección Corporativa (Todas)');
   const anios = [...new Set(tj.map(r=>r.anio).filter(a=>a!==null))].sort();
   fillSelect('tjAnio', anios.map(a=>({value:String(a),label:String(a)})), 'Año Ingreso (Todos)', true);
   fillSelect('tjMes', MESES_ES.map((nombre,i)=>({value:String(i+1),label:nombre})), 'Mes (Todos)', true);
@@ -2482,7 +2538,7 @@ function renderTalentoJoven(){
   const wrap = document.getElementById('tj_table');
   if (!tj.length){ wrap.innerHTML = '<div class="placeholder-note">No hay personas de Talento Joven con los filtros actuales.</div>'; return; }
   const filas = [...tj].sort((a,b)=>(a.fechaIngreso?a.fechaIngreso.getTime():0)-(b.fechaIngreso?b.fechaIngreso.getTime():0));
-  let html = '<table><thead><tr><th>Nombre</th><th>Edad</th><th>Fecha Ingreso</th><th>Cargo</th><th>Dirección Comité</th><th>Dirección Área</th><th>Gerencia</th><th>Mes</th><th>Región</th></tr></thead><tbody>';
+  let html = '<table><thead><tr><th>Nombre</th><th>Edad</th><th>Fecha Ingreso</th><th>Cargo</th><th>Dirección Corporativa</th><th>Dirección Área</th><th>Gerencia</th><th>Mes</th><th>Región</th></tr></thead><tbody>';
   filas.forEach(r=>{
     html += `<tr><td>${esc(r.nombre)}</td><td>${r.edad===null?'':esc(r.edad)}</td><td>${esc(fmtDate(r.fechaIngreso))}</td><td>${esc(r.cargo)}</td><td>${esc(r.direccion)}</td><td>${esc(r.direccionArea)}</td><td>${esc(r.gerencia)}</td><td>${esc(r.mes?MESES_ES[r.mes-1]:'')}</td><td>${esc(r.region)}</td></tr>`;
   });
