@@ -1,5 +1,5 @@
 <!doctype html>
-<!-- Tablero Vacantes - build 2026-10-01 v73 (uso interno para control de versión, no visible en el tablero) -->
+<!-- Tablero Vacantes - build 2026-10-01 v74 (uso interno para control de versión, no visible en el tablero) -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -490,10 +490,6 @@ loadScriptWithFallbacks([
       <div class="chart-card"><h3><svg class="ic-title" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg>Tiempo Promedio por Etapa del Proceso</h3><div class="canvas-wrap" id="ind_wrapEtapasProm"><canvas id="chartEtapasProm"></canvas></div></div>
       <div class="chart-card"><h3><svg class="ic-title" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon></svg>Cuello de Botella del Proceso (Promedio vs. Máximo)</h3><div class="canvas-wrap" id="ind_wrapCuelloBotella"><canvas id="chartCuelloBotella"></canvas></div></div>
     </div>
-    <div class="charts" style="grid-template-columns:1fr;margin-top:12px;">
-      <div class="chart-card"><h3><svg class="ic-title" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>Tiempo por Etapa y por Profesional — Eva Ramírez</h3><div class="canvas-wrap" id="ind_wrapEtapasEva"><canvas id="chartEtapasEva"></canvas></div></div>
-    </div>
-
     <div class="table-card" style="margin-top:12px;">
       <h3><svg class="ic-title" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg>Tiempo Promedio por Etapa del Proceso de Selección <span style="font-weight:400;color:var(--muted);font-size:11px;">(según fechas registradas en Comentarios: Reclutamiento, Relaciones Laborales, Prueba Técnica, Entregado Compensación, Estudio de Seguridad, Examen Médico)</span></h3>
       <div id="ind_tableEtapas"></div>
@@ -1415,11 +1411,13 @@ function render(){
   // "Vacantes por Profesional" se oculta con CUALQUIER Estado elegido en el filtro de arriba (ya
   // sea Abierta/Cancelada/Cerrada/En Pausa) -- ese caso ahora lo cubren mejor las dos gráficas "por
   // Estado" de arriba, así que aquí ya no tiene sentido dejarla con un placeholder vacío;
-  // "Críticas por Profesional" solo se oculta al ver En Pausa/Cancelada. Según cuántas de estas
+  // "Críticas por Profesional" se oculta al ver En Pausa/Cancelada, y también al ver Cerradas
+  // (una vacante cerrada nunca es "crítica" -- ese estado exige estar abierta -- así que con el
+  // filtro de Estado en "Cerrada" esta gráfica siempre quedaría vacía). Según cuántas de estas
   // tres queden visibles, la fila pasa a 1, 2 o 3 columnas (ver clases single-chart/two-charts).
   const hideAntiguedad = hideCerradasCharts || !!chartMode;
   const hideProfesional = !!state.filters.estado || state.quickFilter === 'cerradas';
-  const hideCriticas = chartMode && !hideCerradasCharts;
+  const hideCriticas = !!chartMode || hideCerradasCharts;
   const cardAntig = document.getElementById('cardAntiguedad');
   const cardProf = document.getElementById('cardProfesional');
   const cardCrit = document.getElementById('cardCriticas');
@@ -2014,7 +2012,6 @@ function renderIndicadores(){
   renderTablaEtapas(segmentosEtapas);
   safeRenderChart('chartEtapasProm', ()=>renderOrPlaceholderEtapasProm(segmentosEtapas));
   safeRenderChart('chartCuelloBotella', ()=>renderOrPlaceholderCuelloBotella(segmentosEtapas));
-  safeRenderChart('chartEtapasEva', ()=>renderOrPlaceholderEtapasEva());
 }
 // Calcula, para cada tramo consecutivo de STAGE_SEQUENCE, el promedio, mínimo, máximo y número
 // de vacantes con ambas fechas del tramo disponibles (en días hábiles).
@@ -2107,31 +2104,6 @@ function renderOrPlaceholderCuelloBotella(segmentos){
   }
   if (!document.getElementById('chartCuelloBotella')) wrap.innerHTML = '<canvas id="chartCuelloBotella"></canvas>';
   renderChartCuelloBotella(segmentos);
-}
-// Tiempo por etapa restringido a Eva Ramírez únicamente -- independiente de los filtros de la
-// página (Profesional/Dirección/Tipo Vacante), siempre muestra solo sus vacantes.
-function renderChartEtapasEva(segmentos){
-  destroyChart('etapasEva');
-  const ctx = document.getElementById('chartEtapasEva');
-  state.charts.etapasEva = new Chart(ctx, {
-    type:'bar',
-    data:{ labels: segmentos.map(s=>s.nombre), datasets:[{ label:'Prom. días hábiles (Eva Ramírez)', data: segmentos.map(s=>s.prom), backgroundColor:'#8b5cf6', borderRadius:4 }]},
-    options:{ indexAxis:'y', responsive:true, maintainAspectRatio:false,
-      plugins:{legend:{display:false}},
-      scales:{ x:{beginAtZero:true, ticks:{precision:0}}, y:{grid:{display:false}} } }
-  });
-}
-function renderOrPlaceholderEtapasEva(){
-  const wrap = document.getElementById('ind_wrapEtapasEva');
-  const rowsEva = state.rows.filter(r => normalize(r.profesional) === 'EVA RAMIREZ');
-  const segmentos = computeSegmentStats(rowsEva);
-  if (!segmentos.some(s=>s.n>0)){
-    destroyChart('etapasEva');
-    wrap.innerHTML = '<div class="placeholder-note">No se encontraron fechas de etapas para "Eva Ramírez" en los datos cargados (revisa que el nombre en la columna Profesional coincida).</div>';
-    return;
-  }
-  if (!document.getElementById('chartEtapasEva')) wrap.innerHTML = '<canvas id="chartEtapasEva"></canvas>';
-  renderChartEtapasEva(segmentos);
 }
 function renderTablaEtapas(segmentos){
   const wrap = document.getElementById('ind_tableEtapas');
