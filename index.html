@@ -1,5 +1,5 @@
 <!doctype html>
-<!-- Tablero Vacantes - build 2026-10-01 v75 (uso interno para control de versión, no visible en el tablero) -->
+<!-- Tablero Vacantes - build 2026-10-01 v76 (uso interno para control de versión, no visible en el tablero) -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -134,6 +134,7 @@ loadScriptWithFallbacks([
   .filters select{padding:9px 16px;border-radius:999px;border:1px solid var(--border);background:var(--card);font-size:13px;width:170px;max-width:170px;box-shadow:none;color:var(--ink);transition:.15s;text-overflow:ellipsis;white-space:nowrap;overflow:hidden;}
   .filters select:hover{border-color:var(--blue);}
   .filters select:focus, .chart-filter-select:focus, .cfg-url:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px rgba(47,111,237,.16);}
+  .filters select.filter-active{border-color:var(--blue);box-shadow:0 0 0 3px rgba(47,111,237,.16);}
   .filters .clear-filters{padding:9px 16px;border-radius:999px;border:1px dashed var(--border);background:transparent;font-size:12.5px;font-weight:600;color:var(--muted);cursor:pointer;transition:.15s;}
   .filters .clear-filters:hover{border-color:var(--red);color:var(--red);transform:translateY(-1px);}
 
@@ -336,14 +337,14 @@ loadScriptWithFallbacks([
   <div id="pageSeguimiento">
 
     <div class="filters">
-      <select id="fProfesional"><option value="">Profesional (Todas)</option></select>
-      <select id="fEstado"><option value="">Estado (Todas)</option></select>
-      <select id="fDireccion"><option value="">Dirección Corporativa (Todas)</option></select>
-      <select id="fAnio"><option value="">Año (Todos)</option></select>
-      <select id="fMes"><option value="">Mes (Todos)</option></select>
-      <select id="fFuncionCargo" title="Según la columna 'Función-Nivel Cargo' del Excel."><option value="">Cargo (Todos)</option></select>
+      <select id="fProfesional"><option value="">Profesional</option></select>
+      <select id="fEstado"><option value="">Estado</option></select>
+      <select id="fDireccion"><option value="">Dirección Corporativa</option></select>
+      <select id="fAnio"><option value="">Año</option></select>
+      <select id="fMes"><option value="">Mes</option></select>
+      <select id="fFuncionCargo" title="Según la columna 'Función-Nivel Cargo' del Excel."><option value="">Cargo</option></select>
       <select id="fCargoSegmentado" title="Según la columna 'Nivel de Contribución' del Excel: Líderes Estratégicos, Líderes Operacionales, Contribuidores Individuales u Otro.">
-        <option value="">Nivel de Contribución (Todos)</option>
+        <option value="">Nivel de Contribución</option>
         <option value="estrategico">Líderes Estratégicos</option>
         <option value="operacional">Líderes Operacionales</option>
         <option value="base">Contribuidores Individuales</option>
@@ -429,9 +430,9 @@ loadScriptWithFallbacks([
     </div>
 
     <div class="charts" id="chartsSeguimiento">
-      <div class="chart-card" id="cardAntiguedad"><h3><svg class="ic-title" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h12"></path><path d="M6 22h12"></path><path d="M6 2c0 6 6 6 6 10s-6 4-6 10"></path><path d="M18 2c0 6-6 6-6 10s6 4 6 10"></path></svg>Vacantes por Antigüedad<select class="chart-filter-select" id="cfAntiguedad" title="Filtrar solo esta gráfica por Dirección"><option value="">Dirección (Todas)</option></select></h3><div class="canvas-wrap" id="wrapAntiguedad"><canvas id="chartAntiguedad"></canvas></div></div>
-      <div class="chart-card" id="cardProfesional"><h3><svg class="ic-title" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>Vacantes por Profesional<select class="chart-filter-select" id="cfProfesional" title="Filtrar solo esta gráfica por Función-Nivel Cargo"><option value="">Cargo (Todos)</option></select></h3><div class="canvas-wrap" id="wrapProfesional"><canvas id="chartProfesional"></canvas></div></div>
-      <div class="chart-card" id="cardCriticas"><h3><svg class="ic-title" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>Vacantes Críticas por Profesional<select class="chart-filter-select" id="cfCriticas" title="Filtrar solo esta gráfica por Función-Nivel Cargo"><option value="">Cargo (Todos)</option></select></h3><div class="canvas-wrap" id="wrapCriticasProf"><canvas id="chartCriticasProf"></canvas></div></div>
+      <div class="chart-card" id="cardAntiguedad"><h3><svg class="ic-title" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h12"></path><path d="M6 22h12"></path><path d="M6 2c0 6 6 6 6 10s-6 4-6 10"></path><path d="M18 2c0 6-6 6-6 10s6 4 6 10"></path></svg>Vacantes por Antigüedad<select class="chart-filter-select" id="cfAntiguedad" title="Filtrar solo esta gráfica por Dirección"><option value="">Dirección</option></select></h3><div class="canvas-wrap" id="wrapAntiguedad"><canvas id="chartAntiguedad"></canvas></div></div>
+      <div class="chart-card" id="cardProfesional"><h3><svg class="ic-title" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>Vacantes por Profesional<select class="chart-filter-select" id="cfProfesional" title="Filtrar solo esta gráfica por Función-Nivel Cargo"><option value="">Cargo</option></select></h3><div class="canvas-wrap" id="wrapProfesional"><canvas id="chartProfesional"></canvas></div></div>
+      <div class="chart-card" id="cardCriticas"><h3><svg class="ic-title" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>Vacantes Críticas por Profesional<select class="chart-filter-select" id="cfCriticas" title="Filtrar solo esta gráfica por Función-Nivel Cargo"><option value="">Cargo</option></select></h3><div class="canvas-wrap" id="wrapCriticasProf"><canvas id="chartCriticasProf"></canvas></div></div>
     </div>
 
     <div class="table-card">
@@ -444,12 +445,12 @@ loadScriptWithFallbacks([
   <!-- ===================== PÁGINA 2: INDICADORES ===================== -->
   <div id="pageIndicadores" class="page-indicadores">
     <div class="filters">
-      <select id="iProfesional"><option value="">Profesional (Todas)</option></select>
-      <select id="iDireccion"><option value="">Dirección Corporativa (Todas)</option></select>
-      <select id="iTipoVacante"><option value="">Tipo Vacante (Todas)</option></select>
-      <select id="iAnio" title="Año de contratación (según Fecha Envío a Compensación)"><option value="">Año Contratación (Todos)</option></select>
-      <select id="iMes" title="Mes de contratación (según Fecha Envío a Compensación)"><option value="">Mes Contratación (Todos)</option></select>
-      <select id="iSemana" title="Semana de contratación (según Fecha Envío a Compensación)"><option value="">Semana (Todas)</option></select>
+      <select id="iProfesional"><option value="">Profesional</option></select>
+      <select id="iDireccion"><option value="">Dirección Corporativa</option></select>
+      <select id="iTipoVacante"><option value="">Tipo Vacante</option></select>
+      <select id="iAnio" title="Año de contratación (según Fecha Envío a Compensación)"><option value="">Año Contratación</option></select>
+      <select id="iMes" title="Mes de contratación (según Fecha Envío a Compensación)"><option value="">Mes Contratación</option></select>
+      <select id="iSemana" title="Semana de contratación (según Fecha Envío a Compensación)"><option value="">Semana</option></select>
     </div>
 
     <div class="ind-grid" style="grid-template-columns:repeat(5,1fr);">
@@ -499,11 +500,11 @@ loadScriptWithFallbacks([
   <!-- ===================== PÁGINA 3: TALENTO JOVEN ===================== -->
   <div id="pageTalentoJoven" class="page-indicadores">
     <div class="filters">
-      <select id="tjRegion"><option value="">Región (Todas)</option></select>
-      <select id="tjDireccion"><option value="">Dirección Corporativa (Todas)</option></select>
-      <select id="tjAnio" title="Año de la Fecha Ingreso"><option value="">Año Ingreso (Todos)</option></select>
-      <select id="tjMes" title="Mes según la columna BASE de la hoja TALENTO JOVEN"><option value="">Mes (Todos)</option></select>
-      <select id="tjSemana" title="Semana de la Fecha Ingreso"><option value="">Semana (Todas)</option></select>
+      <select id="tjRegion"><option value="">Región</option></select>
+      <select id="tjDireccion"><option value="">Dirección Corporativa</option></select>
+      <select id="tjAnio" title="Año de la Fecha Ingreso"><option value="">Año Ingreso</option></select>
+      <select id="tjMes" title="Mes según la columna BASE de la hoja TALENTO JOVEN"><option value="">Mes</option></select>
+      <select id="tjSemana" title="Semana de la Fecha Ingreso"><option value="">Semana</option></select>
       <button class="clear-filters" id="tjClear">Limpiar filtros</button>
     </div>
     <div id="tj_regionNote" style="display:none;font-size:12px;color:var(--muted);margin:-4px 0 12px;"></div>
@@ -1100,20 +1101,20 @@ function matchesFiltrosFecha(date, f){
   return true;
 }
 function populateFilterOptions(){
-  fillSelect('fProfesional', uniqueSorted(state.rows,'profesional'), 'Profesional (Todas)');
-  fillSelect('fEstado', uniqueSorted(state.rows,'estado'), 'Estado (Todas)');
-  fillSelect('fDireccion', uniqueSorted(state.rows,'direccion'), 'Dirección Corporativa (Todas)');
+  fillSelect('fProfesional', uniqueSorted(state.rows,'profesional'), 'Profesional');
+  fillSelect('fEstado', uniqueSorted(state.rows,'estado'), 'Estado');
+  fillSelect('fDireccion', uniqueSorted(state.rows,'direccion'), 'Dirección Corporativa');
   // Año y Mes ahora son dos filtros independientes -- Año se calcula a partir de los años
   // presentes en los datos (mesFiltroDate); Mes siempre lista los 12 meses del calendario, sin
   // atarlos a un año en particular, para poder combinarlos libremente con el filtro de Año.
   const anios = new Set(); state.rows.forEach(r=>{ const d = mesFiltroDate(r); if (d instanceof Date && !isNaN(d)) anios.add(d.getFullYear()); });
-  fillSelect('fAnio', [...anios].sort().map(a=>({value:String(a),label:String(a)})), 'Año (Todos)', true);
-  fillSelect('fMes', MESES_ES.map((nombre,i)=>({value:String(i+1),label:nombre})), 'Mes (Todos)', true);
-  fillSelect('fFuncionCargo', cargoOptions(), 'Cargo (Todos)', true);
+  fillSelect('fAnio', [...anios].sort().map(a=>({value:String(a),label:String(a)})), 'Año', true);
+  fillSelect('fMes', MESES_ES.map((nombre,i)=>({value:String(i+1),label:nombre})), 'Mes', true);
+  fillSelect('fFuncionCargo', cargoOptions(), 'Cargo', true);
 
-  fillSelect('iProfesional', uniqueSorted(state.rows,'profesional'), 'Profesional (Todas)');
-  fillSelect('iDireccion', uniqueSorted(state.rows,'direccion'), 'Dirección Corporativa (Todas)');
-  fillSelect('iTipoVacante', uniqueSorted(state.rows,'tipoVacante'), 'Tipo Vacante (Todas)');
+  fillSelect('iProfesional', uniqueSorted(state.rows,'profesional'), 'Profesional');
+  fillSelect('iDireccion', uniqueSorted(state.rows,'direccion'), 'Dirección Corporativa');
+  fillSelect('iTipoVacante', uniqueSorted(state.rows,'tipoVacante'), 'Tipo Vacante');
   // Año/Mes/Semana de contratación (Análisis de Indicadores): estos filtros se cruzan contra DOS
   // fechas distintas según la sección de la página -- Fecha de Cierre (Envío a Compensación) para
   // género/dirección/Cargo-Nivel, y Fecha Ingreso para Talento Joven (ver renderIndicadores) --
@@ -1126,8 +1127,8 @@ function populateFilterOptions(){
     if (r.fechaCierre instanceof Date && !isNaN(r.fechaCierre)) aniosInd.add(r.fechaCierre.getFullYear());
     if (r.fechaIngreso instanceof Date && !isNaN(r.fechaIngreso)) aniosInd.add(r.fechaIngreso.getFullYear());
   });
-  fillSelect('iAnio', [...aniosInd].sort().map(a=>({value:String(a),label:String(a)})), 'Año Contratación (Todos)', true);
-  fillSelect('iMes', MESES_ES.map((nombre,i)=>({value:String(i+1),label:nombre})), 'Mes Contratación (Todos)', true);
+  fillSelect('iAnio', [...aniosInd].sort().map(a=>({value:String(a),label:String(a)})), 'Año Contratación', true);
+  fillSelect('iMes', MESES_ES.map((nombre,i)=>({value:String(i+1),label:nombre})), 'Mes Contratación', true);
   // Semana de contratación: una opción por cada semana (lunes de esa semana) que aparece en la
   // Fecha de Cierre O la Fecha Ingreso de las vacantes cerradas (ver nota arriba), ordenadas
   // cronológicamente y con el valor siendo el timestamp del lunes (parseInt-able), para poder
@@ -1150,11 +1151,11 @@ function populateFilterOptions(){
   fillSelect('iSemana', semanasOrdenadas.map(([ts,lunes])=>{
     const domingo = new Date(lunes.getFullYear(), lunes.getMonth(), lunes.getDate()+6);
     return {value:String(ts), label:'Semana del '+fmtDate(lunes)+' al '+fmtDate(domingo)};
-  }), 'Semana (Todas)', true);
+  }), 'Semana', true);
 
-  fillSelect('cfAntiguedad', uniqueSorted(state.rows,'direccion'), 'Dirección (Todas)');
-  fillSelect('cfProfesional', cargoOptions(), 'Cargo (Todos)', true);
-  fillSelect('cfCriticas', cargoOptions(), 'Cargo (Todos)', true);
+  fillSelect('cfAntiguedad', uniqueSorted(state.rows,'direccion'), 'Dirección');
+  fillSelect('cfProfesional', cargoOptions(), 'Cargo', true);
+  fillSelect('cfCriticas', cargoOptions(), 'Cargo', true);
 }
 function fillSelect(id, items, placeholder, isObj){
   const sel = document.getElementById(id);
@@ -1265,10 +1266,20 @@ document.querySelectorAll('.tipo-square-band[data-tipo]').forEach(band=>{
   });
 });
 
+// Resalta en azul cada select de filtros cuyo valor ya no sea "Todos/Todas" (value==='') -- así
+// se ve de un vistazo cuáles filtros están aplicados, sin tener que leer el texto de cada uno.
+function markActiveFilters(ids){
+  ids.forEach(id=>{
+    const el = document.getElementById(id);
+    if (el) el.classList.toggle('filter-active', el.value !== '');
+  });
+}
+
 /* ============================================================
    6. RENDER: KPIs, GRÁFICAS, TABLA
    ============================================================ */
 function render(){
+  markActiveFilters(['fProfesional','fEstado','fDireccion','fAnio','fMes','fFuncionCargo','fCargoSegmentado']);
   // Antes de dibujar cualquier gráfica, se ajustan sus colores de texto/líneas al tema activo
   // (claro/oscuro) -- así, sin importar cuándo terminó de cargar Chart.js ni qué disparó este
   // render (carga de datos, cambio de filtro o el botón de tema), las gráficas siempre salen
@@ -1817,6 +1828,7 @@ document.getElementById('dirGeneroFilterClear').addEventListener('click', ()=>{
 });
 document.addEventListener('click', ()=>{ const p = document.getElementById('dirGeneroFilterPopup'); if (p) p.hidden = true; });
 function renderIndicadores(){
+  markActiveFilters(['iProfesional','iDireccion','iTipoVacante','iAnio','iMes','iSemana']);
   if (!state.rows.length) return;
   const cerradas0 = state.rows.filter(r=>r.cerrada); // "contratadas" = vacantes realmente cerradas (se excluyen canceladas/anuladas)
   const f = state.indFilters;
@@ -2272,17 +2284,17 @@ function populateTalentoJovenFilters(){
   // esa Región según la columna REGION del Excel, sin aplicar otros filtros.
   const conteoRegion = new Map();
   tj.forEach(r=>{ if (r.region) conteoRegion.set(r.region, (conteoRegion.get(r.region)||0)+1); });
-  fillSelect('tjRegion', regiones.map(rg=>({ value: rg, label: rg+' ('+(conteoRegion.get(rg)||0)+')' })), 'Región (Todas)', true);
-  fillSelect('tjDireccion', uniqueSorted(tj,'direccion'), 'Dirección Corporativa (Todas)');
+  fillSelect('tjRegion', regiones.map(rg=>({ value: rg, label: rg+' ('+(conteoRegion.get(rg)||0)+')' })), 'Región', true);
+  fillSelect('tjDireccion', uniqueSorted(tj,'direccion'), 'Dirección Corporativa');
   const anios = [...new Set(tj.map(r=>r.anio).filter(a=>a!==null))].sort();
-  fillSelect('tjAnio', anios.map(a=>({value:String(a),label:String(a)})), 'Año Ingreso (Todos)', true);
-  fillSelect('tjMes', MESES_ES.map((nombre,i)=>({value:String(i+1),label:nombre})), 'Mes (Todos)', true);
+  fillSelect('tjAnio', anios.map(a=>({value:String(a),label:String(a)})), 'Año Ingreso', true);
+  fillSelect('tjMes', MESES_ES.map((nombre,i)=>({value:String(i+1),label:nombre})), 'Mes', true);
   const semanas = new Map();
   tj.forEach(r=>{ if (r.fechaIngreso instanceof Date && !isNaN(r.fechaIngreso)){ const l = mondayOf(r.fechaIngreso); semanas.set(l.getTime(), l); } });
   fillSelect('tjSemana', [...semanas.entries()].sort((a,b)=>a[0]-b[0]).map(([ts,lunes])=>{
     const domingo = new Date(lunes.getFullYear(), lunes.getMonth(), lunes.getDate()+6);
     return {value:String(ts), label:'Semana del '+fmtDate(lunes)+' al '+fmtDate(domingo)};
-  }), 'Semana (Todas)', true);
+  }), 'Semana', true);
 }
 function tjApplyFilters(rows){
   const f = state.tjFilters;
@@ -2375,6 +2387,7 @@ function renderChartTalentoJovenPorFuncion(){
   });
 }
 function renderTalentoJoven(){
+  markActiveFilters(['tjRegion','tjDireccion','tjAnio','tjMes','tjSemana']);
   const notice = document.getElementById('tj_notice');
   const setText = (id, v) => { document.getElementById(id).textContent = v; };
   // Se dibuja siempre, sin importar si hay hoja "TALENTO JOVEN" -- sus datos vienen del
