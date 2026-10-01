@@ -1,5 +1,5 @@
 <!doctype html>
-<!-- Tablero Vacantes - build 2026-09-29 v69 (uso interno para control de versión, no visible en el tablero) -->
+<!-- Tablero Vacantes - build 2026-10-01 v70 (uso interno para control de versión, no visible en el tablero) -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -295,8 +295,23 @@ loadScriptWithFallbacks([
     </div>
     <div class="source-body">
 
+      <div class="source-actions" id="cloudProxyPanel" style="flex-basis:100%;border:1px solid #bfe8c9;background:#f2fbf4;border-radius:10px;padding:12px;">
+        <div style="font-weight:700;font-size:13px;color:#1c7d43;">☁️ Actualización automática (no necesita elegir ni arrastrar ningún archivo)</div>
+        <div class="field-hint">
+          El tablero trae el Excel solo, directamente desde una copia privada en la nube, cada vez
+          que abres esta página. Para actualizar los datos, sube la nueva versión del Excel en
+          <a href="https://github.com/valentinacampos125-creator/seguimientoVacantes" target="_blank" rel="noopener">este repositorio privado de GitHub</a>
+          (botón "Add file" → "Upload files") -- eso no pasa por ningún cuadro de archivos de este
+          tablero, así que no debería chocar con el bloqueo de tu empresa.
+        </div>
+        <div class="row" style="margin-top:8px;">
+          <button class="btn btn-primary" id="btnCloudRefresh">☁️ Actualizar ahora desde la nube</button>
+        </div>
+        <div class="status-msg" id="cloudFetchStatus"></div>
+      </div>
+
       <div class="source-actions" id="localFilePanel" style="flex-basis:100%;border:1px solid #cfe0ff;background:#f5f9ff;border-radius:10px;padding:12px;">
-        <div style="font-weight:700;font-size:13px;color:var(--blue-dark);">⭐ Recomendado: vincular tu Excel sincronizado de OneDrive (se actualiza solo)</div>
+        <div style="font-weight:700;font-size:13px;color:var(--blue-dark);">Alternativa: vincular tu Excel sincronizado de OneDrive (se actualiza solo)</div>
         <div class="field-hint">
           Si tienes la app de OneDrive instalada en tu computador (lo normal en un equipo de Claro con Windows), el Excel ya se guarda automáticamente en una carpeta de tu disco y se mantiene al día en segundo plano. Indícale a este tablero, <strong>una sola vez</strong>, dónde está ese archivo — desde ahí lo vuelve a leer directamente de tu disco cada vez que le des "Actualizar" (o solo, si activas la casilla de abajo), sin pasar por internet ni por SharePoint.
         </div>
@@ -2499,6 +2514,31 @@ document.getElementById('btnThemeToggle').addEventListener('click', ()=>{
   applyTheme(stored || (prefiereOscuro ? 'dark' : 'light'));
 })();
 
+/* --- Actualización automática desde la nube (Cloudflare Worker + repositorio privado de GitHub) ---
+   El Worker guarda el token de GitHub de forma segura y nunca lo entrega al navegador; aquí solo
+   se le pide el archivo por HTTP, sin ningún cuadro de "elegir archivo" ni arrastre -- por eso no
+   debería chocar con el bloqueo de archivos de la empresa. */
+const CLOUD_PROXY_URL = 'https://seguimientovacantes.valentina-campos125.workers.dev/';
+async function tryLoadFromCloudProxy(silent){
+  if (!silent) setStatus('cloudFetchStatus', 'Conectando con la nube...', null);
+  try{
+    const resp = await fetch(CLOUD_PROXY_URL, { cache: 'no-store' });
+    if (!resp.ok) throw new Error('El servidor respondió con un error (código '+resp.status+').');
+    const buf = await resp.arrayBuffer();
+    loadWorkbook(new Uint8Array(buf), 'Actualización automática (nube)');
+    setStatus('cloudFetchStatus', '✅ Actualizado — '+new Date().toLocaleString('es-CO'), 'ok');
+    return true;
+  }catch(err){
+    console.error('No se pudo cargar desde la nube', err);
+    if (!silent) setStatus('cloudFetchStatus', '⚠️ No se pudo traer el Excel desde la nube: '+err.message, 'err');
+    return false;
+  }
+}
+document.getElementById('btnCloudRefresh').addEventListener('click', ()=>tryLoadFromCloudProxy(false));
+// Revisa de nuevo cada 5 minutos mientras el tablero esté abierto, por si alguien subió una
+// versión nueva del Excel al repositorio mientras tanto.
+setInterval(()=>tryLoadFromCloudProxy(true), 5*60*1000);
+
 /* ============================================================
    9. INICIO
    ============================================================ */
@@ -2507,10 +2547,10 @@ try{
   const last = localStorage.getItem('vacantes_last_source');
   if (last) setStatus('fetchStatus', 'La última vez cargaste datos desde: '+last+'. Vuelve a cargar el Excel para refrescarlos (por seguridad, los datos no se guardan entre sesiones).', null);
 }catch(e){}
-// Mientras no haya datos cargados, el panel "Base" arranca abierto para que sea fácil de
-// encontrar la primera vez -- se cierra solo apenas carga un Excel (ver setSourcePanelOpen en
-// loadWorkbook), incluida la restauración automática del archivo vinculado (tryRestoreLocalFile).
-if (!state.rows.length) setSourcePanelOpen(true);
+// Al abrir, intenta traer el Excel solo desde la nube; si falla (o mientras tanto), muestra el
+// panel "Base" para que se pueda cargar manualmente. Igual que antes, el panel se cierra solo
+// apenas hay datos cargados (ver setSourcePanelOpen en loadWorkbook).
+tryLoadFromCloudProxy(true).then(()=>{ if (!state.rows.length) setSourcePanelOpen(true); });
 </script>
 </body>
 </html>
