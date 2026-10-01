@@ -1,5 +1,5 @@
 <!doctype html>
-<!-- Tablero Vacantes - build 2026-10-01 v77 (uso interno para control de versión, no visible en el tablero) -->
+<!-- Tablero Vacantes - build 2026-10-01 v78 (uso interno para control de versión, no visible en el tablero) -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -132,7 +132,7 @@ loadScriptWithFallbacks([
 
   .filters{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:14px;background:var(--card);border:1px solid var(--border);border-radius:14px;box-shadow:var(--shadow);padding:12px;}
   .filters select{padding:9px 16px;border-radius:999px;border:1px solid var(--border);background:var(--card);font-size:13px;width:170px;max-width:170px;box-shadow:none;color:var(--ink);transition:.15s;text-overflow:ellipsis;white-space:nowrap;overflow:hidden;}
-  .filters select.fit-text{width:auto;max-width:none;}
+  .filters select.fit-text{width:auto;max-width:140px;}
   .filters select:hover{border-color:var(--blue);}
   .filters select:focus, .chart-filter-select:focus, .cfg-url:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px rgba(47,111,237,.16);}
   .filters select.filter-active{border-color:var(--blue);box-shadow:0 0 0 3px rgba(47,111,237,.16);}
@@ -338,7 +338,7 @@ loadScriptWithFallbacks([
   <div id="pageSeguimiento">
 
     <div class="filters">
-      <select id="fProfesional"><option value="">Profesional</option></select>
+      <select id="fProfesional" class="fit-text"><option value="">Profesional</option></select>
       <select id="fEstado" class="fit-text"><option value="">Estado</option></select>
       <select id="fDireccion"><option value="">Dirección Corporativa</option></select>
       <select id="fAnio" class="fit-text"><option value="">Año</option></select>
