@@ -1,5 +1,5 @@
 <!doctype html>
-<!-- Tablero Vacantes - build 2026-10-01 v72 (uso interno para control de versión, no visible en el tablero) -->
+<!-- Tablero Vacantes - build 2026-10-01 v73 (uso interno para control de versión, no visible en el tablero) -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -297,14 +297,7 @@ loadScriptWithFallbacks([
     <div class="source-body">
 
       <div class="source-actions" id="cloudProxyPanel" style="flex-basis:100%;border:1px solid #bfe8c9;background:#f2fbf4;border-radius:10px;padding:12px;">
-        <div style="font-weight:700;font-size:13px;color:#1c7d43;">☁️ Actualización automática (no necesita elegir ni arrastrar ningún archivo)</div>
-        <div class="field-hint">
-          El tablero trae el Excel solo, directamente desde una copia privada en la nube, cada vez
-          que abres esta página. Para actualizar los datos, sube la nueva versión del Excel en
-          <a href="https://github.com/valentinacampos125-creator/seguimientoVacantes" target="_blank" rel="noopener">este repositorio privado de GitHub</a>
-          (botón "Add file" → "Upload files") -- eso no pasa por ningún cuadro de archivos de este
-          tablero, así que no debería chocar con el bloqueo de tu empresa.
-        </div>
+        <div style="font-weight:700;font-size:13px;color:#1c7d43;">☁️ Actualización automática</div>
         <div class="row" style="margin-top:8px;">
           <button class="btn btn-primary" id="btnCloudRefresh">☁️ Actualizar ahora desde la nube</button>
         </div>
@@ -312,10 +305,7 @@ loadScriptWithFallbacks([
       </div>
 
       <div class="source-actions" id="localFilePanel" style="flex-basis:100%;border:1px solid #cfe0ff;background:#f5f9ff;border-radius:10px;padding:12px;">
-        <div style="font-weight:700;font-size:13px;color:var(--blue-dark);">Alternativa: vincular tu Excel sincronizado de OneDrive (se actualiza solo)</div>
-        <div class="field-hint">
-          Si tienes la app de OneDrive instalada en tu computador (lo normal en un equipo de Claro con Windows), el Excel ya se guarda automáticamente en una carpeta de tu disco y se mantiene al día en segundo plano. Indícale a este tablero, <strong>una sola vez</strong>, dónde está ese archivo — desde ahí lo vuelve a leer directamente de tu disco cada vez que le des "Actualizar" (o solo, si activas la casilla de abajo), sin pasar por internet ni por SharePoint.
-        </div>
+        <div style="font-weight:700;font-size:13px;color:var(--blue-dark);">Alternativa: vincular tu Excel sincronizado de OneDrive</div>
         <div class="row">
           <button class="btn btn-primary" id="btnPickLocalFile">🔗 Vincular mi Excel (una sola vez)</button>
           <button class="btn btn-outline" id="btnRefreshLocalFile" style="display:none;">🔄 Actualizar ahora</button>
@@ -335,11 +325,8 @@ loadScriptWithFallbacks([
       <div class="source-actions">
         <div class="row">
           <a class="btn btn-outline" id="lnkOpenOneDrive" href="#" target="_blank" rel="noopener">🔗 Abrir Excel en OneDrive</a>
-          <button class="btn btn-outline" id="btnAutoFetch">⇩ Probar enlace público (opcional)</button>
         </div>
-        <div class="status-msg" id="fetchStatus">Alternativa avanzada: solo funciona si el archivo es público y el navegador no bloquea CORS.</div>
-        <label style="font-size:11.5px;color:var(--muted);font-weight:700;margin-top:4px;">URL directa usada para el enlace público (opcional)</label>
-        <input class="cfg-url" id="cfgUrl" value="">
+        <div class="status-msg" id="fetchStatus"></div>
         <div style="font-size:11px;color:var(--muted);">Última actualización de datos: <strong id="lastUpdatedText">—</strong></div>
       </div>
     </div>
@@ -999,35 +986,6 @@ function readFile(file){
   reader.readAsArrayBuffer(file);
 }
 
-/* --- Carga automática desde OneDrive (enlace público) --- */
-function toDownloadUrl(url){
-  if (!url) return url;
-  if (/action=default/i.test(url)) return url.replace(/action=default/i,'action=download');
-  if (/action=download/i.test(url)) return url;
-  return url + (url.includes('?')?'&':'?') + 'action=download';
-}
-document.getElementById('btnAutoFetch').addEventListener('click', async ()=>{
-  const shareUrl = document.getElementById('cfgUrl').value.trim();
-  if (!shareUrl){ setStatus('fetchStatus','Ingresa primero la URL del Excel.', 'err'); return; }
-  const downloadUrl = toDownloadUrl(shareUrl);
-  setStatus('fetchStatus','Conectando con OneDrive...', null);
-  try{
-    // "credentials: include" intenta reutilizar la sesión de Microsoft 365 ya iniciada en este
-    // navegador (por si el archivo requiere estar logueada, pero SharePoint acepta la cookie de
-    // sesión existente sin pedir usuario/clave de nuevo) -- si el tenant bloquea credenciales entre
-    // orígenes (CORS), esto simplemente falla igual que antes, sin romper nada.
-    const resp = await fetch(downloadUrl, {mode:'cors', cache:'no-store', credentials:'include'});
-    if (!resp.ok) throw new Error('Respuesta HTTP '+resp.status);
-    const ctype = resp.headers.get('content-type')||'';
-    if (ctype.includes('text/html')) throw new Error('El servidor devolvió una página de inicio de sesión, no el archivo (el enlace requiere autenticación y no se pudo reusar tu sesión).');
-    const buf = await resp.arrayBuffer();
-    loadWorkbook(new Uint8Array(buf), 'OneDrive (automático)');
-  }catch(err){
-    console.error(err);
-    setStatus('fetchStatus', '⚠️ No se pudo conectar automáticamente ('+err.message+'). Es muy probable que el archivo exija inicio de sesión corporativo o que el navegador bloquee la solicitud entre orígenes (CORS). Si tu empresa también bloquea el selector/arrastre de archivos, pídeme la opción de publicación automática (sin abrir ningún archivo en el navegador).', 'err');
-  }
-});
-document.getElementById('cfgUrl').value = state.shareUrl;
 document.getElementById('lnkOpenOneDrive').href = state.shareUrl;
 
 /* --- Vincular archivo local sincronizado con OneDrive (File System Access API) ---
