@@ -209,8 +209,13 @@ loadScriptWithFallbacks([
     </div>
 
     <div class="card full">
-      <h2>Vacantes por ciudad</h2>
-      <div class="desc">Columna CUIDAD, unificando la forma de escribir cada ciudad (p. ej. “Bogota, D.C.” → Bogotá, “Socha” → Soacha). Clic en un recuadro o en una barra para filtrar el tablero por ciudad; el % es sobre el total (Global).</div>
+      <div class="card-head">
+        <div>
+          <h2>Vacantes por ciudad</h2>
+          <div class="desc">Columna CUIDAD, unificando la forma de escribir cada ciudad (p. ej. “Bogota, D.C.” → Bogotá, “Socha” → Soacha). Clic en un recuadro o en una barra para filtrar el tablero por ciudad; el % es sobre el total (Global). El filtro de región de esta tarjeta solo cambia esta gráfica.</div>
+        </div>
+        <div class="fgroup"><label class="flabel" for="selCiudadRegion">Región</label><select class="fsel" id="selCiudadRegion"></select></div>
+      </div>
       <div class="tiles" id="cityTiles"></div>
       <div class="legend" data-legend></div>
       <div class="chart-box"><canvas id="chCiudad" aria-label="Vacantes por ciudad y temporal"></canvas><div class="nodata">Sin datos para los filtros</div></div>
@@ -220,10 +225,10 @@ loadScriptWithFallbacks([
       <div class="card-head">
         <div>
           <h2>Vacantes por género</h2>
-          <div class="desc">Columna GENERO (o SEXO) del Excel. El filtro de esta tarjeta también filtra todo el tablero.</div>
+          <div class="desc">Columna GENERO (o SEXO) del Excel. El filtro de región de esta tarjeta solo cambia esta gráfica.</div>
           <div class="desc" id="generoNote" style="color:var(--ink2);font-weight:600"></div>
         </div>
-        <div class="fgroup"><label class="flabel" for="selGenero">Género</label><select class="fsel" id="selGenero"></select></div>
+        <div class="fgroup"><label class="flabel" for="selGeneroRegion">Región</label><select class="fsel" id="selGeneroRegion"></select></div>
       </div>
       <div class="legend" data-legend></div>
       <div class="chart-box"><canvas id="chGenero" aria-label="Vacantes por género y temporal"></canvas><div class="nodata" id="generoNoData">Sin datos para los filtros</div></div>
@@ -286,8 +291,18 @@ const REGIONES_BASE = ['R1','R2','R3','R4','R5'];
 const TIPOS_BASE = ['Nuevo Recurso','Temporada Alta'];
 
 let rows = [], temporales = [], regiones = [], tipos = [], ciudades = [], years = [];
-const F = { temporal:null, estado:null, tipo:null, region:null, ciudad:null, genero:null, mes:null, year:null };
+const F = { temporal:null, estado:null, tipo:null, region:null, ciudad:null, mes:null, year:null };
 const GENEROS_BASE = ['Mujer','Hombre'];
+// Filtros propios de una sola tarjeta (no afectan el resto del tablero)
+const LF = { ciudadRegion:null, generoRegion:null };
+const regionLabel = r => /^R\d+$/.test(r) ? `Región ${r.slice(1)}` : r;
+function fillLocalRegion(id, key, base){
+  const c = countBy(base, r => r.region), s = $(id), cur = LF[key];
+  s.innerHTML = `<option value="">Todas (${base.length})</option>` +
+    regiones.map((v, i) => `<option value="${i}" ${cur === v ? 'selected' : ''}>${esc(regionLabel(v))} (${c[v] || 0})</option>`).join('');
+  s.classList.toggle('on', cur != null);
+  s.onchange = e => { LF[key] = e.target.value === '' ? null : regiones[+e.target.value]; render(); };
+}
 let generos = [...GENEROS_BASE], hasGenero = false;
 let sortKey = 'dias', sortDir = -1;
 let fileHandle = null, lastModified = 0, autoTimer = null;
@@ -512,7 +527,7 @@ function setData(r){
   if (F.ciudad && !ciudades.includes(F.ciudad)) F.ciudad = null;
   const gp = [...new Set(rows.map(x => x.genero))];
   generos = [...GENEROS_BASE, ...gp.filter(g => !GENEROS_BASE.includes(g) && g !== 'Sin dato').sort(), ...(gp.includes('Sin dato') ? ['Sin dato'] : [])];
-  if (!hasGenero || (F.genero && !generos.includes(F.genero))) F.genero = null;
+
   if (F.temporal && !temporales.includes(F.temporal)) F.temporal = null;
   if (F.year != null && !years.includes(F.year)) F.year = null;
   render();
@@ -524,7 +539,6 @@ function pass(r, skip){
   if (skip !== 'tipo' && F.tipo && r.tipo !== F.tipo) return false;
   if (skip !== 'region' && F.region && r.region !== F.region) return false;
   if (skip !== 'ciudad' && F.ciudad && r.ciudad !== F.ciudad) return false;
-  if (skip !== 'genero' && F.genero && r.genero !== F.genero) return false;
   if (skip !== 'mes' && F.mes != null && r.mes !== F.mes) return false;
   if (skip !== 'year' && F.year != null && r.year !== F.year) return false;
   return true;
@@ -543,8 +557,9 @@ function renderFilters(){
   fillSelect('selTipo', 'tipo', 'Todos', tipos);
   fillSelect('selRegion', 'region', 'Todas', regiones);
   fillSelect('selCiudad', 'ciudad', 'Todas', ciudades);
-  if (hasGenero){ $('selGenero').disabled = false; fillSelect('selGenero', 'genero', 'Todos', generos); }
-  else { const s = $('selGenero'); s.disabled = true; s.classList.remove('on'); s.innerHTML = '<option>Sin datos de género</option>'; }
+  fillLocalRegion('selCiudadRegion', 'ciudadRegion', rows.filter(r => pass(r, 'ciudad')));
+  if (hasGenero){ $('selGeneroRegion').disabled = false; fillLocalRegion('selGeneroRegion', 'generoRegion', rows.filter(r => pass(r) && r.genero !== 'Sin dato')); }
+  else { const s = $('selGeneroRegion'); s.disabled = true; s.classList.remove('on'); s.innerHTML = '<option>Sin datos de género</option>'; }
   fillSelect('selMes', 'mes', 'Todos los meses', MESES_L.map((_, i) => i), i => MESES_L[i]);
   fillSelect('selYear', 'year', 'Todos los años', years);
 }
@@ -606,7 +621,6 @@ function describeFilters(sinEstado){
   if (F.tipo) p.push(F.tipo);
   if (F.region) p.push(F.region);
   if (F.ciudad) p.push(F.ciudad);
-  if (F.genero) p.push(F.genero);
   if (F.mes != null || F.year != null) p.push([F.mes != null ? MESES_L[F.mes] : '', F.year ?? ''].join(' ').trim());
   return p.length ? p.join(' · ') : 'Sin filtros';
 }
@@ -754,7 +768,8 @@ function renderCharts(list){
     datasets: ts.map(t => { const c = countBy(by(t), r => r.estado); return barSet(t, est.map(e => c[e] || 0)); }) }, oC);
 
   // Ciudad (columna CUIDAD): ciudades en el eje, un color por temporal; el número de arriba es el total de la ciudad
-  const cityBase = rows.filter(r => pass(r, 'ciudad'));   // sin el filtro de ciudad, para ver todas y resaltar la elegida
+  // sin el filtro de ciudad (para ver todas y resaltar la elegida) y con el filtro de región propio de esta tarjeta
+  const cityBase = rows.filter(r => pass(r, 'ciudad') && (!LF.ciudadRegion || r.region === LF.ciudadRegion));
   const cct = countBy(cityBase, r => r.ciudad);
   const cities = Object.keys(cct).sort((a, b) => cct[b] - cct[a] || a.localeCompare(b, 'es'));
   const byCity = t => cityBase.filter(r => r.temporal === t);
@@ -772,7 +787,7 @@ function renderCharts(list){
 
   // Género: barras por género (Mujer, Hombre y otros valores escritos), un color por temporal. Las filas sin
   // género ("Sin dato") no se dibujan para no aplastar las barras; se cuentan en la nota y el % es sobre las que sí tienen.
-  const genAll = rows.filter(r => pass(r, 'genero'));
+  const genAll = rows.filter(r => pass(r) && (!LF.generoRegion || r.region === LF.generoRegion));
   const genBase = genAll.filter(r => r.genero !== 'Sin dato');
   const oG = baseOpts(c => `${c.raw} vacantes (${pct(c.raw, genBase.length)}%)`);
   oG.plugins.tooltip.callbacks.footer = items => { const n = items.reduce((s, i) => s + i.raw, 0); return `Total ${n} · ${pct(n, genBase.length)}% de las que tienen género`; };
@@ -784,7 +799,7 @@ function renderCharts(list){
     : '';
   upsert('genero', 'chGenero', { labels: hasGenero ? gens : [],
     datasets: ts.map(t => { const c = countBy(genBase.filter(r => r.temporal === t), r => r.genero);
-      return barSet(t, hasGenero ? gens.map(g => c[g] || 0) : [], { backgroundColor: gens.map(g => !F.genero || F.genero === g ? tColor(t) : alpha(tColor(t), .3)) }); }) }, oG);
+      return barSet(t, hasGenero ? gens.map(g => c[g] || 0) : []); }) }, oG);
   if (!hasGenero) $('chGenero').closest('.card').querySelector('[data-legend]').innerHTML = '';
   $('generoNoData').textContent = hasGenero ? 'Sin datos para los filtros'
     : 'El Excel vinculado no tiene una columna GENERO (o SEXO). Cuando la agregues, esta gráfica y su filtro se llenan solos.';
@@ -850,7 +865,10 @@ const stackTotals = {
     for (let i = 0; i < n; i++){
       let sum = 0, top = Infinity, x = null;
       chart.data.datasets.forEach((ds, di) => { const m = chart.getDatasetMeta(di); if (m.hidden) return; const v = ds.data[i] || 0; sum += v; if (v){ top = Math.min(top, m.data[i].y); x = m.data[i].x; } });
-      if (sum) ctx.fillText(`${sum} (${pct(sum, cityTotals.total)}%)`, x, top - 4);
+      // con muchas ciudades las barras quedan angostas: solo se escribe el total si cabe (el tooltip siempre lo muestra)
+      const w = chart.getDatasetMeta(0).data[i]?.width || 0, txt = `${sum} (${pct(sum, cityTotals.total)}%)`;
+      if (sum && ctx.measureText(txt).width <= w + 6) ctx.fillText(txt, x, top - 4);
+      else if (sum && ctx.measureText(String(sum)).width <= w + 4) ctx.fillText(String(sum), x, top - 4);
     }
     ctx.restore();
   }
@@ -895,7 +913,7 @@ $('binSemana').onclick = () => setBin('semana');
 $('binMes').onclick = () => setBin('mes');
 function resetCharts(){ Object.values(charts).forEach(c => c.destroy()); for (const k in charts) delete charts[k]; render(); }
 
-$('btnClear').onclick = () => { for (const k in F) F[k] = null; render(); };
+$('btnClear').onclick = () => { for (const k in F) F[k] = null; for (const k in LF) LF[k] = null; render(); };
 $('btnTheme').onclick = () => {
   const cur = document.documentElement.getAttribute('data-theme') || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
   const next = cur === 'dark' ? 'light' : 'dark';
