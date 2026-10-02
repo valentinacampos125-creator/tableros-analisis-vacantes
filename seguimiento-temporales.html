@@ -212,11 +212,10 @@ loadScriptWithFallbacks([
       <div class="card-head">
         <div>
           <h2>Vacantes por ciudad</h2>
-          <div class="desc">Columna CUIDAD, unificando la forma de escribir cada ciudad (p. ej. “Bogota, D.C.” → Bogotá, “Socha” → Soacha). Clic en un recuadro o en una barra para filtrar el tablero por ciudad; el % es sobre el total (Global). El filtro de región de esta tarjeta solo cambia esta gráfica.</div>
+          <div class="desc">Columna CUIDAD, unificando la forma de escribir cada ciudad (p. ej. “Bogota, D.C.” → Bogotá, “Socha” → Soacha). Elige la región en el filtro de esta tarjeta (solo cambia esta gráfica). Clic en una barra para filtrar el tablero por esa ciudad; el % es sobre el total de la región.</div>
         </div>
         <div class="fgroup"><label class="flabel" for="selCiudadRegion">Región</label><select class="fsel" id="selCiudadRegion"></select></div>
       </div>
-      <div class="tiles" id="cityTiles"></div>
       <div class="legend" data-legend></div>
       <div class="chart-box"><canvas id="chCiudad" aria-label="Vacantes por ciudad y temporal"></canvas><div class="nodata">Sin datos para los filtros</div></div>
     </div>
@@ -294,13 +293,17 @@ let rows = [], temporales = [], regiones = [], tipos = [], ciudades = [], years 
 const F = { temporal:null, estado:null, tipo:null, region:null, ciudad:null, mes:null, year:null };
 const GENEROS_BASE = ['Mujer','Hombre'];
 // Filtros propios de una sola tarjeta (no afectan el resto del tablero)
-const LF = { ciudadRegion:null, generoRegion:null };
+// La gráfica de ciudad siempre muestra una región (por defecto R4, sin opción "Todas"); la de género puede ver todas.
+const LF_DEFAULT = { ciudadRegion:'R4', generoRegion:null };
+const LF = { ...LF_DEFAULT };
 const regionLabel = r => /^R\d+$/.test(r) ? `Región ${r.slice(1)}` : r;
-function fillLocalRegion(id, key, base){
-  const c = countBy(base, r => r.region), s = $(id), cur = LF[key];
-  s.innerHTML = `<option value="">Todas (${base.length})</option>` +
+function fillLocalRegion(id, key, base, conTodas = true){
+  const c = countBy(base, r => r.region), s = $(id);
+  if (!conTodas && !regiones.includes(LF[key])) LF[key] = regiones.find(v => c[v]) || regiones[0];
+  const cur = LF[key];
+  s.innerHTML = (conTodas ? `<option value="">Todas (${base.length})</option>` : '') +
     regiones.map((v, i) => `<option value="${i}" ${cur === v ? 'selected' : ''}>${esc(regionLabel(v))} (${c[v] || 0})</option>`).join('');
-  s.classList.toggle('on', cur != null);
+  s.classList.toggle('on', conTodas && cur != null);
   s.onchange = e => { LF[key] = e.target.value === '' ? null : regiones[+e.target.value]; render(); };
 }
 let generos = [...GENEROS_BASE], hasGenero = false;
@@ -557,7 +560,7 @@ function renderFilters(){
   fillSelect('selTipo', 'tipo', 'Todos', tipos);
   fillSelect('selRegion', 'region', 'Todas', regiones);
   fillSelect('selCiudad', 'ciudad', 'Todas', ciudades);
-  fillLocalRegion('selCiudadRegion', 'ciudadRegion', rows.filter(r => pass(r, 'ciudad')));
+  fillLocalRegion('selCiudadRegion', 'ciudadRegion', rows.filter(r => pass(r, 'ciudad')), false);
   if (hasGenero){ $('selGeneroRegion').disabled = false; fillLocalRegion('selGeneroRegion', 'generoRegion', rows.filter(r => pass(r) && r.genero !== 'Sin dato')); }
   else { const s = $('selGeneroRegion'); s.disabled = true; s.classList.remove('on'); s.innerHTML = '<option>Sin datos de género</option>'; }
   fillSelect('selMes', 'mes', 'Todos los meses', MESES_L.map((_, i) => i), i => MESES_L[i]);
@@ -783,7 +786,6 @@ function renderCharts(list){
   upsert('ciudad', 'chCiudad', { labels: cities,
     datasets: ts.map(t => { const c = countBy(byCity(t), r => r.ciudad), col = tColor(t);
       return barSet(t, cities.map(x => c[x] || 0), { backgroundColor: cities.map(x => !F.ciudad || F.ciudad === x ? col : alpha(col, .3)), borderRadius:0, borderWidth:{ top:1 }, maxBarThickness:70 }); }) }, oCi);
-  renderCityTiles();
 
   // Género: barras por género (Mujer, Hombre y otros valores escritos), un color por temporal. Las filas sin
   // género ("Sin dato") no se dibujan para no aplastar las barras; se cuentan en la nota y el % es sobre las que sí tienen.
@@ -873,14 +875,6 @@ const stackTotals = {
     ctx.restore();
   }
 };
-function renderCityTiles(){
-  const { cities, cct, total } = cityTotals;
-  const mk = (name, n, on, click) => { const b = document.createElement('button'); b.className = 'tile' + (on ? ' on' : ''); b.setAttribute('aria-pressed', on);
-    b.innerHTML = `<span class="tn">${esc(name)}</span><span class="tv">${n}<span class="tp"> · ${pct(n, total)}%</span></span>`; b.onclick = click; return b; };
-  const box = $('cityTiles'); box.replaceChildren();
-  box.append(mk('Global', total, !F.ciudad, () => { F.ciudad = null; render(); }));
-  cities.forEach(c => box.append(mk(c, cct[c], F.ciudad === c, () => { F.ciudad = F.ciudad === c ? null : c; render(); })));
-}
 
 /* ---------- Tabla ---------- */
 const COLS_T = [
@@ -913,7 +907,7 @@ $('binSemana').onclick = () => setBin('semana');
 $('binMes').onclick = () => setBin('mes');
 function resetCharts(){ Object.values(charts).forEach(c => c.destroy()); for (const k in charts) delete charts[k]; render(); }
 
-$('btnClear').onclick = () => { for (const k in F) F[k] = null; for (const k in LF) LF[k] = null; render(); };
+$('btnClear').onclick = () => { for (const k in F) F[k] = null; Object.assign(LF, LF_DEFAULT); render(); };
 $('btnTheme').onclick = () => {
   const cur = document.documentElement.getAttribute('data-theme') || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
   const next = cur === 'dark' ? 'light' : 'dark';
