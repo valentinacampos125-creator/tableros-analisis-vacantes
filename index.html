@@ -1,5 +1,5 @@
 <!doctype html>
-<!-- Tablero Vacantes - build 2026-10-01 v78 (uso interno para control de versión, no visible en el tablero) -->
+<!-- Tablero Vacantes - build 2026-10-02 v79 (uso interno para control de versión, no visible en el tablero) -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -87,13 +87,25 @@ loadScriptWithFallbacks([
   ::-webkit-scrollbar-track{background:transparent;}
   ::-webkit-scrollbar-thumb{background:var(--border);border-radius:8px;}
   ::-webkit-scrollbar-thumb:hover{background:var(--muted);}
-  .app-header{position:sticky;top:0;z-index:50;background:linear-gradient(135deg,#c0392b,#e5493d 55%,#b71c1c);color:#fff;padding:14px 22px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;box-shadow:0 6px 18px rgba(150,30,20,.28), 0 2px 6px rgba(0,0,0,.12);overflow:hidden;}
+  .app-header-wrap{position:sticky;top:0;z-index:50;display:flex;align-items:center;gap:10px;padding:10px 16px;background:var(--bg);}
+  .menu-toggle{flex:none;width:44px;height:44px;border:none;background:transparent;color:var(--ink);border-radius:12px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:background .15s;}
+  .menu-toggle:hover{background:var(--th-bg);}
+  .menu-toggle:focus-visible{outline:2px solid var(--blue);outline-offset:2px;}
+  .app-header{position:relative;flex:1;min-width:0;background:linear-gradient(135deg,#c0392b,#e5493d 55%,#b71c1c);color:#fff;padding:10px 20px;border-radius:14px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;box-shadow:0 4px 14px rgba(150,30,20,.22), 0 1px 4px rgba(0,0,0,.1);overflow:hidden;}
   .app-header::before{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(255,255,255,.14),rgba(255,255,255,0) 55%);pointer-events:none;}
   .app-header > *{position:relative;}
-  .btn-indicadores{background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.5);color:#fff;padding:9px 16px;border-radius:8px;font-weight:600;font-size:13px;cursor:pointer;display:flex;align-items:center;gap:8px;white-space:nowrap;transition:background .15s;}
-  .btn-indicadores:hover{background:rgba(255,255,255,.3);}
-  .nav-left{display:flex;flex-direction:row;gap:8px;align-items:center;}
-  .app-title{font-size:20px;font-weight:800;letter-spacing:.6px;flex:1;text-align:center;min-width:200px;text-shadow:0 1px 2px rgba(0,0,0,.15);}
+  .app-title{font-size:17px;font-weight:700;flex:1;min-width:180px;text-shadow:0 1px 2px rgba(0,0,0,.15);}
+  .drawer-backdrop{position:fixed;inset:0;background:rgba(10,14,22,.4);z-index:130;}
+  .drawer-backdrop[hidden]{display:none;}
+  .drawer{position:fixed;top:0;left:0;bottom:0;width:min(290px, 86vw);z-index:140;background:var(--card);border-right:1px solid var(--border);box-shadow:var(--shadow-lg);padding:16px 14px;display:flex;flex-direction:column;gap:6px;transform:translateX(-105%);visibility:hidden;transition:transform .22s ease, visibility 0s linear .22s;}
+  .drawer.open{transform:translateX(0);visibility:visible;transition:transform .22s ease, visibility 0s;}
+  .drawer-head{display:flex;align-items:center;justify-content:space-between;font-weight:700;font-size:13px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;padding:4px 6px 12px;}
+  .drawer-close{background:none;border:none;color:var(--muted);font-size:15px;cursor:pointer;padding:4px 8px;border-radius:8px;line-height:1;}
+  .drawer-close:hover{background:var(--th-bg);color:var(--ink);}
+  .drawer-item{display:flex;align-items:center;gap:10px;width:100%;text-align:left;padding:12px 14px;border:none;border-radius:12px;background:transparent;color:var(--ink);font:inherit;font-weight:600;font-size:14px;cursor:pointer;transition:background .15s,color .15s;}
+  .drawer-item:hover{background:var(--th-bg);}
+  .drawer-item:focus-visible{outline:2px solid var(--blue);outline-offset:1px;}
+  .drawer-item.active{background:linear-gradient(135deg,#c0392b,#e5493d);color:#fff;}
   .header-right{display:flex;align-items:center;gap:10px;font-size:12px;}
   .pill{background:rgba(255,255,255,.16);border-radius:20px;padding:6px 12px;font-weight:600;display:flex;align-items:center;gap:6px;}
   .pill.alert{background:#fff3cd;color:#7a4d00;}
@@ -104,7 +116,7 @@ loadScriptWithFallbacks([
   /* El panel de "Origen de datos" ya no vive en el flujo normal de la página -- se abre como un
      panel flotante bajo el botón "Base" del header, con un fondo oscuro detrás que lo cierra al
      hacer clic fuera, y desaparece solo apenas se carga un Excel con éxito. */
-  .source-panel{position:fixed;top:70px;right:16px;z-index:120;width:min(820px, calc(100vw - 32px));max-height:calc(100vh - 90px);overflow:auto;background:var(--card);border:1px solid var(--border);border-radius:12px;box-shadow:var(--shadow-lg);padding:14px 16px;display:none;transition:background-color .2s,border-color .2s;}
+  .source-panel{position:fixed;top:78px;right:16px;z-index:120;width:min(820px, calc(100vw - 32px));max-height:calc(100vh - 90px);overflow:auto;background:var(--card);border:1px solid var(--border);border-radius:12px;box-shadow:var(--shadow-lg);padding:14px 16px;display:none;transition:background-color .2s,border-color .2s;}
   .source-panel.open{display:block;}
   .source-panel-backdrop{position:fixed;inset:0;background:rgba(10,14,22,.35);z-index:110;}
   .source-panel-backdrop[hidden]{display:none;}
@@ -269,17 +281,17 @@ loadScriptWithFallbacks([
 
   @media (max-width:1100px){ .charts{grid-template-columns:1fr 1fr;} .ind-grid{grid-template-columns:repeat(3,1fr);} .ind-tables{grid-template-columns:1fr;} }
   @media (max-width:760px){ .ind-grid{grid-template-columns:repeat(2,1fr);} }
-  @media (max-width:640px){ .charts{grid-template-columns:1fr;} .app-title{order:3;width:100%;text-align:left;} .tipo-square{width:100%;} }
+  @media (max-width:640px){ .charts{grid-template-columns:1fr;} .tipo-square{width:100%;} }
 </style>
 </head>
 <body>
 
+<div class="app-header-wrap">
+<button class="menu-toggle" id="btnMenu" type="button" aria-label="Abrir menú" aria-expanded="false" aria-controls="drawer">
+  <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><line x1="4" y1="6" x2="20" y2="6"></line><line x1="4" y1="12" x2="20" y2="12"></line><line x1="4" y1="18" x2="20" y2="18"></line></svg>
+</button>
 <div class="app-header">
-  <div class="nav-left">
-    <button class="btn-indicadores" id="btnToggleView">📊 <span id="toggleLabel">Análisis de Indicadores</span></button>
-    <button class="btn-indicadores" id="btnTalentoJoven">🌱 <span id="tjToggleLabel">Talento Joven</span></button>
-  </div>
-  <div class="app-title">SEGUIMIENTO DE VACANTES</div>
+  <div class="app-title">Seguimiento de vacantes</div>
   <div class="header-right">
     <button class="theme-toggle" id="btnToggleSource" title="Mostrar u ocultar el origen de datos (Excel)">📁 <span id="sourceToggleLabel">Base</span></button>
     <button class="theme-toggle" id="btnThemeToggle" title="Cambiar entre modo claro y oscuro" aria-label="Cambiar entre modo claro y oscuro">🌙</button>
@@ -287,6 +299,18 @@ loadScriptWithFallbacks([
     <span class="pill alert" id="pillAlert" style="display:none;">⚠️ <span id="alertCount">0</span> &ge; 29 días</span>
   </div>
 </div>
+</div>
+
+<div class="drawer-backdrop" id="drawerBackdrop" hidden></div>
+<nav class="drawer" id="drawer" aria-label="Menú principal" aria-hidden="true">
+  <div class="drawer-head">
+    <span>Menú</span>
+    <button type="button" class="drawer-close" id="btnCloseDrawer" aria-label="Cerrar menú">✕</button>
+  </div>
+  <button type="button" class="drawer-item active" data-page="seg">📋 <span>Seguimiento de vacantes</span></button>
+  <button type="button" class="drawer-item" data-page="ind">📊 <span>Análisis de indicadores</span></button>
+  <button type="button" class="drawer-item" data-page="tj">🌱 <span>Talento joven</span></button>
+</nav>
 
 <div class="toolbar">
 
@@ -1764,12 +1788,23 @@ function showPage(p){
   document.getElementById('pageSeguimiento').style.display = p==='seg' ? 'block' : 'none';
   document.getElementById('pageIndicadores').style.display = p==='ind' ? 'block' : 'none';
   document.getElementById('pageTalentoJoven').style.display = p==='tj' ? 'block' : 'none';
-  document.getElementById('toggleLabel').textContent = p==='ind' ? 'Volver a Seguimiento' : 'Análisis de Indicadores';
-  document.getElementById('tjToggleLabel').textContent = p==='tj' ? 'Volver a Seguimiento' : 'Talento Joven';
+  document.querySelectorAll('.drawer-item').forEach(b=>b.classList.toggle('active', b.dataset.page===p));
   if (p==='tj'){ try{ renderTalentoJoven(); }catch(err){ console.error('Error en renderTalentoJoven', err); } }
 }
-document.getElementById('btnToggleView').addEventListener('click', ()=> showPage(currentPage==='ind' ? 'seg' : 'ind'));
-document.getElementById('btnTalentoJoven').addEventListener('click', ()=> showPage(currentPage==='tj' ? 'seg' : 'tj'));
+function setDrawerOpen(open){
+  const drawer = document.getElementById('drawer');
+  drawer.classList.toggle('open', open);
+  drawer.setAttribute('aria-hidden', open ? 'false' : 'true');
+  document.getElementById('drawerBackdrop').hidden = !open;
+  document.getElementById('btnMenu').setAttribute('aria-expanded', open ? 'true' : 'false');
+  if (open){ const act = drawer.querySelector('.drawer-item.active'); if (act) act.focus(); }
+  else document.getElementById('btnMenu').focus({preventScroll:true});
+}
+document.getElementById('btnMenu').addEventListener('click', ()=> setDrawerOpen(!document.getElementById('drawer').classList.contains('open')));
+document.getElementById('btnCloseDrawer').addEventListener('click', ()=> setDrawerOpen(false));
+document.getElementById('drawerBackdrop').addEventListener('click', ()=> setDrawerOpen(false));
+document.addEventListener('keydown', e=>{ if (e.key==='Escape' && document.getElementById('drawer').classList.contains('open')) setDrawerOpen(false); });
+document.querySelectorAll('.drawer-item').forEach(b=>b.addEventListener('click', ()=>{ showPage(b.dataset.page); setDrawerOpen(false); window.scrollTo({top:0}); }));
 
 // Edad calculada a partir de la Fecha de Nacimiento, SIEMPRE respecto a una fecha de referencia
 // explícita (normalmente la Fecha de Cierre = Fecha de Envío a Compensación de esa vacante) --
