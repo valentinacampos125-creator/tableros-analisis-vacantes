@@ -345,13 +345,13 @@ function normTemporal(raw){
   if (k.startsWith('redes')) return 'Redes Humanas';
   return String(raw).trim().toLowerCase().replace(/\b\w/g, c => c.toUpperCase());
 }
-// Cancelada si la columna ESTADO lo dice; Cerrada si lo dice o si CIERRE DE LA VACANTE tiene una fecha igual o anterior a hoy
-function normEstado(raw, cierre){
+// El estado sale solo de la columna ESTADO (igual que el filtro de Excel); la fecha de cierre solo se usa para los días
+function normEstado(raw){
   const k = norm(raw);
   if (k.startsWith('cancel')) return 'Cancelada';
   if (k.startsWith('cerrad') || k.startsWith('cubiert')) return 'Cerrada';
-  if (cierre != null && cierre <= TODAY) return 'Cerrada';
-  return 'Abierta';
+  if (k.startsWith('abiert')) return 'Abierta';
+  return k ? String(raw).trim() : 'Sin estado';
 }
 function normRegion(raw){
   const k = norm(raw);
@@ -399,7 +399,7 @@ function buildRows(list, sheetRegion, stats){
       return s; };
     const o = { id: String(id ?? '').trim(), lib: fecha(lib, 'liberación'), con: fecha(cie, 'cierre'),
       tipo: normTipo(tipo), temporal: normTemporal(temp), region: normRegion(vacio(reg) ? sheetRegion : reg), ciudad: normCity(ciu), genero: normGenero(gen) };
-    o.estado = normEstado(est, o.con);
+    o.estado = normEstado(est);
     o.diasCierre = (o.estado === 'Cerrada' && o.lib != null && o.con != null && o.con >= o.lib) ? o.con - o.lib : null;
     o.diasAbierta = (o.estado === 'Abierta' && o.lib != null) ? Math.max(0, TODAY - o.lib) : null;
     const f = o.lib != null ? serialToDate(o.lib) : null;
