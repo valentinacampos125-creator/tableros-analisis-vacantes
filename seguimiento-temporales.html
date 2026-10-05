@@ -171,9 +171,10 @@ loadScriptWithFallbacks([
       <div class="sub" id="sourceLabel">Cargando…</div>
     </div>
     <div class="actions">
-      <button class="btn primary" id="btnLink">Vincular Excel</button>
+      <button class="btn primary" id="btnLink" title="Elige el Excel una vez: el tablero lo recuerda y se actualiza solo cuando lo guardas">Vincular Excel</button>
+      <button class="btn" id="btnUpload" title="Carga un Excel una sola vez (sin actualización automática)">Cargar archivo</button>
       <button class="btn" id="btnRefresh" disabled title="Vuelve a leer el Excel vinculado">Actualizar</button>
-      <label class="chk" title="Revisa cada 10 segundos si el Excel cambió y recarga solo"><input type="checkbox" id="chkAuto" disabled> Auto-actualizar</label>
+      <label class="chk" title="Revisa cada 10 segundos si el Excel cambió y recarga solo"><input type="checkbox" id="chkAuto" checked disabled> Auto-actualizar</label>
       <button class="btn" id="btnTheme" title="Cambiar tema claro/oscuro">◐</button>
       <input type="file" id="fileInput" accept=".xlsx,.xls,.xlsm" hidden>
     </div>
@@ -472,20 +473,68 @@ async function loadFromFile(file, origin){
   }
 }
 function setStatus(msg, kind){ const s = $('status'); s.textContent = msg; s.className = 'status' + (kind ? ' ' + kind : ''); }
-function enableLinked(){ $('btnRefresh').disabled = false; $('chkAuto').disabled = false; }
+/* ---------- Vínculo con el Excel ----------
+   "Vincular Excel" guarda el acceso al archivo (en el navegador, IndexedDB) para que al volver a abrir el tablero
+   se conecte solo y se actualice cada vez que el Excel se guarda. "Cargar archivo" lo lee una sola vez.
+   El vínculo automático funciona en Chrome y Edge; en otros navegadores ambos botones cargan el archivo una vez. */
+const idb = (mode, fn) => new Promise((res, rej) => {
+  const open = indexedDB.open('tablero-seguimiento', 1);
+  open.onupgradeneeded = () => open.result.createObjectStore('kv');
+  open.onerror = () => rej(open.error);
+  open.onsuccess = () => { const tx = open.result.transaction('kv', mode), req = fn(tx.objectStore('kv')); tx.oncomplete = () => res(req && req.result); tx.onerror = () => rej(tx.error); };
+});
+const saveHandle = h => idb('readwrite', s => s.put(h, 'excel')).catch(() => {});
+const loadHandle = () => idb('readonly', s => s.get('excel')).catch(() => null);
+let autoPref = true;
+try{ autoPref = localStorage.getItem('tablero-seguimiento-auto') !== '0'; }catch(_){}
+$('chkAuto').checked = autoPref;
 
-$('btnLink').onclick = async () => {
+function enableLinked(){ $('btnRefresh').disabled = false; $('chkAuto').disabled = false; }
+function startAuto(){
+  clearInterval(autoTimer);
+  if (!$('chkAuto').checked || !fileHandle) return;
+  autoTimer = setInterval(checkChanges, 10000);
+}
+async function checkChanges(){
+  if (!fileHandle) return;
+  try{ const f = await fileHandle.getFile(); if (f.lastModified !== lastModified) await loadFromFile(f, 'Cambio detectado, actualizado a las'); }catch(_){}
+}
+async function linkHandle(h, origin){
+  fileHandle = h; enableLinked(); saveHandle(h);
+  $('btnLink').textContent = 'Cambiar Excel';
+  await loadFromFile(await h.getFile(), origin);
+  startAuto();
+}
+// Al abrir el tablero: si ya había un Excel vinculado, se reconecta solo (o con un clic si el navegador pide permiso)
+async function restoreLink(){
+  if (!window.showOpenFilePicker) return;
+  const h = await loadHandle(); if (!h) return;
+  let perm = 'prompt';
+  try{ perm = await h.queryPermission({ mode:'read' }); }catch(_){}
+  if (perm === 'granted'){ try{ await linkHandle(h, 'Excel vinculado reconectado a las'); return; }catch(_){} }
+  const b = $('btnLink');
+  b.textContent = `Reconectar “${h.name}”`;
+  setStatus(`El tablero recuerda el Excel “${h.name}”. Haz clic en “Reconectar” para leerlo y mantenerlo actualizado (el navegador pide confirmar el permiso).`, 'warn');
+  b.onclick = async () => {
+    try{
+      if ((await h.requestPermission({ mode:'read' })) === 'granted'){ b.onclick = pickExcel; await linkHandle(h, 'Excel vinculado reconectado a las'); }
+    }catch(_){ b.onclick = pickExcel; pickExcel(); }
+  };
+}
+async function pickExcel(){
   if (window.showOpenFilePicker){
     try{
       const [h] = await window.showOpenFilePicker({ types:[{ description:'Excel', accept:{ 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet':['.xlsx','.xlsm'], 'application/vnd.ms-excel':['.xls'] } }] });
-      fileHandle = h; enableLinked();
-      await loadFromFile(await h.getFile(), 'Excel vinculado a las');
+      await linkHandle(h, 'Excel vinculado a las');
     }catch(e){ if (e.name !== 'AbortError') $('fileInput').click(); }
   } else $('fileInput').click();
-};
+}
+$('btnLink').onclick = pickExcel;
+$('btnUpload').onclick = () => $('fileInput').click();
 $('fileInput').onchange = e => {
   const f = e.target.files[0]; if (!f) return;
-  fileHandle = null; $('btnRefresh').disabled = false; $('chkAuto').disabled = true;
+  fileHandle = null; clearInterval(autoTimer);
+  $('btnRefresh').disabled = false; $('chkAuto').disabled = true;
   loadFromFile(f, 'Excel cargado a las');
   e.target.value = '';
 };
@@ -494,13 +543,11 @@ $('btnRefresh').onclick = async () => {
   else $('fileInput').click();
 };
 $('chkAuto').onchange = e => {
-  clearInterval(autoTimer);
-  if (e.target.checked && fileHandle){
-    autoTimer = setInterval(async () => {
-      try{ const f = await fileHandle.getFile(); if (f.lastModified !== lastModified) await loadFromFile(f, 'Cambio detectado, actualizado a las'); }catch(_){}
-    }, 10000);
-  }
+  try{ localStorage.setItem('tablero-seguimiento-auto', e.target.checked ? '1' : '0'); }catch(_){}
+  startAuto();
 };
+// Al volver a la pestaña (por ejemplo, después de guardar en Excel) se revisa de inmediato si hubo cambios
+document.addEventListener('visibilitychange', () => { if (!document.hidden && $('chkAuto').checked) checkChanges(); });
 ['dragenter','dragover'].forEach(ev => document.addEventListener(ev, e => { e.preventDefault(); document.body.classList.add('drop-hint'); }));
 ['dragleave','drop'].forEach(ev => document.addEventListener(ev, e => { e.preventDefault(); if (ev === 'drop' || e.target === document.documentElement) document.body.classList.remove('drop-hint'); }));
 document.addEventListener('drop', async e => {
@@ -508,7 +555,7 @@ document.addEventListener('drop', async e => {
   if (item && item.getAsFileSystemHandle){
     try{
       const h = await item.getAsFileSystemHandle();
-      if (h && h.kind === 'file'){ fileHandle = h; enableLinked(); return loadFromFile(await h.getFile(), 'Excel vinculado a las'); }
+      if (h && h.kind === 'file') return linkHandle(h, 'Excel vinculado a las');
     }catch(_){}
   }
   const f = e.dataTransfer.files[0]; if (f) loadFromFile(f, 'Excel cargado a las');
@@ -922,6 +969,8 @@ $('sourceLabel').textContent = EMBEDDED_LABEL;
 setStatus(EMBEDDED_NOTE, 'warn');
 hasGenero = EMBEDDED.some(r => !vacio(r[8]));
 setData(buildRows(EMBEDDED));
+// Reconecta el Excel vinculado la última vez (espera a que cargue la librería que lee Excel)
+(async () => { for (let i = 0; i < 50 && !window.XLSX; i++) await new Promise(r => setTimeout(r, 200)); restoreLink(); })();
 window.addEventListener('chartjs-ready', () => { if (!window.Chart) setStatus('No se pudo cargar la librería de gráficas (revisa tu conexión a internet). El comparativo y la tabla siguen funcionando.', 'err'); render(); });
 </script>
 </body>
