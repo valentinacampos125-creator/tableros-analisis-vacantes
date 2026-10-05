@@ -1,5 +1,5 @@
 <!doctype html>
-<!-- Tablero Vacantes - build 2026-10-05 v80 (uso interno para control de versión, no visible en el tablero) -->
+<!-- Tablero Vacantes - build 2026-10-05 v81 (uso interno para control de versión, no visible en el tablero) -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -1109,10 +1109,12 @@ function mesKeyLabel(d){
   if (!(d instanceof Date)) return null;
   return { key: d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0'), label: MESES_ES[d.getMonth()]+' '+d.getFullYear() };
 }
-// Fecha que usan los filtros de Año y Mes de Seguimiento: siempre la Fecha Liberación, sin
-// importar si la vacante está abierta o cerrada, para que el filtro coincida con la columna
-// "Fecha Liberación" de la tabla (a pedido de Valentina).
-function mesFiltroDate(r){ return r.fechaLiberacion; }
+// Fecha que usan los filtros de Año y Mes de Seguimiento: para las vacantes CERRADAS es la Fecha
+// Envío a Compensación (fechaCierre) -- así "Cerrada + Septiembre 2026" cuenta las que se cerraron
+// en ese mes, sin importar cuándo se liberaron (a pedido de Valentina, coincide con filtrar en el
+// Excel por Estado = Cerrada y esa fecha). Las demás (abiertas, en pausa, canceladas) siguen
+// filtrando por Fecha Liberación.
+function mesFiltroDate(r){ return r.cerrada ? r.fechaCierre : r.fechaLiberacion; }
 // Compara una fecha cualquiera contra los filtros de Año/Mes/Semana de Análisis de Indicadores
 // (iAnio/iMes/iSemana) -- se usa tanto para "personas contratadas" (Fecha de Cierre) como, en la
 // gráfica de Liberadas vs. Cerradas y sus dos botones, para cada serie con su propia fecha de
