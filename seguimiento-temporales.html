@@ -175,6 +175,7 @@ loadScriptWithFallbacks([
       <button class="btn" id="btnUpload" title="Carga un Excel una sola vez (sin actualización automática)">Cargar archivo</button>
       <button class="btn" id="btnRefresh" disabled title="Vuelve a leer el Excel vinculado">Actualizar</button>
       <label class="chk" title="Revisa cada 10 segundos si el Excel cambió y recarga solo"><input type="checkbox" id="chkAuto" checked disabled> Auto-actualizar</label>
+      <span class="sub" id="lastCheck" style="font-size:12px"></span>
       <button class="btn" id="btnTheme" title="Cambiar tema claro/oscuro">◐</button>
       <input type="file" id="fileInput" accept=".xlsx,.xls,.xlsm" hidden>
     </div>
@@ -495,15 +496,25 @@ function startAuto(){
   if (!$('chkAuto').checked || !fileHandle) return;
   autoTimer = setInterval(checkChanges, 10000);
 }
+// Revisa el Excel vinculado: si su fecha de guardado cambió, lo vuelve a leer. Muestra la hora de la última revisión
+// y, si el navegador no puede leer el archivo, lo dice (antes el error quedaba oculto).
 async function checkChanges(){
   if (!fileHandle) return;
-  try{ const f = await fileHandle.getFile(); if (f.lastModified !== lastModified) await loadFromFile(f, 'Cambio detectado, actualizado a las'); }catch(_){}
+  const hora = () => new Date().toLocaleTimeString('es-CO');
+  try{
+    const f = await fileHandle.getFile();
+    $('lastCheck').textContent = `Revisado ${hora()} · guardado en Excel ${new Date(f.lastModified).toLocaleString('es-CO', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' })}`;
+    if (f.lastModified !== lastModified) await loadFromFile(f, 'Cambio detectado, actualizado a las');
+  }catch(e){
+    $('lastCheck').textContent = `Revisado ${hora()} · no se pudo leer`;
+    setStatus(`No se pudo leer “${fileHandle.name}” (${e.name === 'NotFoundError' ? 'el archivo se movió, se renombró o se borró: vuelve a vincularlo' : e.name === 'NotAllowedError' ? 'el navegador retiró el permiso: haz clic en Vincular Excel' : 'puede estar bloqueado mientras Excel guarda; se reintenta en 10 segundos'}).`, 'warn');
+  }
 }
 async function linkHandle(h, origin){
   fileHandle = h; enableLinked(); saveHandle(h);
   $('btnLink').textContent = 'Cambiar Excel';
   await loadFromFile(await h.getFile(), origin);
-  startAuto();
+  startAuto(); checkChanges();
 }
 // Al abrir el tablero: si ya había un Excel vinculado, se reconecta solo (o con un clic si el navegador pide permiso)
 async function restoreLink(){
