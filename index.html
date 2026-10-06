@@ -1,5 +1,5 @@
 <!doctype html>
-<!-- Tablero Vacantes - build 2026-10-06 v84 (uso interno para control de versión, no visible en el tablero) -->
+<!-- Tablero Vacantes - build 2026-10-06 v85 (uso interno para control de versión, no visible en el tablero) -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -282,6 +282,7 @@ loadScriptWithFallbacks([
   .empty-state .big{font-size:38px;display:block;margin-bottom:10px;}
 
   .page-indicadores{display:none;}
+  .sub-card{background:var(--card);border:1px solid var(--border);border-left:4px solid var(--red);border-radius:12px;box-shadow:var(--shadow);padding:11px 18px;margin:0 0 12px;font-size:13px;font-weight:800;letter-spacing:.9px;text-transform:uppercase;color:var(--ink);transition:background-color .2s,border-color .2s;}
   .ind-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:14px;}
   .ind-tables{display:grid;grid-template-columns:1.1fr 1fr;gap:12px;}
   .placeholder-note{font-size:12px;color:var(--muted);padding:14px;text-align:center;border:1px dashed var(--border);border-radius:8px;}
@@ -570,6 +571,7 @@ loadScriptWithFallbacks([
   <div id="pageRetiros" class="page-indicadores">
     <div class="placeholder-note" id="ret_notice" style="margin-bottom:14px;">Cargando las evaluaciones desde la nube...</div>
 
+    <div class="sub-card">Análisis periodo de prueba</div>
     <div class="ind-grid" style="grid-template-columns:repeat(3,1fr);">
       <div class="kpi v-total"><div class="kpi-label"><svg class="ic-title" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>Evaluaciones</div><div class="kpi-value" id="ret_total" style="color:var(--ink);">—</div><div class="kpi-sub" id="ret_totalSub"></div></div>
       <div class="kpi v-tjtotal"><div class="kpi-label"><svg class="ic-title" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="8 12.5 11 15.5 16 9.5"></polyline></svg>Cumplen las funciones (Sí)</div><div class="kpi-value" id="ret_si" style="color:#27ae60;">—</div><div class="kpi-sub" id="ret_siSub"></div></div>
@@ -579,6 +581,17 @@ loadScriptWithFallbacks([
     <div class="charts" style="grid-template-columns:1fr 1fr;">
       <div class="chart-card"><h3><svg class="ic-title" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"></path><path d="M22 12A10 10 0 0 0 12 2v10z"></path></svg>Cumplimiento de funciones y responsabilidades</h3><div class="canvas-wrap" id="ret_wrapPie"><canvas id="chartRetPie"></canvas></div></div>
       <div class="chart-card"><h3><svg class="ic-title" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>Promedio por criterio de evaluación (0 a 10)</h3><div class="canvas-wrap" id="ret_wrapProm"><canvas id="chartRetProm"></canvas></div></div>
+    </div>
+
+    <div class="sub-card" id="ret_subRetiros" style="margin-top:18px;">Análisis retiros</div>
+    <div class="ind-grid" id="ret_gridRetiros" style="grid-template-columns:repeat(3,1fr);">
+      <div class="kpi v-criticas"><div class="kpi-label"><svg class="ic-title" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>Retiros voluntarios</div><div class="kpi-value" id="ret_rTotal" style="color:#e5493d;">—</div><div class="kpi-sub" id="ret_rTotalSub"></div></div>
+      <div class="kpi v-topdir"><div class="kpi-label"><svg class="ic-title" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>Mes con más retiros</div><div class="kpi-value" id="ret_rMes" style="color:#f2994a;font-size:20px;line-height:1.3;">—</div><div class="kpi-sub" id="ret_rMesSub"></div></div>
+      <div class="kpi v-topcargo"><div class="kpi-label"><svg class="ic-title" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 7h-9"></path><path d="M14 17H5"></path><circle cx="17" cy="17" r="3"></circle><circle cx="7" cy="7" r="3"></circle></svg>Cargo con más retiros</div><div class="kpi-value" id="ret_rCargo" style="color:#16b5a1;font-size:16px;line-height:1.3;">—</div><div class="kpi-sub" id="ret_rCargoSub"></div></div>
+    </div>
+    <div class="charts" id="ret_chartsRetiros" style="grid-template-columns:1fr 1fr;">
+      <div class="chart-card"><h3><svg class="ic-title" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>Retiros por mes</h3><div class="canvas-wrap" id="ret_wrapMes"><canvas id="chartRetMes"></canvas></div></div>
+      <div class="chart-card"><h3><svg class="ic-title" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 7h-9"></path><path d="M14 17H5"></path><circle cx="17" cy="17" r="3"></circle><circle cx="7" cy="7" r="3"></circle></svg>Retiros por cargo (los 8 con más)</h3><div class="canvas-wrap" id="ret_wrapCargo"><canvas id="chartRetCargo"></canvas></div></div>
     </div>
     <div class="field-hint" id="ret_updated" style="margin-top:10px;"></div>
   </div>
@@ -2611,6 +2624,49 @@ function parseEvaluaciones(wb){
   }
   return null;
 }
+// Hoja "retiros ...": el encabezado (SAP, Cédula, Nombre, Cargo, Causal, Fecha de retiro) no está
+// en la primera fila, así que se busca la fila que tenga "CAUSAL" y "FECHA DE RETIRO". Solo se
+// usan cargo, causal y fecha: los nombres y cédulas no se leen ni se muestran.
+function parseRetirosVoluntarios(wb){
+  for (const name of wb.SheetNames){
+    const raw = XLSX.utils.sheet_to_json(wb.Sheets[name], {header:1, defval:null, raw:true});
+    let hr = -1, iCausal = -1, iFecha = -1, iCargo = -1;
+    for (let i=0; i<Math.min(raw.length, 15); i++){
+      const H = (raw[i] || []).map(h => normalize(h));
+      const c = H.findIndex(h => h === 'CAUSAL'), f = H.findIndex(h => h.includes('FECHA DE RETIRO'));
+      if (c >= 0 && f >= 0){ hr = i; iCausal = c; iFecha = f; iCargo = H.findIndex(h => h === 'CARGO'); break; }
+    }
+    if (hr < 0) continue;
+    const porMes = new Map(), porCargo = new Map(), porCausal = new Map();
+    let total = 0, sinFecha = 0;
+    const suma = (m, k) => m.set(k, (m.get(k) || 0) + 1);
+    for (let i=hr+1; i<raw.length; i++){
+      const r = raw[i];
+      if (!r || r.every(v => v===null || v==='')) continue;
+      const fecha = toDate(r[iFecha]);
+      const causal = cleanText(r[iCausal]);
+      if (!fecha && !causal) continue;
+      total++;
+      if (fecha) suma(porMes, fecha.getFullYear()*12 + fecha.getMonth()); else sinFecha++;
+      suma(porCargo, (iCargo >= 0 && cleanText(r[iCargo])) || 'Sin dato');
+      suma(porCausal, causal || 'Sin dato');
+    }
+    const claves = [...porMes.keys()];
+    const meses = [];
+    if (claves.length){
+      for (let k=Math.min(...claves); k<=Math.max(...claves); k++){
+        meses.push({ label: MESES_ES[k%12]+' '+Math.floor(k/12), n: porMes.get(k) || 0 });
+      }
+    }
+    const ordenar = m => [...m.entries()].map(([nombre,n]) => ({nombre, n})).sort((a,b) => b.n - a.n);
+    return { total, sinFecha, meses, cargos: ordenar(porCargo), causales: ordenar(porCausal) };
+  }
+  return null;
+}
+function parseLibroRetiros(wb){
+  const prueba = parseEvaluaciones(wb), retiros = parseRetirosVoluntarios(wb);
+  return (prueba || retiros) ? { prueba, retiros } : null;
+}
 let retDatos = null, retEstado = 'cargando', retActualizado = null;
 async function loadRetirosFromCloud(){
   try{
@@ -2618,8 +2674,8 @@ async function loadRetirosFromCloud(){
     if (typeof XLSX === 'undefined') throw new Error('La librería para leer Excel no se pudo cargar.');
     const resp = await fetch(CLOUD_PROXY_URL + '?f=retiros', { cache:'no-store' });
     if (!resp.ok) throw new Error('El servidor respondió con un error (código '+resp.status+').');
-    const wb = XLSX.read(new Uint8Array(await resp.arrayBuffer()), {type:'array'});
-    const d = parseEvaluaciones(wb);
+    const wb = XLSX.read(new Uint8Array(await resp.arrayBuffer()), {type:'array', cellDates:true});
+    const d = parseLibroRetiros(wb);
     if (d){ retDatos = d; retEstado = 'ok'; retActualizado = new Date(); }
     else { retDatos = null; retEstado = 'sinformato'; }
   }catch(err){
@@ -2631,48 +2687,100 @@ async function loadRetirosFromCloud(){
 function renderRetiros(){
   const notice = document.getElementById('ret_notice');
   const setT = (id, v) => { document.getElementById(id).textContent = v; };
+  const show = (id, v) => { document.getElementById(id).style.display = v ? '' : 'none'; };
   const d = retDatos;
+  const ids = ['ret_total','ret_si','ret_no','ret_rTotal','ret_rMes','ret_rCargo'];
   if (!d){
     notice.style.display = '';
-    notice.textContent = retEstado==='cargando' ? 'Cargando las evaluaciones desde la nube...'
+    notice.textContent = retEstado==='cargando' ? 'Cargando los datos desde la nube...'
       : retEstado==='sinformato' ? 'La nube todavía no entrega el libro "Periodo de Prueba y Retiros": el Worker de Cloudflare necesita la versión nueva de worker.js y el archivo debe estar subido al repositorio privado.'
       : 'No se pudo traer el libro "Periodo de Prueba y Retiros" desde la nube. Revisa tu conexión e intenta de nuevo en unos minutos.';
-    ['ret_total','ret_si','ret_no'].forEach(id=>setT(id,'—'));
-    ['ret_totalSub','ret_siSub','ret_noSub','ret_updated'].forEach(id=>setT(id,''));
-    destroyChart('retPie'); destroyChart('retProm');
+    ids.forEach(id=>setT(id,'—'));
+    ['ret_totalSub','ret_siSub','ret_noSub','ret_rTotalSub','ret_rMesSub','ret_rCargoSub','ret_updated'].forEach(id=>setT(id,''));
+    ['retPie','retProm','retMes','retCargo'].forEach(destroyChart);
     return;
   }
   notice.style.display = 'none';
-  const fmt1 = n => n.toLocaleString('es-CO', {minimumFractionDigits:1, maximumFractionDigits:1});
-  const pct = n => d.total ? fmt1(100*n/d.total)+'%' : '';
-  setT('ret_total', d.total); setT('ret_totalSub', 'evaluaciones del periodo de prueba');
-  setT('ret_si', d.si); setT('ret_siSub', pct(d.si)+' del total');
-  setT('ret_no', d.no); setT('ret_noSub', pct(d.no)+' del total');
-  setT('ret_updated', 'Fuente: libro "Periodo de Prueba y Retiros" (hoja periodo prueba) · leído '+retActualizado.toLocaleString('es-CO')
-    + (d.sinRespuesta ? ' · '+d.sinRespuesta+' sin respuesta en cumplimiento' : ''));
   applyChartTheme();
-  safeRenderChart('chartRetPie', ()=>{
-    ensureCanvas('ret_wrapPie','chartRetPie');
-    destroyChart('retPie');
-    state.charts.retPie = new Chart(document.getElementById('chartRetPie'), {
-      type:'pie',
-      data:{ labels:['Sí ('+d.si+' · '+pct(d.si)+')','No ('+d.no+' · '+pct(d.no)+')'],
-        datasets:[{ data:[d.si, d.no], backgroundColor:['#27ae60','#e5493d'], borderWidth:2, borderColor:getComputedStyle(document.documentElement).getPropertyValue('--card').trim()||'#fff' }] },
-      options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{ position:'bottom' } } }
+  const fmt1 = n => n.toLocaleString('es-CO', {minimumFractionDigits:1, maximumFractionDigits:1});
+  const borde = getComputedStyle(document.documentElement).getPropertyValue('--card').trim() || '#fff';
+
+  // --- Análisis periodo de prueba ---
+  const p = d.prueba;
+  if (p){
+    const pct = n => p.total ? fmt1(100*n/p.total)+'%' : '';
+    setT('ret_total', p.total); setT('ret_totalSub', 'evaluaciones del periodo de prueba');
+    setT('ret_si', p.si); setT('ret_siSub', pct(p.si)+' del total');
+    setT('ret_no', p.no); setT('ret_noSub', pct(p.no)+' del total');
+    safeRenderChart('chartRetPie', ()=>{
+      ensureCanvas('ret_wrapPie','chartRetPie');
+      destroyChart('retPie');
+      state.charts.retPie = new Chart(document.getElementById('chartRetPie'), {
+        type:'pie',
+        data:{ labels:['Sí ('+p.si+' · '+pct(p.si)+')','No ('+p.no+' · '+pct(p.no)+')'],
+          datasets:[{ data:[p.si, p.no], backgroundColor:['#27ae60','#e5493d'], borderWidth:2, borderColor:borde }] },
+        options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{ position:'bottom' } } }
+      });
     });
-  });
-  safeRenderChart('chartRetProm', ()=>{
-    ensureCanvas('ret_wrapProm','chartRetProm');
-    destroyChart('retProm');
-    state.charts.retProm = new Chart(document.getElementById('chartRetProm'), {
-      type:'bar',
-      data:{ labels:d.criterios.map(c => c.label+' · '+(c.avg===null?'—':fmt1(c.avg))),
-        datasets:[{ label:'Promedio', data:d.criterios.map(c => c.avg===null ? null : Math.round(c.avg*100)/100), backgroundColor:'#2f6fed', borderRadius:4 }] },
-      options:{ indexAxis:'y', responsive:true, maintainAspectRatio:false,
-        plugins:{ legend:{ display:false } },
-        scales:{ x:{ min:0, max:10, ticks:{ precision:0 } }, y:{ grid:{ display:false } } } }
+    safeRenderChart('chartRetProm', ()=>{
+      ensureCanvas('ret_wrapProm','chartRetProm');
+      destroyChart('retProm');
+      state.charts.retProm = new Chart(document.getElementById('chartRetProm'), {
+        type:'bar',
+        data:{ labels:p.criterios.map(c => c.label+' · '+(c.avg===null?'—':fmt1(c.avg))),
+          datasets:[{ label:'Promedio', data:p.criterios.map(c => c.avg===null ? null : Math.round(c.avg*100)/100), backgroundColor:'#2f6fed', borderRadius:4 }] },
+        options:{ indexAxis:'y', responsive:true, maintainAspectRatio:false,
+          plugins:{ legend:{ display:false } },
+          scales:{ x:{ min:0, max:10, ticks:{ precision:0 } }, y:{ grid:{ display:false } } } }
+      });
     });
-  });
+  } else {
+    ['ret_total','ret_si','ret_no'].forEach(id=>setT(id,'—'));
+    ['ret_totalSub','ret_siSub','ret_noSub'].forEach(id=>setT(id,''));
+    destroyChart('retPie'); destroyChart('retProm');
+  }
+
+  // --- Análisis retiros ---
+  const r = d.retiros;
+  ['ret_subRetiros','ret_gridRetiros','ret_chartsRetiros'].forEach(id=>show(id, !!r));
+  if (r){
+    const pctR = n => r.total ? fmt1(100*n/r.total)+'%' : '';
+    const causal = r.causales[0];
+    setT('ret_rTotal', r.total);
+    setT('ret_rTotalSub', causal ? 'causal: '+causal.nombre+' ('+pctR(causal.n)+')' : '');
+    const topMes = r.meses.reduce((a,b) => (b.n > (a ? a.n : -1) ? b : a), null);
+    setT('ret_rMes', topMes ? topMes.label : '—'); setT('ret_rMesSub', topMes ? topMes.n+' retiros' : '');
+    const topCargo = r.cargos[0];
+    setT('ret_rCargo', topCargo ? topCargo.nombre : '—'); setT('ret_rCargoSub', topCargo ? topCargo.n+' retiros ('+pctR(topCargo.n)+')' : '');
+    safeRenderChart('chartRetMes', ()=>{
+      ensureCanvas('ret_wrapMes','chartRetMes');
+      destroyChart('retMes');
+      state.charts.retMes = new Chart(document.getElementById('chartRetMes'), {
+        type:'bar',
+        data:{ labels:r.meses.map(m=>m.label), datasets:[{ label:'Retiros', data:r.meses.map(m=>m.n), backgroundColor:'#e5493d', borderRadius:4 }] },
+        options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{ display:false } },
+          scales:{ y:{ beginAtZero:true, ticks:{ precision:0 } }, x:{ grid:{ display:false } } } }
+      });
+    });
+    const top = r.cargos.slice(0, 8);
+    safeRenderChart('chartRetCargo', ()=>{
+      ensureCanvas('ret_wrapCargo','chartRetCargo');
+      destroyChart('retCargo');
+      state.charts.retCargo = new Chart(document.getElementById('chartRetCargo'), {
+        type:'bar',
+        data:{ labels:top.map(c=>c.nombre), datasets:[{ label:'Retiros', data:top.map(c=>c.n), backgroundColor:'#f2994a', borderRadius:4 }] },
+        options:{ indexAxis:'y', responsive:true, maintainAspectRatio:false, plugins:{ legend:{ display:false } },
+          scales:{ x:{ beginAtZero:true, ticks:{ precision:0 } }, y:{ grid:{ display:false } } } }
+      });
+    });
+  } else {
+    ['ret_rTotal','ret_rMes','ret_rCargo'].forEach(id=>setT(id,'—'));
+    ['ret_rTotalSub','ret_rMesSub','ret_rCargoSub'].forEach(id=>setT(id,''));
+    destroyChart('retMes'); destroyChart('retCargo');
+  }
+  setT('ret_updated', 'Fuente: libro "Periodo de Prueba y Retiros" (hojas periodo prueba y retiros) · leído '+retActualizado.toLocaleString('es-CO')
+    + (p && p.sinRespuesta ? ' · '+p.sinRespuesta+' evaluaciones sin respuesta en cumplimiento' : '')
+    + (r && r.sinFecha ? ' · '+r.sinFecha+' retiros sin fecha' : ''));
 }
 loadRetirosFromCloud();
 setInterval(loadRetirosFromCloud, 5*60*1000);
