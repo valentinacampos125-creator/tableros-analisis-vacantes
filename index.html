@@ -1,5 +1,5 @@
 <!doctype html>
-<!-- Tablero Vacantes - build 2026-10-06 v87 (uso interno para control de versión, no visible en el tablero) -->
+<!-- Tablero Vacantes - build 2026-10-06 v88 (uso interno para control de versión, no visible en el tablero) -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -184,6 +184,8 @@ loadScriptWithFallbacks([
   .kpi.v-topdir::before{background:#f2994a;opacity:1;}
   .kpi.v-topcargo::before{background:#16b5a1;opacity:1;}
   .kpi.v-tjtotal::before{background:#27ae60;opacity:1;}
+  #pageRetiros .kpi.v-tjtotal::before{background:var(--blue);opacity:1;}
+  #pageRetiros .kpi.v-tjtotal .kpi-value{color:var(--blue-dark) !important;}
   .kpi.v-tjedad::before{background:#19A6FF;opacity:1;}
   .kpi.v-tjpct::before{background:var(--c-navy);opacity:1;}
   .kpi-label{font-size:11.5px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.3px;min-height:28px;display:flex;align-items:center;justify-content:center;gap:6px;}
@@ -1625,7 +1627,7 @@ function renderChartProfesional(rows, mode){
 function renderChartCriticasProf(criticas){
   const profs = uniqueSorted(criticas,'profesional');
   const tipos = uniqueSorted(criticas,'tipoVacante');
-  const palette = ['#19A6FF',cv("--c-navy"),'#7CC8FF',cv("--c-red")];
+  const palette = ['#19A6FF',cv("--c-navy"),'#FFD655','#FF0000'];
   const datasets = tipos.map((t,i)=>({
     label: t || 'Sin dato', backgroundColor: palette[i%palette.length], stack:'s',
     data: profs.map(p => criticas.filter(r=>r.profesional===p && r.tipoVacante===t).length)
@@ -2722,7 +2724,7 @@ function renderRetiros(){
       state.charts.retPie = new Chart(document.getElementById('chartRetPie'), {
         type:'pie',
         data:{ labels:['Sí ('+p.si+' · '+pct(p.si)+')','No ('+p.no+' · '+pct(p.no)+')'],
-          datasets:[{ data:[p.si, p.no], backgroundColor:['#27ae60',cv("--c-red")], borderWidth:2, borderColor:borde }] },
+          datasets:[{ data:[p.si, p.no], backgroundColor:['#19A6FF',cv("--c-red")], borderWidth:2, borderColor:borde }] },
         options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{ position:'bottom' } } }
       });
     });
