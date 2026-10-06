@@ -1,5 +1,5 @@
 <!doctype html>
-<!-- Tablero Vacantes - build 2026-10-06 v85 (uso interno para control de versión, no visible en el tablero) -->
+<!-- Tablero Vacantes - build 2026-10-06 v86 (uso interno para control de versión, no visible en el tablero) -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -38,8 +38,9 @@ loadScriptWithFallbacks([
 </script>
 <style>
   :root{
-    --red:#e5493d; --orange:#f2994a; --yellow:#f2c94c; --green:#27ae60;
-    --blue:#2f6fed; --blue-dark:#1f4fb8; --ink:#1c2430; --muted:#6b7280;
+    --red:#C1121F; --orange:#f2994a; --yellow:#f2c94c; --green:#3A9B84;
+    --c-red:#C1121F; --c-navy:#1D3557; --c-navy-rgb:29,53,87;
+    --blue:#457B9D; --blue-dark:#1D3557; --ink:#1c2430; --muted:#6b7280;
     --bg:#f3f5f9; --card:#ffffff; --card2:#f7f9fc; --border:#e4e8f0;
     --shadow:0 1px 3px rgba(20,30,60,.08), 0 1px 2px rgba(20,30,60,.04);
     --shadow-lg:0 12px 28px rgba(20,30,60,.14), 0 3px 8px rgba(20,30,60,.06);
@@ -57,7 +58,8 @@ loadScriptWithFallbacks([
     --th-filter-hover:#e7ebf3; --dot-grey:#c6cbd6; --table-line:#dfe4ee;
   }
   :root[data-theme="dark"]{
-    --blue-dark:#7fb0ff; --ink:#e7eaf0; --muted:#9aa4b6;
+    --blue-dark:#9CCBE6; --ink:#e7eaf0; --muted:#9aa4b6;
+    --red:#E0394A; --c-red:#E0394A; --c-navy:#8DB6D8; --c-navy-rgb:141,182,216;
     --bg:#10141c; --card:#1a1f2b; --card2:#212734; --border:#2c3444;
     --shadow:0 1px 3px rgba(0,0,0,.4), 0 1px 2px rgba(0,0,0,.3);
     --shadow-lg:0 14px 32px rgba(0,0,0,.5), 0 4px 10px rgba(0,0,0,.35);
@@ -91,7 +93,7 @@ loadScriptWithFallbacks([
   .menu-toggle{flex:none;width:44px;height:44px;border:none;background:transparent;color:var(--ink);border-radius:12px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:background .15s;}
   .menu-toggle:hover{background:var(--th-bg);}
   .menu-toggle:focus-visible{outline:2px solid var(--blue);outline-offset:2px;}
-  .app-header{position:relative;flex:1;min-width:0;background:linear-gradient(135deg,#c0392b,#e5493d 55%,#b71c1c);color:#fff;padding:10px 20px;border-radius:14px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;box-shadow:0 4px 14px rgba(150,30,20,.22), 0 1px 4px rgba(0,0,0,.1);overflow:hidden;}
+  .app-header{position:relative;flex:1;min-width:0;background:linear-gradient(135deg,#A50F1E,#C1121F 55%,#8F0E1A);color:#fff;padding:10px 20px;border-radius:14px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;box-shadow:0 4px 14px rgba(120,10,20,.22), 0 1px 4px rgba(0,0,0,.1);overflow:hidden;}
   .app-header::before{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(255,255,255,.14),rgba(255,255,255,0) 55%);pointer-events:none;}
   .app-header > *{position:relative;}
   .app-title{font-size:17px;font-weight:700;flex:1;min-width:180px;text-shadow:0 1px 2px rgba(0,0,0,.15);}
@@ -105,7 +107,7 @@ loadScriptWithFallbacks([
   .drawer-item{display:flex;align-items:center;gap:10px;width:100%;text-align:left;padding:12px 14px;border:none;border-radius:12px;background:transparent;color:var(--ink);font:inherit;font-weight:600;font-size:14px;cursor:pointer;transition:background .15s,color .15s;}
   .drawer-item:hover{background:var(--th-bg);}
   .drawer-item:focus-visible{outline:2px solid var(--blue);outline-offset:1px;}
-  .drawer-item.active{background:linear-gradient(135deg,#c0392b,#e5493d);color:#fff;}
+  .drawer-item.active{background:linear-gradient(135deg,#A50F1E,#C1121F);color:#fff;}
   .header-right{display:flex;align-items:center;flex-wrap:wrap;gap:10px;font-size:12px;}
   .pill{background:rgba(255,255,255,.16);border-radius:20px;padding:6px 12px;font-weight:600;display:flex;align-items:center;gap:6px;white-space:nowrap;}
   .pill.alert{background:#fff3cd;color:#7a4d00;}
@@ -131,8 +133,8 @@ loadScriptWithFallbacks([
   .source-actions{flex:1;min-width:260px;display:flex;flex-direction:column;gap:8px;font-size:13px;}
   .source-actions .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
   .btn{border:none;border-radius:7px;padding:8px 13px;font-size:12.5px;font-weight:600;cursor:pointer;transition:.15s;}
-  .btn-primary{background:linear-gradient(135deg,var(--blue),var(--blue-dark));color:#fff;box-shadow:0 2px 8px rgba(47,111,237,.35), inset 0 1px 0 rgba(255,255,255,.28);}
-  .btn-primary:hover{box-shadow:0 4px 14px rgba(47,111,237,.45), inset 0 1px 0 rgba(255,255,255,.28);transform:translateY(-1px);}
+  .btn-primary{background:linear-gradient(135deg,var(--blue),var(--blue-dark));color:#fff;box-shadow:0 2px 8px rgba(69,123,157,.35), inset 0 1px 0 rgba(255,255,255,.28);}
+  .btn-primary:hover{box-shadow:0 4px 14px rgba(69,123,157,.45), inset 0 1px 0 rgba(255,255,255,.28);transform:translateY(-1px);}
   .btn-outline{background:var(--btn-outline-bg);border:1px solid var(--input-border);color:var(--ink);}
   .btn-outline:hover{background:var(--btn-outline-hover);border-color:var(--blue);transform:translateY(-1px);}
   .btn{transition:.15s;}
@@ -153,8 +155,8 @@ loadScriptWithFallbacks([
   #fDireccion,#fCargoSegmentado{width:136px;max-width:136px;}
   #fGranularidad{width:166px;max-width:166px;}
   .filters select:hover{border-color:var(--blue);}
-  .filters select:focus, .chart-filter-select:focus, .cfg-url:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px rgba(47,111,237,.16);}
-  .filters select.filter-active{border-color:var(--blue);box-shadow:0 0 0 3px rgba(47,111,237,.16);}
+  .filters select:focus, .chart-filter-select:focus, .cfg-url:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px rgba(69,123,157,.16);}
+  .filters select.filter-active{border-color:var(--blue);box-shadow:0 0 0 3px rgba(69,123,157,.16);}
   .filters .clear-filters{padding:9px 16px;border-radius:999px;border:1px dashed var(--border);background:transparent;font-size:12.5px;font-weight:600;color:var(--muted);cursor:pointer;transition:.15s;}
   .filters .clear-filters:hover{border-color:var(--red);color:var(--red);transform:translateY(-1px);}
 
@@ -168,31 +170,31 @@ loadScriptWithFallbacks([
   .kpi.v-criticas::before{background:var(--red);opacity:1;}
   .kpi.v-cerradas::before{background:var(--green);opacity:1;}
   .kpi.v-cancelada::before{background:#8b8f99;opacity:1;}
-  .kpi.v-promedio::before{background:#9b7bf7;opacity:1;}
+  .kpi.v-promedio::before{background:#6C9BBD;opacity:1;}
   .kpi.v-diascierre::before{background:#e58a35;opacity:1;}
-  .kpi.v-promperiodo::before{background:#16b5a1;opacity:1;}
+  .kpi.v-promperiodo::before{background:#3F8F9B;opacity:1;}
   .kpi.v-estado-especial.is-pausada::before{background:#e5a53d;opacity:1;}
   .kpi.v-estado-especial.is-cancelada::before{background:#8b8f99;opacity:1;}
   /* Mismas barras de color en las tarjetas KPI de Análisis de Indicadores y Talento Joven -- en
      Seguimiento ya las tenían (v-abiertas, v-criticas...); estas cubren las tarjetas propias de
      esas otras dos páginas. */
-  .kpi.v-total::before{background:#5c6bc0;opacity:1;}
+  .kpi.v-total::before{background:var(--c-navy);opacity:1;}
   .kpi.v-mujeres::before{background:#d6336c;opacity:1;}
-  .kpi.v-hombres::before{background:#2f6fed;opacity:1;}
+  .kpi.v-hombres::before{background:#457B9D;opacity:1;}
   .kpi.v-topdir::before{background:#f2994a;opacity:1;}
-  .kpi.v-topcargo::before{background:#16b5a1;opacity:1;}
-  .kpi.v-tjtotal::before{background:#27ae60;opacity:1;}
-  .kpi.v-tjedad::before{background:#2f6fed;opacity:1;}
-  .kpi.v-tjpct::before{background:#8b5cf6;opacity:1;}
+  .kpi.v-topcargo::before{background:#3F8F9B;opacity:1;}
+  .kpi.v-tjtotal::before{background:#3A9B84;opacity:1;}
+  .kpi.v-tjedad::before{background:#457B9D;opacity:1;}
+  .kpi.v-tjpct::before{background:var(--c-navy);opacity:1;}
   .kpi-label{font-size:11.5px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.3px;min-height:28px;display:flex;align-items:center;justify-content:center;gap:6px;}
   .kpi-value{font-size:30px;font-weight:800;margin-top:4px;}
   .kpi-sub{font-size:10.5px;color:var(--muted);margin-top:2px;}
   .kpi.v-abiertas .kpi-value{color:var(--blue-dark);}
   .kpi.v-criticas .kpi-value{color:var(--red);}
   .kpi.v-cerradas .kpi-value{color:var(--green);}
-  .kpi.v-promedio .kpi-value{color:#9b7bf7;}
+  .kpi.v-promedio .kpi-value{color:#6C9BBD;}
   .kpi.v-diascierre .kpi-value{color:#e58a35;}
-  .kpi.v-promperiodo .kpi-value{color:#16b5a1;}
+  .kpi.v-promperiodo .kpi-value{color:#3F8F9B;}
   .kpi.v-estado-especial.is-pausada .kpi-value{color:#e5a53d;}
   .kpi.v-estado-especial.is-cancelada .kpi-value{color:#8b8f99;}
   .kpi-check{position:absolute;top:8px;right:10px;font-size:13px;color:var(--blue);}
@@ -223,17 +225,17 @@ loadScriptWithFallbacks([
   .tipo-square-band.clickable:hover{filter:brightness(.96);}
   :root[data-theme="dark"] .tipo-square-band.clickable:hover{filter:brightness(1.18);}
   .tipo-square-band.active{box-shadow:inset 0 0 0 2px var(--blue);}
-  .tipo-square-band.v-interna{background:rgba(47,111,237,.10);}
+  .tipo-square-band.v-interna{background:rgba(69,123,157,.10);}
   .tipo-square-band.v-interna .tipo-square-stat{color:var(--blue);}
-  .tipo-square-band.v-externa{background:rgba(139,92,246,.10);}
-  .tipo-square-band.v-externa .tipo-square-stat{color:#8b5cf6;}
+  .tipo-square-band.v-externa{background:rgba(var(--c-navy-rgb),.10);}
+  .tipo-square-band.v-externa .tipo-square-stat{color:var(--c-navy);}
   .tipo-square-band.v-mixta{background:rgba(242,153,74,.12);}
   .tipo-square-band.v-mixta .tipo-square-stat{color:var(--orange);}
 
   .ic-title{width:15px;height:15px;flex:none;vertical-align:-3px;}
   .kpi-label .ic-title{vertical-align:-2px;opacity:.85;}
   .chart-card h3, .table-card h3{display:flex;align-items:center;gap:9px;}
-  .chart-card h3 .ic-title, .table-card h3 .ic-title{opacity:.95;color:var(--blue-dark);background:rgba(47,111,237,.12);border-radius:8px;padding:4px;width:23px;height:23px;box-sizing:border-box;}
+  .chart-card h3 .ic-title, .table-card h3 .ic-title{opacity:.95;color:var(--blue-dark);background:rgba(69,123,157,.12);border-radius:8px;padding:4px;width:23px;height:23px;box-sizing:border-box;}
 
   .charts{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:14px;}
   .chart-card{background:var(--card);border:1px solid var(--border);border-radius:14px;box-shadow:var(--shadow);padding:12px;transition:background-color .2s,border-color .2s,box-shadow .2s,transform .2s;}
@@ -490,9 +492,9 @@ loadScriptWithFallbacks([
     <div class="ind-grid" style="grid-template-columns:repeat(5,1fr);">
       <div class="kpi v-total" title="Cuenta las filas que traen un nombre en la columna &quot;Candidato Seleccionado&quot; del Excel (no el Estado); excluye las que la columna Fecha Ingreso marca como &quot;NO INGRESO&quot;, con los mismos filtros de esta página."><div class="kpi-label"><svg class="ic-title" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>Total Contratados</div><div class="kpi-value" id="ind_totalContratados" style="color:var(--ink);">—</div><div class="kpi-sub" id="ind_totalContratadosSub"></div></div>
       <div class="kpi v-mujeres"><div class="kpi-label"><svg class="ic-title" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="9" r="6"></circle><line x1="12" y1="15" x2="12" y2="22"></line><line x1="9" y1="19" x2="15" y2="19"></line></svg>% Mujeres Contratadas</div><div class="kpi-value" id="ind_pctMujeres" style="color:#d6336c;">—</div><div class="kpi-sub" id="ind_countMujeres"></div></div>
-      <div class="kpi v-hombres"><div class="kpi-label"><svg class="ic-title" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="14" r="6"></circle><line x1="14.5" y1="9.5" x2="21" y2="3"></line><polyline points="15 3 21 3 21 9"></polyline></svg>% Hombres Contratados</div><div class="kpi-value" id="ind_pctHombres" style="color:#2f6fed;">—</div><div class="kpi-sub" id="ind_countHombres"></div></div>
+      <div class="kpi v-hombres"><div class="kpi-label"><svg class="ic-title" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="14" r="6"></circle><line x1="14.5" y1="9.5" x2="21" y2="3"></line><polyline points="15 3 21 3 21 9"></polyline></svg>% Hombres Contratados</div><div class="kpi-value" id="ind_pctHombres" style="color:#457B9D;">—</div><div class="kpi-sub" id="ind_countHombres"></div></div>
       <div class="kpi v-topdir" title="Sobre el mismo grupo de vacantes contratadas y filtros de esta página; coincide con las gráficas de Resumen por Dirección Corporativa de abajo."><div class="kpi-label"><svg class="ic-title" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="1"></rect><line x1="9" y1="7" x2="9" y2="7.01"></line><line x1="15" y1="7" x2="15" y2="7.01"></line><line x1="9" y1="12" x2="9" y2="12.01"></line><line x1="15" y1="12" x2="15" y2="12.01"></line><line x1="9" y1="17" x2="15" y2="17"></line></svg>Dirección con Más Vacantes</div><div class="kpi-value" id="ind_topDireccion" style="color:#f2994a;font-size:16px;line-height:1.2;">—</div><div class="kpi-sub" id="ind_topDireccionSub"></div></div>
-      <div class="kpi v-topcargo"><div class="kpi-label"><svg class="ic-title" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 7h-9"></path><path d="M14 17H5"></path><circle cx="17" cy="17" r="3"></circle><circle cx="7" cy="7" r="3"></circle></svg>Cargo con Más Vacantes</div><div class="kpi-value" id="ind_topCargo" style="color:#16b5a1;font-size:18px;line-height:1.2;">—</div><div class="kpi-sub" id="ind_topCargoSub"></div></div>
+      <div class="kpi v-topcargo"><div class="kpi-label"><svg class="ic-title" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 7h-9"></path><path d="M14 17H5"></path><circle cx="17" cy="17" r="3"></circle><circle cx="7" cy="7" r="3"></circle></svg>Cargo con Más Vacantes</div><div class="kpi-value" id="ind_topCargo" style="color:#3F8F9B;font-size:18px;line-height:1.2;">—</div><div class="kpi-sub" id="ind_topCargoSub"></div></div>
     </div>
 
     <div class="charts" style="grid-template-columns:1fr;">
@@ -545,9 +547,9 @@ loadScriptWithFallbacks([
     <div class="placeholder-note" id="tj_notice" style="margin-bottom:14px;">Carga el Excel para ver el análisis de Talento Joven.</div>
 
     <div class="ind-grid" style="grid-template-columns:repeat(3,1fr);">
-      <div class="kpi v-tjtotal"><div class="kpi-label"><svg class="ic-title" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>Personas Talento Joven</div><div class="kpi-value" id="tj_total" style="color:#27ae60;">—</div><div class="kpi-sub" id="tj_totalSub"></div></div>
-      <div class="kpi v-tjedad"><div class="kpi-label"><svg class="ic-title" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>Edad Promedio</div><div class="kpi-value" id="tj_edad" style="color:#2f6fed;">—</div><div class="kpi-sub" id="tj_edadSub"></div></div>
-      <div class="kpi v-tjpct"><div class="kpi-label"><svg class="ic-title" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"></path><path d="M22 12A10 10 0 0 0 12 2v10z"></path></svg>% sobre el Total de Ingresos</div><div class="kpi-value" id="tj_pct" style="color:#8b5cf6;">—</div><div class="kpi-sub" id="tj_pctSub"></div></div>
+      <div class="kpi v-tjtotal"><div class="kpi-label"><svg class="ic-title" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>Personas Talento Joven</div><div class="kpi-value" id="tj_total" style="color:#3A9B84;">—</div><div class="kpi-sub" id="tj_totalSub"></div></div>
+      <div class="kpi v-tjedad"><div class="kpi-label"><svg class="ic-title" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>Edad Promedio</div><div class="kpi-value" id="tj_edad" style="color:#457B9D;">—</div><div class="kpi-sub" id="tj_edadSub"></div></div>
+      <div class="kpi v-tjpct"><div class="kpi-label"><svg class="ic-title" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"></path><path d="M22 12A10 10 0 0 0 12 2v10z"></path></svg>% sobre el Total de Ingresos</div><div class="kpi-value" id="tj_pct" style="color:var(--c-navy);">—</div><div class="kpi-sub" id="tj_pctSub"></div></div>
     </div>
 
     <div class="charts" style="grid-template-columns:1fr 1fr;">
@@ -574,8 +576,8 @@ loadScriptWithFallbacks([
     <div class="sub-card">Análisis periodo de prueba</div>
     <div class="ind-grid" style="grid-template-columns:repeat(3,1fr);">
       <div class="kpi v-total"><div class="kpi-label"><svg class="ic-title" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>Evaluaciones</div><div class="kpi-value" id="ret_total" style="color:var(--ink);">—</div><div class="kpi-sub" id="ret_totalSub"></div></div>
-      <div class="kpi v-tjtotal"><div class="kpi-label"><svg class="ic-title" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="8 12.5 11 15.5 16 9.5"></polyline></svg>Cumplen las funciones (Sí)</div><div class="kpi-value" id="ret_si" style="color:#27ae60;">—</div><div class="kpi-sub" id="ret_siSub"></div></div>
-      <div class="kpi v-criticas"><div class="kpi-label"><svg class="ic-title" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>No cumplen (No)</div><div class="kpi-value" id="ret_no" style="color:#e5493d;">—</div><div class="kpi-sub" id="ret_noSub"></div></div>
+      <div class="kpi v-tjtotal"><div class="kpi-label"><svg class="ic-title" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="8 12.5 11 15.5 16 9.5"></polyline></svg>Cumplen las funciones (Sí)</div><div class="kpi-value" id="ret_si" style="color:#3A9B84;">—</div><div class="kpi-sub" id="ret_siSub"></div></div>
+      <div class="kpi v-criticas"><div class="kpi-label"><svg class="ic-title" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>No cumplen (No)</div><div class="kpi-value" id="ret_no" style="color:var(--red);">—</div><div class="kpi-sub" id="ret_noSub"></div></div>
     </div>
 
     <div class="charts" style="grid-template-columns:1fr 1fr;">
@@ -585,9 +587,9 @@ loadScriptWithFallbacks([
 
     <div class="sub-card" id="ret_subRetiros" style="margin-top:18px;">Análisis retiros</div>
     <div class="ind-grid" id="ret_gridRetiros" style="grid-template-columns:repeat(3,1fr);">
-      <div class="kpi v-criticas"><div class="kpi-label"><svg class="ic-title" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>Retiros voluntarios</div><div class="kpi-value" id="ret_rTotal" style="color:#e5493d;">—</div><div class="kpi-sub" id="ret_rTotalSub"></div></div>
+      <div class="kpi v-criticas"><div class="kpi-label"><svg class="ic-title" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>Retiros voluntarios</div><div class="kpi-value" id="ret_rTotal" style="color:var(--red);">—</div><div class="kpi-sub" id="ret_rTotalSub"></div></div>
       <div class="kpi v-topdir"><div class="kpi-label"><svg class="ic-title" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>Mes con más retiros</div><div class="kpi-value" id="ret_rMes" style="color:#f2994a;font-size:20px;line-height:1.3;">—</div><div class="kpi-sub" id="ret_rMesSub"></div></div>
-      <div class="kpi v-topcargo"><div class="kpi-label"><svg class="ic-title" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 7h-9"></path><path d="M14 17H5"></path><circle cx="17" cy="17" r="3"></circle><circle cx="7" cy="7" r="3"></circle></svg>Cargo con más retiros</div><div class="kpi-value" id="ret_rCargo" style="color:#16b5a1;font-size:16px;line-height:1.3;">—</div><div class="kpi-sub" id="ret_rCargoSub"></div></div>
+      <div class="kpi v-topcargo"><div class="kpi-label"><svg class="ic-title" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 7h-9"></path><path d="M14 17H5"></path><circle cx="17" cy="17" r="3"></circle><circle cx="7" cy="7" r="3"></circle></svg>Cargo con más retiros</div><div class="kpi-value" id="ret_rCargo" style="color:#3F8F9B;font-size:16px;line-height:1.3;">—</div><div class="kpi-sub" id="ret_rCargoSub"></div></div>
     </div>
     <div class="charts" id="ret_chartsRetiros" style="grid-template-columns:1fr 1fr;">
       <div class="chart-card"><h3><svg class="ic-title" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>Retiros por mes</h3><div class="canvas-wrap" id="ret_wrapMes"><canvas id="chartRetMes"></canvas></div></div>
@@ -1333,6 +1335,8 @@ document.querySelectorAll('.tipo-square-band[data-tipo]').forEach(band=>{
 
 // Resalta en azul cada select de filtros cuyo valor ya no sea "Todos/Todas" (value==='') -- así
 // se ve de un vistazo cuáles filtros están aplicados, sin tener que leer el texto de cada uno.
+// Color de acento del tema activo (rojo/azul marino cambian de tono en modo oscuro para verse bien).
+function cv(name){ return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
 function applyChartTheme(){
   if (typeof Chart !== 'undefined' && Chart.defaults){
     const dark = document.documentElement.getAttribute('data-theme')==='dark';
@@ -1566,7 +1570,7 @@ function bucketAntiguedad(dias){
 }
 function renderChartAntiguedad(rows, label){
   const buckets = ['0-9 días','10-18 días','19-28 días','29+ días (Críticas)'];
-  const colors = ['#27ae60','#f2c94c','#f2994a','#e5493d'];
+  const colors = ['#3A9B84','#f2c94c','#f2994a',cv("--c-red")];
   const counts = buckets.map(b => rows.filter(r=>bucketAntiguedad(r.diasHabiles)===b).length);
   destroyChart('antiguedad');
   const ctx = document.getElementById('chartAntiguedad');
@@ -1600,7 +1604,7 @@ function renderOrPlaceholderProfesional(rows, mode){
 function renderChartProfesional(rows, mode){
   const profs = uniqueSorted(rows,'profesional');
   const barLabel = mode==='pausada' ? 'Vacantes En Pausa' : mode==='cancelada' ? 'Vacantes Canceladas' : 'Vacantes Cerradas';
-  const barColor = mode==='pausada' ? '#e5a53d' : mode==='cancelada' ? '#8b8f99' : '#2f6fed';
+  const barColor = mode==='pausada' ? '#e5a53d' : mode==='cancelada' ? '#8b8f99' : '#457B9D';
   const countFn = mode ? (p => rows.filter(r=>r.profesional===p).length) : (p => rows.filter(r=>r.profesional===p && r.cerrada).length);
   const diasFn = mode ? (p => rows.filter(r=>r.profesional===p && typeof r.diasHabiles==='number')) : (p => rows.filter(r=>r.profesional===p && r.cerrada && typeof r.diasHabiles==='number'));
   const counts = profs.map(countFn);
@@ -1621,7 +1625,7 @@ function renderChartProfesional(rows, mode){
 function renderChartCriticasProf(criticas){
   const profs = uniqueSorted(criticas,'profesional');
   const tipos = uniqueSorted(criticas,'tipoVacante');
-  const palette = ['#2f6fed','#8b5cf6','#c084fc','#e5493d'];
+  const palette = ['#457B9D',cv("--c-navy"),'#6C9BBD',cv("--c-red")];
   const datasets = tipos.map((t,i)=>({
     label: t || 'Sin dato', backgroundColor: palette[i%palette.length], stack:'s',
     data: profs.map(p => criticas.filter(r=>r.profesional===p && r.tipoVacante===t).length)
@@ -1630,7 +1634,7 @@ function renderChartCriticasProf(criticas){
   const ctx = document.getElementById('chartCriticasProf');
   state.charts.criticasProf = new Chart(ctx, {
     type:'bar',
-    data:{ labels: profs, datasets: datasets.length? datasets : [{label:'Críticas',data:profs.map(p=>criticas.filter(r=>r.profesional===p).length),backgroundColor:'#e5493d'}] },
+    data:{ labels: profs, datasets: datasets.length? datasets : [{label:'Críticas',data:profs.map(p=>criticas.filter(r=>r.profesional===p).length),backgroundColor:cv("--c-red")}] },
     options:{ responsive:true, maintainAspectRatio:false,
       plugins:{ legend:{position:'bottom', labels:{boxWidth:10,font:{size:10}}}},
       scales:{ x:{stacked:true, grid:{display:false}}, y:{stacked:true, beginAtZero:true, ticks:{precision:0}} } }
@@ -1664,8 +1668,8 @@ function renderChartsPorEstado(scoped){
         scales:{ x:{beginAtZero:true, ticks:{precision:0}}, y:{grid:{display:false}, ticks:{font:{size:10}}} } }
     }));
   };
-  barra('chartEstadoDireccion','estadoDireccion','wrapEstadoDireccion', scoped, '#2f6fed');
-  barra('chartEstadoProfesional','estadoProfesional','wrapEstadoProfesional', scoped, '#8b5cf6');
+  barra('chartEstadoDireccion','estadoDireccion','wrapEstadoDireccion', scoped, '#457B9D');
+  barra('chartEstadoProfesional','estadoProfesional','wrapEstadoProfesional', scoped, cv("--c-navy"));
 }
 
 /* --- Tabla --- */
@@ -1986,7 +1990,7 @@ function renderIndicadores(){
   renderIndPlaceholderOrChart('chartFuncionGenero','funcionGenero','ind_wrapFuncion', haveFuncion, rows, ()=>{
     const funciones = uniqueSorted(rows,'funcionNivelCargo');
     const generos = haveGenero? uniqueSorted(rows,'genero') : ['Total'];
-    const palette = ['#2f6fed','#d6336c','#8b5cf6','#27ae60'];
+    const palette = ['#457B9D','#d6336c',cv("--c-navy"),'#3A9B84'];
     const datasets = generos.map((g,i)=>({ label:g, backgroundColor:palette[i%palette.length], stack:'s',
       data: funciones.map(fn => rows.filter(r=>r.funcionNivelCargo===fn && (!haveGenero || r.genero===g)).length) }));
     return { type:'bar', data:{labels:funciones.map(cargoInclusivo), datasets}, options:{ responsive:true, maintainAspectRatio:false,
@@ -2025,7 +2029,7 @@ function renderIndicadores(){
   // - Barras apiladas: mujeres y hombres por dirección; bajo el nombre va la edad promedio y el
   //   tooltip repite Total, Prom. Edad, % Mujeres y % Hombres.
   const dirOrden = [...dirStats].sort((a,b)=>b.total-a.total);
-  const paletaDir = ['#e5493d','#2f6fed','#8b5cf6','#27ae60','#f2994a','#16b5a1','#d6336c','#e5a53d','#5c6bc0','#8b8f99','#00acc1','#7cb342'];
+  const paletaDir = [cv("--c-red"),'#457B9D',cv("--c-navy"),'#3A9B84','#f2994a','#3F8F9B','#d6336c','#e5a53d',cv("--c-navy"),'#8b8f99','#7BB8AC','#9FC9D6'];
   const totalDir = dirOrden.reduce((s,x)=>s+x.total,0);
   renderIndPlaceholderOrChart('chartDirTotal','dirTotal','ind_wrapDirTotal', true, dirOrden, ()=>({
     type:'doughnut',
@@ -2047,7 +2051,7 @@ function renderIndicadores(){
     data:{ labels: dirGeneroData.map(x=>x.d),
       datasets:[
         { label:'Mujeres', data: dirGeneroData.map(x=>typeof x.promEdadM==='number' ? -x.promEdadM : null), backgroundColor:'#d6336c', stack:'edad', barPercentage:0.7, categoryPercentage:0.7 },
-        { label:'Hombres', data: dirGeneroData.map(x=>typeof x.promEdadH==='number' ? x.promEdadH : null), backgroundColor:'#2f6fed', stack:'edad', barPercentage:0.7, categoryPercentage:0.7 } ] },
+        { label:'Hombres', data: dirGeneroData.map(x=>typeof x.promEdadH==='number' ? x.promEdadH : null), backgroundColor:'#457B9D', stack:'edad', barPercentage:0.7, categoryPercentage:0.7 } ] },
     options:{ indexAxis:'y', responsive:true, maintainAspectRatio:false,
       plugins:{ legend:{position:'bottom', labels:{boxWidth:10, font:{size:10}}},
         tooltip:{ callbacks:{
@@ -2102,7 +2106,7 @@ const SIN_DATOS_ETAPAS_MSG = 'No se encontraron suficientes fechas de etapas en 
 function renderChartEtapasProm(segmentos){
   destroyChart('etapasProm');
   const ctx = document.getElementById('chartEtapasProm');
-  const colors = ['#2f6fed','#8b5cf6','#27ae60','#f2994a','#e5493d'];
+  const colors = ['#457B9D',cv("--c-navy"),'#3A9B84','#f2994a',cv("--c-red")];
   state.charts.etapasProm = new Chart(ctx, {
     type:'bar',
     data:{ labels: segmentos.map(s=>s.nombre), datasets:[{ label:'Prom. días hábiles', data: segmentos.map(s=>s.prom), backgroundColor:colors, borderRadius:4 }]},
@@ -2130,8 +2134,8 @@ function renderChartCuelloBotella(segmentos){
   state.charts.cuelloBotella = new Chart(ctx, {
     type:'bar',
     data:{ labels: segmentos.map(s=>s.nombre), datasets:[
-      { label:'Promedio', data: segmentos.map(s=>s.prom), backgroundColor:'#2f6fed', borderRadius:4 },
-      { label:'Máximo', data: segmentos.map(s=>s.max), backgroundColor:'#e5493d', borderRadius:4 }
+      { label:'Promedio', data: segmentos.map(s=>s.prom), backgroundColor:'#457B9D', borderRadius:4 },
+      { label:'Máximo', data: segmentos.map(s=>s.max), backgroundColor:cv("--c-red"), borderRadius:4 }
     ]},
     options:{ indexAxis:'y', responsive:true, maintainAspectRatio:false,
       plugins:{legend:{position:'bottom', labels:{boxWidth:10,font:{size:10}}},
@@ -2240,8 +2244,8 @@ function renderChartLiberadasCerradasMes(){
     state.charts[chartKey] = new Chart(document.getElementById(canvasId), {
       type: 'line',
       data: { labels: meses, datasets: [
-        { label: 'Vacantes Liberadas', data: dataLiberadas, borderColor: '#2f6fed', backgroundColor: '#2f6fed22', tension: 0.25, fill: false },
-        { label: 'Vacantes Cerradas (Envío a Compensación)', data: dataCerradas, borderColor: '#27ae60', backgroundColor: '#27ae6022', tension: 0.25, fill: false },
+        { label: 'Vacantes Liberadas', data: dataLiberadas, borderColor: '#457B9D', backgroundColor: '#457B9D22', tension: 0.25, fill: false },
+        { label: 'Vacantes Cerradas (Envío a Compensación)', data: dataCerradas, borderColor: '#3A9B84', backgroundColor: '#3A9B8422', tension: 0.25, fill: false },
       ] },
       options: { responsive: true, maintainAspectRatio: false,
         plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 10 } } } },
@@ -2419,7 +2423,7 @@ function tjRenderChart(canvasId, chartKey, wrapId, rows, buildConfig){
 }
 function tjBarConfig(labels, data, horizontal, color){
   return { type:'bar',
-    data:{ labels, datasets:[{ label:'Talento Joven', data, backgroundColor: color || '#e5493d', borderRadius:4 }] },
+    data:{ labels, datasets:[{ label:'Talento Joven', data, backgroundColor: color || cv("--c-red"), borderRadius:4 }] },
     options:{ indexAxis: horizontal ? 'y' : 'x', responsive:true, maintainAspectRatio:false,
       plugins:{ legend:{display:false} },
       scales: horizontal ? { x:{beginAtZero:true, ticks:{precision:0}}, y:{grid:{display:false}} }
@@ -2459,7 +2463,7 @@ function renderChartTalentoJovenPorFuncion(){
     const conEdad = rowsJoven.filter(tieneEdad);
     const funciones = uniqueSorted(conEdad,'funcionNivelCargo');
     const categorias = [
-      { label:'Generación Z (<29)', color:'#27ae60', test:esJoven },
+      { label:'Generación Z (<29)', color:'#3A9B84', test:esJoven },
       { label:'29 años o más', color:'#8b8f99', test:r=>!esJoven(r) },
     ];
     const datasets = categorias.map(c=>({ label:c.label, backgroundColor:c.color, stack:'s',
@@ -2500,7 +2504,7 @@ function renderTalentoJoven(){
   const regNote = document.getElementById('tj_regionNote');
   regNote.style.display = sinRegion.length ? '' : 'none';
   regNote.style.cssText = sinRegion.length
-    ? 'font-size:13px;margin:-4px 0 12px;padding:10px 12px;border:1px solid #e5493d;border-radius:8px;background:rgba(229,73,61,.08);color:var(--ink);'
+    ? 'font-size:13px;margin:-4px 0 12px;padding:10px 12px;border:1px solid var(--red);border-radius:8px;background:rgba(193,18,31,.08);color:var(--ink);'
     : '';
   regNote.textContent = sinRegion.length
     ? 'ATENCIÓN: '+sinRegion.length+' personas no traen Región en el archivo cargado ('
@@ -2518,11 +2522,11 @@ function renderTalentoJoven(){
 
   const countBy = key => { const m = new Map(); tj.forEach(r=>{ const v = r[key] || 'Sin dato'; m.set(v,(m.get(v)||0)+1); }); return m; };
   const regiones = [...countBy('region').entries()].sort((a,b)=>String(a[0]).localeCompare(String(b[0]),'es',{numeric:true}));
-  tjRenderChart('chartTjRegion','tjRegion','tj_wrapRegion', tj, ()=>tjBarConfig(regiones.map(e=>e[0]), regiones.map(e=>e[1]), false, '#2f6fed'));
+  tjRenderChart('chartTjRegion','tjRegion','tj_wrapRegion', tj, ()=>tjBarConfig(regiones.map(e=>e[0]), regiones.map(e=>e[1]), false, '#457B9D'));
   const porMes = new Array(12).fill(0); tj.forEach(r=>{ if (r.mes) porMes[r.mes-1]++; });
   tjRenderChart('chartTjMes','tjMes','tj_wrapMes', tj, ()=>tjBarConfig(MESES_ES, porMes, false, '#f2994a'));
   const dirs = [...countBy('direccion').entries()].sort((a,b)=>b[1]-a[1]);
-  tjRenderChart('chartTjDireccion','tjDireccion','tj_wrapDireccion', tj, ()=>tjBarConfig(dirs.map(e=>e[0]), dirs.map(e=>e[1]), true, '#8b5cf6'));
+  tjRenderChart('chartTjDireccion','tjDireccion','tj_wrapDireccion', tj, ()=>tjBarConfig(dirs.map(e=>e[0]), dirs.map(e=>e[1]), true, cv("--c-navy")));
 
   const wrap = document.getElementById('tj_table');
   if (!tj.length){ wrap.innerHTML = '<div class="placeholder-note">No hay personas de Talento Joven con los filtros actuales.</div>'; return; }
@@ -2718,7 +2722,7 @@ function renderRetiros(){
       state.charts.retPie = new Chart(document.getElementById('chartRetPie'), {
         type:'pie',
         data:{ labels:['Sí ('+p.si+' · '+pct(p.si)+')','No ('+p.no+' · '+pct(p.no)+')'],
-          datasets:[{ data:[p.si, p.no], backgroundColor:['#27ae60','#e5493d'], borderWidth:2, borderColor:borde }] },
+          datasets:[{ data:[p.si, p.no], backgroundColor:['#3A9B84',cv("--c-red")], borderWidth:2, borderColor:borde }] },
         options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{ position:'bottom' } } }
       });
     });
@@ -2728,7 +2732,7 @@ function renderRetiros(){
       state.charts.retProm = new Chart(document.getElementById('chartRetProm'), {
         type:'bar',
         data:{ labels:p.criterios.map(c => c.label+' · '+(c.avg===null?'—':fmt1(c.avg))),
-          datasets:[{ label:'Promedio', data:p.criterios.map(c => c.avg===null ? null : Math.round(c.avg*100)/100), backgroundColor:'#2f6fed', borderRadius:4 }] },
+          datasets:[{ label:'Promedio', data:p.criterios.map(c => c.avg===null ? null : Math.round(c.avg*100)/100), backgroundColor:'#457B9D', borderRadius:4 }] },
         options:{ indexAxis:'y', responsive:true, maintainAspectRatio:false,
           plugins:{ legend:{ display:false } },
           scales:{ x:{ min:0, max:10, ticks:{ precision:0 } }, y:{ grid:{ display:false } } } }
@@ -2757,7 +2761,7 @@ function renderRetiros(){
       destroyChart('retMes');
       state.charts.retMes = new Chart(document.getElementById('chartRetMes'), {
         type:'bar',
-        data:{ labels:r.meses.map(m=>m.label), datasets:[{ label:'Retiros', data:r.meses.map(m=>m.n), backgroundColor:'#e5493d', borderRadius:4 }] },
+        data:{ labels:r.meses.map(m=>m.label), datasets:[{ label:'Retiros', data:r.meses.map(m=>m.n), backgroundColor:cv("--c-red"), borderRadius:4 }] },
         options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{ display:false } },
           scales:{ y:{ beginAtZero:true, ticks:{ precision:0 } }, x:{ grid:{ display:false } } } }
       });
