@@ -77,12 +77,12 @@ loadScriptWithFallbacks([
   .status.warn{background:var(--warn-bg);color:var(--warn-fg)}
   .drop-hint{outline:2px dashed var(--accent);outline-offset:-8px}
 
-  .filters{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px 14px;box-shadow:var(--shadow);display:flex;flex-wrap:wrap;align-items:flex-end;gap:12px 16px;margin-bottom:16px;position:sticky;top:0;z-index:5}
-  .fgroup{display:flex;flex-direction:column;gap:5px;min-width:0}
-  .flabel{font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
-  .fsel{font:inherit;color:var(--ink);background:var(--card);border:1px solid var(--border);border-radius:999px;padding:5px 32px 5px 12px;min-height:32px;min-width:120px;cursor:pointer;appearance:none;
+  .filters{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px 14px;box-shadow:var(--shadow);display:flex;flex-wrap:wrap;align-items:flex-end;gap:10px 12px;margin-bottom:16px;position:sticky;top:0;z-index:5}
+  .fgroup{display:flex;flex-direction:column;gap:4px;min-width:0}
+  .flabel{font-size:11px;white-space:nowrap;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+  .fsel{font:inherit;color:var(--ink);background:var(--card);border:1px solid var(--border);border-radius:999px;padding:4px 26px 4px 10px;min-height:30px;min-width:0;max-width:170px;font-size:13px;cursor:pointer;appearance:none;
     background-image:linear-gradient(45deg,transparent 50%,var(--ink2) 50%),linear-gradient(135deg,var(--ink2) 50%,transparent 50%);
-    background-position:calc(100% - 17px) 50%,calc(100% - 12px) 50%;background-size:5px 5px;background-repeat:no-repeat}
+    background-position:calc(100% - 15px) 50%,calc(100% - 10px) 50%;background-size:5px 5px;background-repeat:no-repeat}
   .fsel:hover{border-color:var(--accent)}
   .fsel.on{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent);background-color:var(--accent-soft)}
   .fsel option{background:var(--card);color:var(--ink)}
@@ -199,14 +199,12 @@ loadScriptWithFallbacks([
   <section class="grid">
     <div class="card">
       <h2>Carga por temporal</h2>
-      <div class="desc">Número de vacantes por estado (columna ESTADO). Pasa el mouse o haz clic en una barra para ver los días promedio: abiertas (liberación → hoy) y cerradas (liberación → cierre).</div>
       <div class="legend" data-legend></div>
       <div class="chart-box"><canvas id="chCarga" aria-label="Vacantes por estado y temporal, con días promedio en el detalle"></canvas><div class="nodata">Sin datos para los filtros</div></div>
     </div>
 
     <div class="card">
       <h2>Abiertas con más de 30 días</h2>
-      <div class="desc">Cómo se reparten entre temporales las vacantes que llevan más de 30 días abiertas desde su fecha de liberación</div>
       <div class="pies" id="pies"></div>
     </div>
 
@@ -214,7 +212,6 @@ loadScriptWithFallbacks([
       <div class="card-head">
         <div>
           <h2>Vacantes por ciudad</h2>
-          <div class="desc">Columna CUIDAD, unificando la forma de escribir cada ciudad (p. ej. “Bogota, D.C.” → Bogotá, “Socha” → Soacha). Elige la región en el filtro de esta tarjeta (solo cambia esta gráfica). Clic en una barra para filtrar el tablero por esa ciudad; el % es sobre el total de la región.</div>
         </div>
         <div class="fgroup"><label class="flabel" for="selCiudadRegion">Región</label><select class="fsel" id="selCiudadRegion"></select></div>
       </div>
@@ -226,7 +223,6 @@ loadScriptWithFallbacks([
       <div class="card-head">
         <div>
           <h2>Vacantes por género</h2>
-          <div class="desc">Columna GENERO (o SEXO) del Excel. El filtro de región de esta tarjeta solo cambia esta gráfica.</div>
           <div class="desc" id="generoNote" style="color:var(--ink2);font-weight:600"></div>
         </div>
         <div class="fgroup"><label class="flabel" for="selGeneroRegion">Región</label><select class="fsel" id="selGeneroRegion"></select></div>
@@ -237,7 +233,6 @@ loadScriptWithFallbacks([
 
     <div class="card full">
       <h2>Pasos a directo por regional</h2>
-      <div class="desc">Filas con “paso a directo” en la columna D (TIPO DE LIBERACION) de cada hoja R1 a R5, sin importar mayúsculas o minúsculas. Clic en una barra para filtrar el tablero por esa regional.</div>
       <div class="desc" id="pasoNote" style="color:var(--ink2);font-weight:600"></div>
       <div class="legend" data-legend></div>
       <div class="chart-box"><canvas id="chPaso" aria-label="Pasos a directo por regional y temporal"></canvas><div class="nodata">Sin pasos a directo para los filtros</div></div>
@@ -468,7 +463,6 @@ function parseWorkbook(wb){
   return { rows, hojas, stats };
 }
 // Texto corto del detalle de hojas leídas, p. ej. "R1: 0 · R2: 0 · R3: 0 (52 sin fecha ni estado) · R4: 127 · R5: 32"
-const resumenHojas = hojas => hojas.map(x => `${x.name}: ${x.n}${x.sinDatos ? ` (${x.sinDatos} solo con ID, sin fecha ni estado)` : ''}`).join(' · ');
 async function loadFromFile(file, origin){
   try{
     if (!window.XLSX) throw new Error('No se pudo cargar la librería para leer Excel (revisa tu conexión a internet).');
@@ -478,15 +472,13 @@ async function loadFromFile(file, origin){
     setData(res.rows);
     lastModified = file.lastModified;
     $('sourceLabel').textContent = `Vinculado a “${file.name}” · ${res.hojas.length} hojas · ${res.rows.length} vacantes`;
-    const malas = res.stats.malas || [];
-    setStatus(`${origin} ${new Date().toLocaleTimeString('es-CO')} — ${res.rows.length} vacantes leídas. ${resumenHojas(res.hojas)}` +
-      (malas.length ? ` ⚠ Fechas con error de digitación (no se usan para días ni mes): ${malas.join('; ')}.` : ''), malas.length ? 'warn' : 'ok');
+    setStatus(`${origin} ${new Date().toLocaleTimeString('es-CO')}.`, 'ok');
   }catch(e){
     console.error(e);
     setStatus('No se pudo leer el archivo: ' + e.message + (e.name === 'NotReadableError' ? ' (cierra el archivo en Excel o guárdalo e intenta de nuevo)' : ''), 'err');
   }
 }
-function setStatus(msg, kind){ const s = $('status'); s.textContent = msg; s.className = 'status' + (kind ? ' ' + kind : ''); }
+function setStatus(msg, kind){ const s = $('status'); s.textContent = msg; s.className = 'status' + (kind ? ' ' + kind : ''); s.hidden = !msg; }
 /* ---------- Vínculo con el Excel ----------
    "Vincular Excel" guarda el acceso al archivo (en el navegador, IndexedDB) para que al volver a abrir el tablero
    se conecte solo y se actualice cada vez que el Excel se guarda. "Cargar archivo" lo lee una sola vez.
@@ -634,8 +626,8 @@ function renderFilters(){
   fillLocalRegion('selCiudadRegion', 'ciudadRegion', rows.filter(r => pass(r, 'ciudad')), false);
   if (hasGenero){ $('selGeneroRegion').disabled = false; fillLocalRegion('selGeneroRegion', 'generoRegion', rows.filter(r => pass(r) && r.genero !== 'Sin dato')); }
   else { const s = $('selGeneroRegion'); s.disabled = true; s.classList.remove('on'); s.innerHTML = '<option>Sin datos de género</option>'; }
-  fillSelect('selMes', 'mes', 'Todos los meses', MESES_L.map((_, i) => i), i => MESES_L[i]);
-  fillSelect('selYear', 'year', 'Todos los años', years);
+  fillSelect('selMes', 'mes', 'Todos', MESES_L.map((_, i) => i), i => MESES_L[i]);
+  fillSelect('selYear', 'year', 'Todos', years);
 }
 
 /* ---------- Métricas ---------- */
@@ -1010,14 +1002,8 @@ matchMedia('(prefers-color-scheme: dark)').addEventListener('change', resetChart
 
 $('sourceLabel').textContent = EMBEDDED_LABEL;
 hasGenero = EMBEDDED.some(r => !vacio(r[8]));
-{
-  // Resumen de los datos incrustados: vacantes por hoja (región) y fechas mal digitadas
-  const st = {}, embRows = buildRows(EMBEDDED, '', st), porReg = countBy(embRows, r => r.region);
-  const malas = st.malas || [];
-  setStatus(`Hojas leídas — ${REGIONES_BASE.map(x => `${x}: ${porReg[x] || 0}`).join(' · ')}.` +
-    (malas.length ? ` ⚠ Fechas con error de digitación (no se usan para días ni mes): ${malas.map(m => 'ID ' + m).join('; ')}.` : ' Puedes arrastrar el Excel sobre esta página para vincularlo.'), malas.length ? 'warn' : '');
-  setData(embRows);
-}
+setStatus('');
+setData(buildRows(EMBEDDED));
 // Reconecta el Excel vinculado la última vez (espera a que cargue la librería que lee Excel)
 (async () => { for (let i = 0; i < 50 && !window.XLSX; i++) await new Promise(r => setTimeout(r, 200)); restoreLink(); })();
 window.addEventListener('chartjs-ready', () => { if (!window.Chart) setStatus('No se pudo cargar la librería de gráficas (revisa tu conexión a internet). El comparativo y la tabla siguen funcionando.', 'err'); render(); });
