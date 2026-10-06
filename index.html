@@ -1,5 +1,5 @@
 <!doctype html>
-<!-- Tablero Vacantes - build 2026-10-06 v83 (uso interno para control de versión, no visible en el tablero) -->
+<!-- Tablero Vacantes - build 2026-10-06 v84 (uso interno para control de versión, no visible en el tablero) -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -2572,8 +2572,8 @@ document.getElementById('btnCloudRefresh').addEventListener('click', ()=>tryLoad
 setInterval(()=>tryLoadFromCloudProxy(true), 5*60*1000);
 
 /* ============================================================
-   8b. RETIROS-ROTACIÓN (libro aparte: "Evaluación Periodo de Prueba")
-   El Worker entrega este segundo libro con ?f=evaluacion (ver worker.js). Se lee igual que el
+   8b. RETIROS-ROTACIÓN (libro aparte: "Periodo de Prueba y Retiros")
+   El Worker entrega este segundo libro con ?f=retiros (ver worker.js). Se lee igual que el
    principal -- por HTTP, sin elegir ni arrastrar archivos -- y las columnas se buscan por el
    texto de su encabezado, no por su posición.
    ============================================================ */
@@ -2616,7 +2616,7 @@ async function loadRetirosFromCloud(){
   try{
     for (let i=0; i<50 && typeof XLSX === 'undefined'; i++) await new Promise(r=>setTimeout(r,100));
     if (typeof XLSX === 'undefined') throw new Error('La librería para leer Excel no se pudo cargar.');
-    const resp = await fetch(CLOUD_PROXY_URL + '?f=evaluacion', { cache:'no-store' });
+    const resp = await fetch(CLOUD_PROXY_URL + '?f=retiros', { cache:'no-store' });
     if (!resp.ok) throw new Error('El servidor respondió con un error (código '+resp.status+').');
     const wb = XLSX.read(new Uint8Array(await resp.arrayBuffer()), {type:'array'});
     const d = parseEvaluaciones(wb);
@@ -2635,8 +2635,8 @@ function renderRetiros(){
   if (!d){
     notice.style.display = '';
     notice.textContent = retEstado==='cargando' ? 'Cargando las evaluaciones desde la nube...'
-      : retEstado==='sinformato' ? 'La nube todavía no entrega el libro "Evaluación Periodo de Prueba": el Worker de Cloudflare necesita la versión nueva de worker.js y el archivo debe estar subido al repositorio privado.'
-      : 'No se pudo traer el libro "Evaluación Periodo de Prueba" desde la nube. Revisa tu conexión e intenta de nuevo en unos minutos.';
+      : retEstado==='sinformato' ? 'La nube todavía no entrega el libro "Periodo de Prueba y Retiros": el Worker de Cloudflare necesita la versión nueva de worker.js y el archivo debe estar subido al repositorio privado.'
+      : 'No se pudo traer el libro "Periodo de Prueba y Retiros" desde la nube. Revisa tu conexión e intenta de nuevo en unos minutos.';
     ['ret_total','ret_si','ret_no'].forEach(id=>setT(id,'—'));
     ['ret_totalSub','ret_siSub','ret_noSub','ret_updated'].forEach(id=>setT(id,''));
     destroyChart('retPie'); destroyChart('retProm');
@@ -2648,7 +2648,7 @@ function renderRetiros(){
   setT('ret_total', d.total); setT('ret_totalSub', 'evaluaciones del periodo de prueba');
   setT('ret_si', d.si); setT('ret_siSub', pct(d.si)+' del total');
   setT('ret_no', d.no); setT('ret_noSub', pct(d.no)+' del total');
-  setT('ret_updated', 'Fuente: libro "Evaluación Periodo de Prueba" · leído '+retActualizado.toLocaleString('es-CO')
+  setT('ret_updated', 'Fuente: libro "Periodo de Prueba y Retiros" (hoja periodo prueba) · leído '+retActualizado.toLocaleString('es-CO')
     + (d.sinRespuesta ? ' · '+d.sinRespuesta+' sin respuesta en cumplimiento' : ''));
   applyChartTheme();
   safeRenderChart('chartRetPie', ()=>{
