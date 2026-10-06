@@ -80,7 +80,7 @@ loadScriptWithFallbacks([
   .filters{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px 14px;box-shadow:var(--shadow);display:flex;flex-wrap:wrap;align-items:flex-end;gap:10px 12px;margin-bottom:16px;position:sticky;top:0;z-index:5}
   .fgroup{display:flex;flex-direction:column;gap:4px;min-width:0}
   .flabel{font-size:11px;white-space:nowrap;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
-  .fsel{font:inherit;color:var(--ink);background:var(--card);border:1px solid var(--border);border-radius:999px;padding:4px 26px 4px 10px;min-height:30px;min-width:0;max-width:170px;font-size:13px;cursor:pointer;appearance:none;
+  .fsel{font:inherit;color:var(--ink);background:var(--card);border:1px solid var(--border);border-radius:999px;padding:4px 26px 4px 10px;min-height:30px;min-width:0;max-width:220px;font-size:13px;cursor:pointer;appearance:none;
     background-image:linear-gradient(45deg,transparent 50%,var(--ink2) 50%),linear-gradient(135deg,var(--ink2) 50%,transparent 50%);
     background-position:calc(100% - 15px) 50%,calc(100% - 10px) 50%;background-size:5px 5px;background-repeat:no-repeat}
   .fsel:hover{border-color:var(--accent)}
@@ -628,6 +628,15 @@ function renderFilters(){
   else { const s = $('selGeneroRegion'); s.disabled = true; s.classList.remove('on'); s.innerHTML = '<option>Sin datos de género</option>'; }
   fillSelect('selMes', 'mes', 'Todos', MESES_L.map((_, i) => i), i => MESES_L[i]);
   fillSelect('selYear', 'year', 'Todos', years);
+  document.querySelectorAll('.fsel').forEach(ajustarAncho);
+}
+// El navegador dibuja cada menú del ancho de su opción más larga; aquí se ajusta al texto elegido (+ espacio de la flecha)
+const medidor = document.createElement('canvas').getContext('2d');
+function ajustarAncho(s){
+  const cs = getComputedStyle(s), txt = s.selectedOptions[0] ? s.selectedOptions[0].text : '';
+  medidor.font = `${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`;
+  const extra = parseFloat(cs.paddingLeft) + parseFloat(cs.paddingRight) + parseFloat(cs.borderLeftWidth) + parseFloat(cs.borderRightWidth);
+  s.style.width = Math.ceil(medidor.measureText(txt).width + extra + 2) + 'px';
 }
 
 /* ---------- Métricas ---------- */
