@@ -420,7 +420,7 @@ function buildRows(list, sheetRegion, stats){
       if (s < 43831 || s > TODAY + 366){ if (stats) (stats.malas = stats.malas || []).push(`${String(id ?? '').trim() || '¿sin ID?'} (${campo}: ${String(v).trim()})`); return null; }
       return s; };
     const o = { id: String(id ?? '').trim(), lib: fecha(lib, 'liberación'), con: fecha(cie, 'cierre'),
-      tipo: normTipo(tipo), temporal: normTemporal(temp), region: normRegion(vacio(reg) ? sheetRegion : reg), ciudad: normCity(ciu), genero: normGenero(gen) };
+      tipo: normTipo(tipo), temporal: normTemporal(temp), region: sheetRegion || normRegion(reg), ciudad: normCity(ciu), genero: normGenero(gen) };
     o.estado = normEstado(est);
     o.pasoDirecto = esPasoDirecto(tipo);
     o.diasCierre = (o.estado === 'Cerrada' && o.lib != null && o.con != null && o.con >= o.lib) ? o.con - o.lib : null;
@@ -442,19 +442,22 @@ const COLS = {
 const ORDER = ['id','lib','estado','tipo','temporal','region','ciudad','cierre','genero'];
 COLS.genero = ['genero','sexo','genero seleccionado','sexo seleccionado'];   // sin letra de respaldo: si no existe, no hay datos de género
 const LETTER = { id:0, lib:1, estado:2, tipo:3, temporal:4, region:8, ciudad:14, cierre:17 };
-// El Excel trae una hoja por región (R1, R2, R3...). Se leen y se suman TODAS las hojas que tengan las
-// columnas ESTADO y REGIONAL / FECHA DE LIBERACION; las demás (p. ej. "LIBERACIONES TEMPORALES") se ignoran.
+// El Excel trae una hoja por región: la hoja "R1" es la región 1, "R2" la región 2, etc. Se leen SOLO esas hojas
+// (las demás, como "LIBERACIONES TEMPORALES", se ignoran) y la región de cada fila sale del NOMBRE DE LA HOJA,
+// no de la columna REGIONAL. Si la hoja no tiene la fila de encabezados esperada, se usa la fila 1 y la posición
+// de las columnas (A=ID, B=FECHA, C=ESTADO, D=TIPO, E=TEMPORAL, O=CUIDAD, R=CIERRE).
 function parseWorkbook(wb){
   const rows = [], hojas = [], stats = {};
   let genero = false;
-  for (const name of wb.SheetNames){
+  const hojasRegion = wb.SheetNames.filter(n => /^\s*r(?:egion(?:al)?)?\s*\d+\s*$/i.test(n));
+  for (const name of hojasRegion){
     const aoa = XLSX.utils.sheet_to_json(wb.Sheets[name], { header:1, raw:true, defval:'' });
     let hi = -1, h = null;
     for (let i = 0; i < Math.min(15, aoa.length); i++){
       const t = aoa[i].map(norm);
-      if (t.includes('estado') && (t.includes('regional') || t.some(x => x.startsWith('fecha de liberacion')))){ hi = i; h = t; break; }
+      if (t.includes('estado') || t.some(x => x.startsWith('fecha de liberacion'))){ hi = i; h = t; break; }
     }
-    if (hi < 0) continue;
+    if (hi < 0){ hi = 0; h = (aoa[0] || []).map(norm); }
     const idx = {};
     for (const k of ORDER){
       let j = h.findIndex(x => COLS[k].includes(x));
@@ -463,7 +466,7 @@ function parseWorkbook(wb){
     }
     if (idx.genero == null){ const j = h.findIndex(x => x.includes('genero') || x.startsWith('sexo')); if (j >= 0) idx.genero = j; }
     if (idx.genero != null) genero = true;
-    const sheetRegion = /^r\s*\d+$/i.test(name.trim()) ? name.trim() : '';
+    const sheetRegion = normRegion(name);
     const list = aoa.slice(hi + 1).map(r => ORDER.map(k => idx[k] == null ? '' : r[idx[k]]));
     const st = {};
     const leidas = buildRows(list, sheetRegion, st);
@@ -472,7 +475,7 @@ function parseWorkbook(wb){
     stats.sinDatos = (stats.sinDatos || 0) + (st.sinDatos || 0);
     if (st.malas) (stats.malas = stats.malas || []).push(...st.malas.map(m => `${name.trim()} · ID ${m}`));
   }
-  if (!hojas.length) throw new Error('No encontré hojas con las columnas ESTADO y REGIONAL / FECHA DE LIBERACION.');
+  if (!hojas.length) throw new Error('No encontré hojas llamadas R1, R2, R3… en el Excel.');
   hasGenero = genero;
   return { rows, hojas, stats };
 }
@@ -485,7 +488,9 @@ async function loadFromFile(file, origin){
     if (!res.rows.length) throw new Error('No se encontraron filas con datos.');
     setData(res.rows);
     lastModified = file.lastModified;
-    $('sourceLabel').textContent = `Vinculado a “${file.name}” · ${res.hojas.length} hojas · ${res.rows.length} vacantes`;
+    $('sourceLabel').textContent = `Vinculado a “${file.name}” · ${res.rows.length} vacantes`;
+    // Detalle por hoja al pasar el mouse sobre esta línea (para comparar con el Excel)
+    $('sourceLabel').title = 'Vacantes leídas por hoja: ' + res.hojas.map(x => `${x.name}: ${x.n}`).join(' · ');
     setStatus(`${origin} ${new Date().toLocaleTimeString('es-CO')}.`, 'ok');
   }catch(e){
     console.error(e);
