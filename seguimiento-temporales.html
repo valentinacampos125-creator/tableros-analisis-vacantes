@@ -351,6 +351,7 @@ function normTemporal(raw){
   if (!k) return 'Sin temporal';
   if (k.startsWith('accion')) return 'Acción';
   if (k.startsWith('redes')) return 'Redes Humanas';
+  if (k.startsWith('claro') || k.startsWith('comcel')) return 'Claro';   // Comcel S.A. es la razón social de Claro
   return String(raw).trim().toLowerCase().replace(/\b\w/g, c => c.toUpperCase());
 }
 // El estado sale solo de la columna ESTADO (igual que el filtro de Excel); la fecha de cierre solo se usa para los días
