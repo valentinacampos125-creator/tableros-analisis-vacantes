@@ -1,5 +1,5 @@
 <!doctype html>
-<!-- Tablero Vacantes - build 2026-10-05 v81 (uso interno para control de versión, no visible en el tablero) -->
+<!-- Tablero Vacantes - build 2026-10-06 v82 (uso interno para control de versión, no visible en el tablero) -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -142,9 +142,16 @@ loadScriptWithFallbacks([
   .field-hint{font-size:11.5px;color:var(--muted);line-height:1.5;}
   .cfg-url{width:100%;font-size:12px;padding:6px 8px;border:1px solid var(--input-border);border-radius:6px;background:var(--card);color:var(--ink);}
 
-  .filters{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:14px;background:var(--card);border:1px solid var(--border);border-radius:14px;box-shadow:var(--shadow);padding:12px;}
+  .filters{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px;background:var(--card);border:1px solid var(--border);border-radius:14px;box-shadow:var(--shadow);padding:12px;}
   .filters select{padding:9px 16px;border-radius:999px;border:1px solid var(--border);background:var(--card);font-size:13px;width:170px;max-width:170px;box-shadow:none;color:var(--ink);transition:.15s;text-overflow:ellipsis;white-space:nowrap;overflow:hidden;}
-  .filters select.fit-text{width:auto;max-width:240px;}
+  /* Anchos fijos en Seguimiento: no cambian al filtrar (un valor largo se recorta con "…"). */
+  #fProfesional{width:122px;max-width:122px;}
+  #fEstado{width:100px;max-width:100px;}
+  #fAnio{width:80px;max-width:80px;}
+  #fMes{width:128px;max-width:128px;}
+  #fFuncionCargo{width:94px;max-width:94px;}
+  #fDireccion,#fCargoSegmentado{width:136px;max-width:136px;}
+  #fGranularidad{width:166px;max-width:166px;}
   .filters select:hover{border-color:var(--blue);}
   .filters select:focus, .chart-filter-select:focus, .cfg-url:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px rgba(47,111,237,.16);}
   .filters select.filter-active{border-color:var(--blue);box-shadow:0 0 0 3px rgba(47,111,237,.16);}
@@ -362,12 +369,12 @@ loadScriptWithFallbacks([
   <div id="pageSeguimiento">
 
     <div class="filters">
-      <select id="fProfesional" class="fit-text"><option value="">Profesional</option></select>
-      <select id="fEstado" class="fit-text"><option value="">Estado</option></select>
+      <select id="fProfesional"><option value="">Profesional</option></select>
+      <select id="fEstado"><option value="">Estado</option></select>
       <select id="fDireccion"><option value="">Dirección Corporativa</option></select>
-      <select id="fAnio" class="fit-text"><option value="">Año</option></select>
-      <select id="fMes" class="fit-text"><option value="">Mes</option></select>
-      <select id="fFuncionCargo" class="fit-text" title="Según la columna 'Función-Nivel Cargo' del Excel."><option value="">Cargo</option></select>
+      <select id="fAnio"><option value="">Año</option></select>
+      <select id="fMes"><option value="">Mes</option></select>
+      <select id="fFuncionCargo" title="Según la columna 'Función-Nivel Cargo' del Excel."><option value="">Cargo</option></select>
       <select id="fCargoSegmentado" title="Según la columna 'Nivel de Contribución' del Excel: Líderes Estratégicos, Líderes Operacionales, Contribuidores Individuales u Otro.">
         <option value="">Nivel de Contribución</option>
         <option value="estrategico">Líderes Estratégicos</option>
@@ -1300,20 +1307,8 @@ function markActiveFilters(ids){
     const el = document.getElementById(id);
     if (!el) return;
     el.classList.toggle('filter-active', el.value !== '');
-    if (el.classList.contains('fit-text')) fitSelectWidth(el);
   });
 }
-// Los selects con clase "fit-text" se ajustan al texto que muestran en ese momento (el nativo
-// reservaría el ancho de la opción más larga de la lista): texto + relleno + flecha del desplegable.
-const _fitCtx = document.createElement('canvas').getContext('2d');
-function fitSelectWidth(el){
-  const cs = getComputedStyle(el);
-  _fitCtx.font = cs.fontWeight+' '+cs.fontSize+' '+cs.fontFamily;
-  const opt = el.options[el.selectedIndex];
-  const w = Math.ceil(_fitCtx.measureText(opt ? opt.text : '').width);
-  el.style.width = (w + 54) + 'px';
-}
-if (document.fonts && document.fonts.ready) document.fonts.ready.then(()=>document.querySelectorAll('.filters select.fit-text').forEach(fitSelectWidth));
 
 /* ============================================================
    6. RENDER: KPIs, GRÁFICAS, TABLA
